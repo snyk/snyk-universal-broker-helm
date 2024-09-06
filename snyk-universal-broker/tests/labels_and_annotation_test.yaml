@@ -1,0 +1,93 @@
+# tests/deployment_test.yaml
+suite: "Test Deployment Labels and Annotations"
+templates:
+  - templates/statefulset.yaml
+set: 
+  commonLabels:
+    app: my-app
+    environment: production
+  commonAnnotations:
+    description: "My application"
+tests:
+  - it: should apply commonLabels to Deployment metadata and template
+    asserts:
+      - equal:
+          path: "metadata.labels"
+          value:
+            app: "my-app"
+            environment: "production"
+            app.kubernetes.io/instance: "RELEASE-NAME"
+            app.kubernetes.io/managed-by: "Helm"
+            app.kubernetes.io/name: "snyk-universal-broker"
+            helm.sh/chart: "snyk-universal-broker-0.0.1"
+      - equal:
+          path: "spec.template.metadata.labels"
+          value:
+            app: "my-app"
+            environment: "production"
+            app.kubernetes.io/instance: "RELEASE-NAME"
+            app.kubernetes.io/managed-by: "Helm"
+            app.kubernetes.io/name: "snyk-universal-broker"
+            helm.sh/chart: "snyk-universal-broker-0.0.1"
+
+  - it: should apply commonAnnotations to Deployment metadata and template
+    asserts:
+      - equal:
+          path: "metadata.annotations"
+          value:
+            description: "My application"
+
+  - it: "should include provided pod-level annotations"
+    set:
+      podAnnotations.custom-annotation: "test-annotation"
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations.custom-annotation
+          value: "test-annotation"
+
+  - it: "should include provided pod-level labels"
+    set:
+      podLabels.custom-label: "my-label-value"
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.custom-label
+          value: "my-label-value"
+
+  
+  - it: should apply commonLabels to Service metadata
+    asserts:
+      - equal:
+          path: "metadata.labels"
+          value:
+            app: "my-app"
+            environment: "production"
+            app.kubernetes.io/instance: "RELEASE-NAME"
+            app.kubernetes.io/managed-by: "Helm"
+            app.kubernetes.io/name: "snyk-universal-broker"
+            helm.sh/chart: "snyk-universal-broker-0.0.1"
+
+  - it: should apply commonAnnotations to Service metadata
+    asserts:
+      - equal:
+          path: "metadata.annotations"
+          value:
+            description: "My application"
+
+  - it: should apply commonLabels to serviceaccount metadata
+    asserts:
+      - equal:
+          path: "metadata.labels"
+          value:
+            app: "my-app"
+            environment: "production"
+            app.kubernetes.io/instance: "RELEASE-NAME"
+            app.kubernetes.io/managed-by: "Helm"
+            app.kubernetes.io/name: "snyk-universal-broker"
+            helm.sh/chart: "snyk-universal-broker-0.0.1"
+
+  - it: should apply commonAnnotations to serviceaccount metadata
+    asserts:
+      - equal:
+          path: "metadata.annotations"
+          value:
+            description: "My application"

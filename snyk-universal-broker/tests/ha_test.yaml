@@ -1,0 +1,54 @@
+values:
+  - ../values.yaml
+suite: HA Mode
+templates:
+  - templates/statefulset.yaml
+tests:
+  - it: deploys one replica by default
+    set: 
+      highAvailabilityMode.enabled: false
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_HA_MODE_ENABLED
+            value: "false"
+
+  - it: configures multiple replicas
+    set:
+      replicaCount: 2
+      highAvailabilityMode.enabled: true
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_HA_MODE_ENABLED
+            value: "true"
+
+  - it: does not allow more than 4 replicas
+    set:
+      replicaCount: 5
+      highAvailabilityMode.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "Cannot have more than 4 replicas in High Availability mode."
+
+  - it: does not set HA mode with only 1 replica
+    set:
+      replicaCount: 1
+      highAvailabilityMode.enabled: true
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_HA_MODE_ENABLED
+            value: "false"
