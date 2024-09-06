@@ -1,0 +1,8 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: snyk-universal-broker-helmcharts
+spec:
+  type: iac
+  lifecycle: "-"
+  owner: hybrid

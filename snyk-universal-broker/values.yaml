@@ -1,0 +1,269 @@
+# Default values for snyk-universal-broker.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+##### Snyk Specific Values #####
+
+## @param brokerToken is a value from Snyk. Get this from the integration settings page or your Snyk Representative
+## @param brokerClientUrl is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup.
+## @param brokerServerUrl is default endpoint for broker server
+## @param preflightChecks.enabled broker client preflight checks
+
+brokerToken: ""
+## E.g.
+## brokerClientUrl:http://kubernetes-ingress.domain.com:8000
+brokerClientUrl: ""
+## See https://docs.snyk.io/working-with-snyk/regional-hosting-and-data-residency#broker-urls for regional endpoints
+## Default endpoints are for the Snyk US tenant.
+brokerServerUrl: "https://broker.snyk.io"
+preflightChecks:
+  enabled: true
+
+##### Snyk Platform Server Auth #####
+deploymentId: ""
+clientId: ""
+clientSecret: ""
+
+##### SCM Tokens #####
+existingSecrets: "" # Name of an existing secret if it exists
+credentialReferences:
+  GITHUB_TOKEN: "" # Token value if a new secret needs to be created
+  GITLAB_TOKEN: ""
+  BITBUCKET_PASSWORD: ""
+  AZURE_REPOS_TOKEN: ""
+
+##### Universal Broker Deployment #####
+deployment:
+   container:
+     containerPort: 8000
+
+## @param brokerResources  Set container requests and limits for different resources like CPU or memory (essential for production workloads)
+
+brokerResources:
+   limits:
+     cpu: 1
+     memory: "256Mi"
+   requests:
+     cpu: 1
+     memory: "256Mi"
+
+## @param commonLabels Labels to add to all deployed objects
+
+commonLabels: {}
+customLabels: {}
+
+# Health and System Check Paths for the broker
+healthCheckPath: &healthCheckPath "/healthcheck"
+systemCheckPath: "/systemcheck"
+
+##### Liveness and Readiness Probes #####
+## Configure Broker containers' options for liveness probe
+## @param livenessProbe.enabled Enable livenessProbe
+## @param livenessProbe.path Path for the livenessProbe
+## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+## @param livenessProbe.periodSeconds Period seconds for livenessProbe
+## @param livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+## @param livenessProbe.failureThreshold Failure threshold for livenessProbe
+
+brokerLivenessProbe:
+  enabled: true
+  path: *healthCheckPath
+  config:
+    initialDelaySeconds: 3
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+
+## Configure Broker containers' options for readinessProbe probe
+## @param readinessProbe.enabled Enable readinessProbe
+## @param readinessProbe.path Path for the readinessProbe
+## @param readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+## @param readinessProbe.periodSeconds Period seconds for readinessProbe
+## @param readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+## @param readinessProbe.failureThreshold Failure threshold for readinessProbe
+
+brokerReadinessProbe:
+  enabled: true
+  path: *healthCheckPath
+  config:
+    initialDelaySeconds: 3
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+
+##### HA MODE #####
+## @param highAvailabilityMode.enabled snyk broker HA mode
+## @param brokerDispatcherUrl is required when running snyk broker in HA mode. The Dispatcher Base Url should be specific to your region if you are using a regional Snyk platform, for example, api.eu.snyk.io.
+## @param replicaCount number for snyk broker when running in HA mode (min 2, max 4)
+
+highAvailabilityMode:
+  enabled: false
+brokerDispatcherUrl: "https://api.snyk.io"
+replicaCount: 2
+
+##### Logging #####
+## @param logLevel defines Log Level for broker client pod. Can be set to "debug" for more information
+## @param logEnableBody adds additional logging by setting to true
+
+logLevel: "info"
+logEnableBody: "false"
+
+##### Enable HTTPS #####
+## @param enableBrokerLocalWebserverOverHttps enables Broker client to run a HTTPS server instead of the default HTTP server
+## @param httpsCert provides location for HTTPS cert( File must be within the Helm Chart directory.)
+## @param httpskey provides location for HTTPS cert( File must be within the Helm Chart directory.)
+
+enableBrokerLocalWebserverOverHttps: false
+httpsCert: ""
+httpsKey: ""
+
+##### HTTPS Inspection #####
+
+# Not supported by Snyk Container Registry Agent or Snyk Code Agent (use tlsRejectUnauthorized instead)
+# Filename of custom certificate to allow visibility for SSL Inspection (e.g "ca.pem")
+# Include any/all certificates required for a full trust chain.
+# File must be within the Helm Chart directory.
+caCert: ""
+
+# Not supported by Snyk Container Registry Agent or Snyk Code Agent (use tlsRejectUnauthorized instead)
+# Set caCertFile to read certificate content from the values.yaml file as a multiline string:
+# Include any/all certificates required for a full trust chain.
+#
+# caCertFile: |-
+#   ----- BEGIN CERTIFICATE -----
+#   < certificate data >
+#   ----- END CERTIFICATE -----
+#   ----- BEGIN CERTIFICATE -----
+#   < another certificate >
+#   ----- END CERTIFICATE -----
+#
+# or
+#
+# caCertFile: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
+caCertFile: ""
+
+# Set to `true` to disable trust validation when providing your own CA certificate.
+disableCaCertTrust: false
+
+# Set to "0" to disable trust validation when using self signed certificates.
+tlsRejectUnauthorized: ""
+
+##### Use behind proxy #####
+
+# Do not change unless advised by your Snyk Representative. You probably need to use HTTPS proxy setting and leave this blank. - HTTP Proxy URL
+httpProxy: ""
+
+# HTTPS Proxy URL - This will apply to both Snyk Broker and Snyk Code Agent
+httpsProxy: ""
+
+# No Proxy URL - This will apply to both Snyk Broker and Snyk Code Agent
+noProxy: ""
+
+##### Broker Image Parameters #####
+
+image:
+  repository: snyk/broker
+  crRepository: snyk/container-registry-agent
+  pullPolicy: Always
+  # Overrides the image tag. If left empty the latest version is used
+  tag: ""
+##### Broker Image Pull Secrets Parameters #####
+imagePullSecrets: []
+# - name: registrySecretName
+
+##### Service Account Values. Nothing to change here #####
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "snyk-broker"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+##### security context #####
+  ## @param SecurityContext.runAsUser Set Consul containers' Security Context runAsUser
+  ## @param SecurityContext.allowPrivilegeEscalation Set Consul containers' Security Context allowPrivilegeEscalation
+  ## @param SecurityContext.capabilities.drop Set containers' repo server Security Context capabilities to be dropped
+  ## @param SecurityContext.readOnlyRootFilesystem Set containers' repo server Security Context readOnlyRootFilesystem
+  ## @param SecurityContext.runAsNonRoot Set Consul containers' Security Context runAsNonRoot
+securityContext:
+   capabilities:
+     drop:
+     - ALL
+   readOnlyRootFilesystem: true
+   allowPrivilegeEscalation: false
+   runAsNonRoot: true
+   runAsUser: 1000
+
+
+##### Service Types #####
+# If you prefer to adjust how communication to the cluster occurs, these values can be adjusted
+service:
+
+  # Snyk Broker
+  brokerType: ClusterIP
+  port: 8000
+
+
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+
+##### Optionally Deploy a Broker Ingress Resource #####
+## @param broker.ingress.enabled Set to true to create an Ingress
+## @param broker.ingress.ingressClassName Optionally define the Ingress Class for this ingress - otherwise leave blank
+## @param broker.ingress.host define the host associated with this ingress - add Broker_client_url here
+## @param broker.ingress.tls.enabled Set to true to enable TLS on the in-built ingress
+## @param broker.ingress.tls.secret.name Either specify the name of a pre-existing Kubernetes secret containing TLS secrets, or leave blank to create a new secret
+## @param broker.ingress.tls.secret.key [string] The TLS key for TLS encryption, in PEM format
+## @param broker.ingress.tls.secret.cert [string] The TLS certificate for TLS encryption, in PEM format
+brokerIngress:
+  enabled: false
+  ingressClassName: ""
+  annotations: {}
+    ## E.g.
+    ## kubernetes.io/ingress.class: nginx
+    ## kubernetes.io/tls-acme: "true"
+  labels: {}
+  path: /
+  pathType: Prefix
+  hosts:
+    - <ENTER_BROKER_CLIENT_URL> # Must match the Broker client url
+  ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
+  extraPaths: []
+  tls:
+    enabled: false
+    secret:
+      name: ""
+      key: |
+        # Should start with -----BEGIN PRIVATE KEY-----
+
+      cert: |
+        # Should start with -----BEGIN CERTIFICATE-----
+
+##### Extra K8s resources, Volumes and VolumeMounts
+# These are useful when there is a need to introduce additional K8s resources (Drivers, Volumes, etc.) into the mix.
+# Secrets Store CSI Driver is one perfect example that can utilize these
+extraObjects: []
+
+extraVolumes: []
+
+extraVolumeMounts: []
+extraContainerSpecs:
+
+extraPodSpecs:
+  # tolerations:
+  # - key: "networking/something"
+  #   operator: "Equal"
+  #   value: "internal-pods"
+  #   effect: "NoSchedule"
+  # nodeSelector:
+  #   networking.company.com/network-segment: internal-pods

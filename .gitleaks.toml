@@ -1,0 +1,5 @@
+[extend]
+useDefault = true
+
+[allowList]
+paths = ['''hybrid-platform/tests''']

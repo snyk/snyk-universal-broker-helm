@@ -1,0 +1,196 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+spec:
+  {{- if .Values.highAvailabilityMode.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{ else }}
+  replicas: 1
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 8 }}
+    spec:
+      {{- if .Values.extraPodSpecs }}
+          {{- toYaml .Values.extraPodSpecs | nindent 6 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "snyk-broker.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: Universal-broker
+          resources:
+            limits:
+              cpu: {{ .Values.brokerResources.limits.cpu }}
+              memory: {{ .Values.brokerResources.limits.memory }}
+            requests:
+              cpu: {{ .Values.brokerResources.requests.cpu }}
+              memory: {{ .Values.brokerResources.requests.memory}}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if .Values.image.tag }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}-{{ .Values.scmType }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.scmType }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.deployment.container.containerPort }}
+          {{- if .Values.brokerLivenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              port: {{ .Values.deployment.container.containerPort }}
+              path: {{ .Values.brokerLivenessProbe.path }}
+              {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) }}
+              scheme: HTTPS
+              {{- else }}
+              scheme: HTTP
+              {{- end }}
+            {{- toYaml .Values.brokerLivenessProbe.config | nindent 12 }}
+          {{- end }}
+          {{- if .Values.brokerReadinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              port: {{ .Values.deployment.container.containerPort }}
+              path: {{ .Values.brokerReadinessProbe.path }}
+              {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) }}
+              scheme: HTTPS
+              {{- else }}
+              scheme: HTTP
+              {{- end }}
+            {{- toYaml .Values.brokerReadinessProbe.config | nindent 12 }}
+          {{- end }}
+          {{- if .Values.extraContainerSpecs }}
+          {{- toYaml .Values.extraContainerSpecs | nindent 10 }}
+          {{- end }}
+          envFrom:
+            {{- if .Values.existingSecrets }}
+            - secretRef:
+                name: {{ .Values.existingSecrets }}
+            {{- else }}
+            - secretRef:
+                name: {{ printf "%s-broker-scm-credential" (include "common.names.fullname" .) }}
+            {{- end }}
+          volumeMounts:
+              {{- if or (.Values.caCert) (.Values.caCertFile) }}
+              - name: {{ include "common.names.fullname" . }}-cacert-volume
+                mountPath: /home/node/cacert
+                readOnly: true
+              {{- end }}
+              {{- if and (.Values.httpsCert) (.Values.httpsKey) }}
+              - name: {{ include "common.names.fullname" .}}-tls-secret-volume
+                mountPath: /home/node/tls-cert/
+                readOnly: true
+              {{- end }}
+{{- if .Values.extraVolumeMounts }}
+{{ tpl (toYaml .Values.extraVolumeMounts | indent 14) . }}
+{{- end }}
+          env:
+            - name: BROKER_SERVER_URL
+              value: {{ .Values.brokerServerUrl }}
+            - name: BROKER_HEALTHCHECK_PATH
+              value: {{ .Values.healthCheckPath }}
+            - name: BROKER_SYSTEMCHECK_PATH
+              value: {{ .Values.systemCheckPath }}
+            - name: PORT
+              value: {{ .Values.deployment.container.containerPort | squote }}
+            - name: BROKER_CLIENT_URL
+              value: {{ .Values.brokerClientUrl }}
+         # Logging
+            - name: LOG_LEVEL
+              value: {{ .Values.logLevel }}
+            - name: LOG_ENABLE_BODY
+              value: {{ .Values.logEnableBody | squote }}
+
+         {{- if and (.Values.caCert) (not .Values.caCertFile) }}
+         # HTTPS Inspection
+            - name: CA_CERT
+              value: /home/node/cacert/{{ .Values.caCert }}
+            - name: NODE_EXTRA_CA_CERTS
+              value: /home/node/cacert/{{ .Values.caCert }}
+         {{- end }}
+         {{- if and (.Values.caCertFile) (not .Values.caCert) }}
+          # HTTPS Inspection
+            - name: CA_CERT
+              value: /home/node/cacert/cacert
+            - name: NODE_EXTRA_CA_CERTS
+              value: /home/node/cacert/cacert
+         {{- end }}
+
+         {{- if .Values.httpsCert }}
+         # HTTPS Config
+            - name: HTTPS_CERT
+              value: /home/node/tls-cert/tls.crt
+         {{- end }}
+         {{- if .Values.httpsKey }}
+            - name: HTTPS_KEY
+              value: /home/node/tls-cert/tls.key
+         {{- end }}
+         {{- if or ( and .Values.tlsRejectUnauthorized (not .Values.caCert ) (not .Values.caCertFile) ) ( and (or .Values.caCert .Values.caCertFile ) .Values.disableCaCertTrust ) }}
+         # Troubleshooting - Set to 0 for SSL inspection testing
+            - name: NODE_TLS_REJECT_UNAUTHORIZED
+              value: "0"
+         {{- end }}
+
+         {{- if .Values.httpProxy }}
+         # HTTP Proxy Settings
+            - name: HTTP_PROXY
+              value: {{ .Values.httpProxy }}
+         {{- end }}
+
+         {{- if .Values.httpsProxy }}
+         # HTTPS Proxy Settings
+            - name: HTTPS_PROXY
+              value: {{ .Values.httpsProxy }}
+         {{- end }}
+
+         {{- if .Values.noProxy }}
+         # No Proxy Settings
+            - name: NO_PROXY
+              value: {{ .Values.noProxy }}
+         {{- end }}
+         # Broker Configuration
+        {{- if not .Values.preflightChecks.enabled }}
+            - name: PREFLIGHT_CHECKS_ENABLED
+              value: "false"
+        {{- end}}
+        {{- if .Values.highAvailabilityMode.enabled }}
+            - name: BROKER_HA_MODE_ENABLED
+              value: "true"
+        {{- end}}
+        {{- range .Values.env }}
+         # custom env var in override.yaml
+            - name: {{ .name }}
+              value: {{ .value | squote }}
+        {{- end}}
+            - name: BROKER_DISPATCHER_BASE_URL
+              value: {{ .Values.brokerDispatcherUrl }}
+      # Mount Accept.json and Certs
+      volumes:
+      {{- if or (.Values.caCert) (.Values.caCertFile) }}
+      - name: {{ include "common.names.fullname" . }}-cacert-volume
+        secret:
+          secretName: {{ include "snyk-broker.caCertSecretName" . }}
+      {{- end }}
+      {{- if and (.Values.httpsCert) (.Values.httpsKey) }}
+      - name: {{ include "common.names.fullname" . }}-tls-secret-volume
+        secret:
+          secretName: {{ include "snyk-broker.tlsSecretName" . }}
+      {{- end }}
+{{- if .Values.extraVolumes }}
+{{ tpl (toYaml .Values.extraVolumes | indent 6) . }}
+{{- end }}
