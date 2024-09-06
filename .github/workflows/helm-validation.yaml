@@ -22,5 +22,4 @@ jobs:
       - name: Run helm unittest
         run: |
           helm plugin install https://github.com/helm-unittest/helm-unittest
-          helm dep up hybrid-platform/charts/hybrid-platform-egress 
-          helm unittest hybrid-platform
+          helm unittest snyk-universal-broker
