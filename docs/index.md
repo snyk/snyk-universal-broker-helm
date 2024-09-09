@@ -1,3 +1,3 @@
-# Hybrid Platform
+# Universal Broker
 
 Documentation for the Snyk Universal Broker

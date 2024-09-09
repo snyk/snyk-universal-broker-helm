@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "common.names.fullname" . }}
   namespace: {{ .Release.Namespace }}
@@ -10,6 +10,11 @@ spec:
   {{ else }}
   replicas: 1
   {{- end }}
+  updateStrategy:
+    type: "RollingUpdate"
+    rollingUpdate:
+      maxUnavailable: 1
+      partition: 0
   selector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 6 }}
   template:
@@ -31,7 +36,7 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: Universal-broker
+        - name: universal-broker
           resources:
             limits:
               cpu: {{ .Values.brokerResources.limits.cpu }}
@@ -42,9 +47,9 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           {{- if .Values.image.tag }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}-{{ .Values.scmType }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           {{- else }}
-          image: "{{ .Values.image.repository }}:{{ .Values.scmType }}"
+          image: "{{ .Values.image.repository }}"
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
