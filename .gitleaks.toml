@@ -2,4 +2,4 @@
 useDefault = true
 
 [allowList]
-paths = ['''snyk-universa-broker/tests''']
+paths = ['''snyk-universal-broker/tests''']
