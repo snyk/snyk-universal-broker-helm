@@ -54,7 +54,7 @@ spec:
           {{- if .Values.brokerLivenessProbe.enabled }}
           livenessProbe:
             httpGet:
-              port: {{ .Values.deployment.container.containerPort }}
+              port: {{ .Values.containerPort }}
               path: {{ .Values.brokerLivenessProbe.path }}
               {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) }}
               scheme: HTTPS
@@ -66,7 +66,7 @@ spec:
           {{- if .Values.brokerReadinessProbe.enabled }}
           readinessProbe:
             httpGet:
-              port: {{ .Values.deployment.container.containerPort }}
+              port: {{ .Values.containerPort }}
               path: {{ .Values.brokerReadinessProbe.path }}
               {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) }}
               scheme: HTTPS
@@ -80,7 +80,7 @@ spec:
           {{- end }}
           envFrom:
             - secretRef:
-                name: {{ ternary .Values.existingSecrets (printf "%s-broker-scm-credential" (include "common.names.fullname" .)) (not (empty .Values.existingSecrets)) }}
+                name: {{ ternary .Values.existingAuthSecret (printf "%s-broker-platform-auth" (include "common.names.fullname" .)) (not (empty .Values.existingAuthSecret)) }}
           volumeMounts:
               {{- if .Values.caCert }}
               - name: {{ include "common.names.fullname" . }}-cacert-volume
@@ -103,9 +103,11 @@ spec:
             - name: BROKER_SYSTEMCHECK_PATH
               value: {{ .Values.systemCheckPath }}
             - name: PORT
-              value: {{ .Values.deployment.container.containerPort | squote }}
+              value: {{ .Values.containerPort | squote }}
             - name: BROKER_CLIENT_URL
               value: {{ .Values.brokerClientUrl }}
+            - name: BROKER_HA_MODE_ENABLED
+              value: {{ .Values.highAvailabilityMode.enabled | default false | quote }}
          # Logging
             - name: LOG_LEVEL
               value: {{ .Values.logLevel }}
@@ -154,10 +156,6 @@ spec:
         {{- if not .Values.preflightChecks.enabled }}
             - name: PREFLIGHT_CHECKS_ENABLED
               value: "false"
-        {{- end}}
-        {{- if .Values.highAvailabilityMode.enabled }}
-            - name: BROKER_HA_MODE_ENABLED
-              value: "true"
         {{- end}}
         {{- range .Values.env }}
          # custom env var in override.yaml

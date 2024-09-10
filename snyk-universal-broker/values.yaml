@@ -22,7 +22,7 @@ clientId: ""
 clientSecret: ""
 
 ##### SCM Tokens #####
-existingSecrets: "" # Name of an existing secret if it exists
+existingAuthSecret: "" # Name of an existing secret if it exists
 credentialReferences: []
 
 ##### Universal Broker Deployment #####
