@@ -8,5 +8,5 @@ spec:
   type: {{ .Values.service.brokerType }}
   ports:
     - port: {{ .Values.service.port }}
-      # targetPort: {{ .Values.deployment.container.containerPort }}
+      targetPort: {{ .Values.containerPort }}
   selector: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 6 }}

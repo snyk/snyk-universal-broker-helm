@@ -4,13 +4,10 @@
 
 ##### Snyk Specific Values #####
 
-## @param brokerToken is a value from Snyk. Get this from the integration settings page or your Snyk Representative
 ## @param brokerClientUrl is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup.
 ## @param brokerServerUrl is default endpoint for broker server
 ## @param preflightChecks.enabled broker client preflight checks
 
-brokerToken: ""
-## E.g.
 ## brokerClientUrl:http://kubernetes-ingress.domain.com:8000
 brokerClientUrl: ""
 ## See https://docs.snyk.io/working-with-snyk/regional-hosting-and-data-residency#broker-urls for regional endpoints
@@ -26,16 +23,11 @@ clientSecret: ""
 
 ##### SCM Tokens #####
 existingSecrets: "" # Name of an existing secret if it exists
-credentialReferences:
-  GITHUB_TOKEN: "" # Token value if a new secret needs to be created
-  GITLAB_TOKEN: ""
-  BITBUCKET_PASSWORD: ""
-  AZURE_REPOS_TOKEN: ""
+credentialReferences: []
 
 ##### Universal Broker Deployment #####
-deployment:
-   container:
-     containerPort: 8000
+
+containerPort: 8000
 
 ## @param brokerResources  Set container requests and limits for different resources like CPU or memory (essential for production workloads)
 
@@ -51,6 +43,7 @@ brokerResources:
 
 commonLabels: {}
 customLabels: {}
+commonAnnotations: {}
 
 # Health and System Check Paths for the broker
 healthCheckPath: &healthCheckPath "/healthcheck"
@@ -110,8 +103,8 @@ logEnableBody: "false"
 
 ##### Enable HTTPS #####
 ## @param enableBrokerLocalWebserverOverHttps enables Broker client to run a HTTPS server instead of the default HTTP server
-## @param httpsCert provides location for HTTPS cert( File must be within the Helm Chart directory.)
-## @param httpskey provides location for HTTPS cert( File must be within the Helm Chart directory.)
+## @param httpsCert provides HTTPS cert
+## @param httpskey provides HTTPS cert key
 
 enableBrokerLocalWebserverOverHttps: false
 httpsCert: ""
@@ -119,15 +112,10 @@ httpsKey: ""
 
 ##### HTTPS Inspection #####
 
-# Filename of custom certificate to allow visibility for SSL Inspection (e.g "ca.pem")
-# Include any/all certificates required for a full trust chain.
-# File must be within the Helm Chart directory.
-caCert: ""
-
-# Set caCertFile to read certificate content from the values.yaml file as a multiline string:
+# Set caCert to read certificate content from the values.yaml file as a multiline string:
 # Include any/all certificates required for a full trust chain.
 #
-# caCertFile: |-
+# caCert: |-
 #   ----- BEGIN CERTIFICATE -----
 #   < certificate data >
 #   ----- END CERTIFICATE -----
@@ -138,7 +126,7 @@ caCert: ""
 # or
 #
 # caCertFile: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
-caCertFile: ""
+caCert: ""
 
 # Set to `true` to disable trust validation when providing your own CA certificate.
 disableCaCertTrust: false
@@ -161,9 +149,9 @@ noProxy: ""
 
 image:
   repository: snyk/broker
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   # Overrides the image tag. If left empty the latest version is used
-  tag: ""
+  tag: "universal"
 ##### Broker Image Pull Secrets Parameters #####
 imagePullSecrets: []
 # - name: registrySecretName
@@ -181,8 +169,6 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
-
 ##### security context #####
   ## @param SecurityContext.runAsUser Set Consul containers' Security Context runAsUser
   ## @param SecurityContext.allowPrivilegeEscalation Set Consul containers' Security Context allowPrivilegeEscalation
@@ -197,17 +183,15 @@ securityContext:
    allowPrivilegeEscalation: false
    runAsNonRoot: true
    runAsUser: 1000
+   fsGroup: 1000
 
 
 ##### Service Types #####
 # If you prefer to adjust how communication to the cluster occurs, these values can be adjusted
 service:
-
   # Snyk Broker
   brokerType: ClusterIP
   port: 8000
-
-
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -229,13 +213,13 @@ brokerIngress:
     ## E.g.
     ## kubernetes.io/ingress.class: nginx
     ## kubernetes.io/tls-acme: "true"
-  labels: {}
   path: /
   pathType: Prefix
   hosts:
     - <ENTER_BROKER_CLIENT_URL> # Must match the Broker client url
   ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
   extraPaths: []
+  existingSecret: ""
   tls:
     enabled: false
     secret:

@@ -2,4 +2,4 @@
 useDefault = true
 
 [allowList]
-paths = ['''hybrid-platform/tests''']
+paths = ['''snyk-universa-broker/tests''']

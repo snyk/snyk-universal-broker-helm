@@ -5,11 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
 spec:
-  {{- if .Values.highAvailabilityMode.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{ else }}
-  replicas: 1
-  {{- end }}
+  replicas: {{ ternary .Values.replicaCount 1 .Values.highAvailabilityMode.enabled }}
   updateStrategy:
     type: "RollingUpdate"
     rollingUpdate:
@@ -54,7 +50,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.deployment.container.containerPort }}
+              containerPort: {{ .Values.containerPort }}
           {{- if .Values.brokerLivenessProbe.enabled }}
           livenessProbe:
             httpGet:
@@ -83,15 +79,10 @@ spec:
           {{- toYaml .Values.extraContainerSpecs | nindent 10 }}
           {{- end }}
           envFrom:
-            {{- if .Values.existingSecrets }}
             - secretRef:
-                name: {{ .Values.existingSecrets }}
-            {{- else }}
-            - secretRef:
-                name: {{ printf "%s-broker-scm-credential" (include "common.names.fullname" .) }}
-            {{- end }}
+                name: {{ ternary .Values.existingSecrets (printf "%s-broker-scm-credential" (include "common.names.fullname" .)) (not (empty .Values.existingSecrets)) }}
           volumeMounts:
-              {{- if or (.Values.caCert) (.Values.caCertFile) }}
+              {{- if .Values.caCert }}
               - name: {{ include "common.names.fullname" . }}-cacert-volume
                 mountPath: /home/node/cacert
                 readOnly: true
@@ -120,22 +111,13 @@ spec:
               value: {{ .Values.logLevel }}
             - name: LOG_ENABLE_BODY
               value: {{ .Values.logEnableBody | squote }}
-
-         {{- if and (.Values.caCert) (not .Values.caCertFile) }}
-         # HTTPS Inspection
-            - name: CA_CERT
-              value: /home/node/cacert/{{ .Values.caCert }}
-            - name: NODE_EXTRA_CA_CERTS
-              value: /home/node/cacert/{{ .Values.caCert }}
-         {{- end }}
-         {{- if and (.Values.caCertFile) (not .Values.caCert) }}
+         {{- if .Values.caCert }}
           # HTTPS Inspection
             - name: CA_CERT
               value: /home/node/cacert/cacert
             - name: NODE_EXTRA_CA_CERTS
               value: /home/node/cacert/cacert
          {{- end }}
-
          {{- if .Values.httpsCert }}
          # HTTPS Config
             - name: HTTPS_CERT
@@ -186,7 +168,7 @@ spec:
               value: {{ .Values.brokerDispatcherUrl }}
       # Mount Accept.json and Certs
       volumes:
-      {{- if or (.Values.caCert) (.Values.caCertFile) }}
+      {{- if .Values.caCert }}
       - name: {{ include "common.names.fullname" . }}-cacert-volume
         secret:
           secretName: {{ include "snyk-broker.caCertSecretName" . }}
