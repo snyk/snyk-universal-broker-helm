@@ -17,50 +17,69 @@ preflightChecks:
   enabled: true
 
 ##### Snyk Platform Server Auth #####
+## @param deploymentId is obtained by installing the Universal Broker App at the Organization level
+## @param clientId is obtained by installing the Universal Broker App at the Organization level
+## @param clientSecret is obtained by installing the Universal Broker App at the Organization level
+## see https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/initial-configuration-of-the-universal-broker
+
 deploymentId: ""
 clientId: ""
 clientSecret: ""
 
-##### SCM Tokens #####
+## @param existingAuthSecret  Name of existing secret with Snyk platform auth and scm credential reference data
+## @param credentialReferences SCM token credential reference
 existingAuthSecret: "" # Name of an existing secret if it exists
 credentialReferences: []
 
-##### Universal Broker Deployment #####
-
+## @param containerPort Port to open for HTTP in universal broker
 containerPort: 8000
 
-## @param brokerResources  Set container requests and limits for different resources like CPU or memory (essential for production workloads)
+## Container's resource requests and limits
+## ref: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+## We usually recommend not to specify default resources and to leave this as a conscious
+## choice for the user. This also increases chances charts run on environments with little
+## resources, such as Minikube. If you do want to specify resources, uncomment the following
+## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+## @param resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
 
-brokerResources:
-   limits:
-     cpu: 1
-     memory: "256Mi"
-   requests:
-     cpu: 1
-     memory: "256Mi"
+resourcesPreset: "nano"
 
-## @param commonLabels Labels to add to all deployed objects
+## @param resources  Set container requests and limits for different resources like CPU or memory (essential for production workloads)
+## Example:
+## resources:
+##   requests:
+##     cpu: 2
+##     memory: 512Mi
+##   limits:
+##     cpu: 3
+##     memory: 1024Mi
 
+resources: {}
+
+## @param commonLabels Labels to add to all deployed objects (sub-charts are not considered)
+##
 commonLabels: {}
-customLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects (sub-charts are not considered)
+##
 commonAnnotations: {}
 
-# Health and System Check Paths for the broker
-healthCheckPath: &healthCheckPath "/healthcheck"
-systemCheckPath: "/systemcheck"
+## @param podLabels Pod labels
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+##
+podLabels: {}
 
 ##### Liveness and Readiness Probes #####
 ## Configure Broker containers' options for liveness probe
 ## @param livenessProbe.enabled Enable livenessProbe
 ## @param livenessProbe.path Path for the livenessProbe
-## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
-## @param livenessProbe.periodSeconds Period seconds for livenessProbe
-## @param livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
-## @param livenessProbe.failureThreshold Failure threshold for livenessProbe
+## @param livenessProbe.config.initialDelaySeconds Initial delay seconds for livenessProbe
+## @param livenessProbe.config.periodSeconds Period seconds for livenessProbe
+## @param livenessProbe.config.timeoutSeconds Timeout seconds for livenessProbe
+## @param livenessProbe.config.failureThreshold Failure threshold for livenessProbe
 
-brokerLivenessProbe:
+livenessProbe:
   enabled: true
-  path: *healthCheckPath
+  path: "/healthcheck"
   config:
     initialDelaySeconds: 3
     periodSeconds: 10
@@ -70,14 +89,14 @@ brokerLivenessProbe:
 ## Configure Broker containers' options for readinessProbe probe
 ## @param readinessProbe.enabled Enable readinessProbe
 ## @param readinessProbe.path Path for the readinessProbe
-## @param readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
-## @param readinessProbe.periodSeconds Period seconds for readinessProbe
-## @param readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
-## @param readinessProbe.failureThreshold Failure threshold for readinessProbe
+## @param readinessProbe.config.initialDelaySeconds Initial delay seconds for readinessProbe
+## @param readinessProbe.config.periodSeconds Period seconds for readinessProbe
+## @param readinessProbe.config.timeoutSeconds Timeout seconds for readinessProbe
+## @param readinessProbe.config.failureThreshold Failure threshold for readinessProbe
 
-brokerReadinessProbe:
+readinessProbe:
   enabled: true
-  path: *healthCheckPath
+  path: "/healthcheck"
   config:
     initialDelaySeconds: 3
     periodSeconds: 10
@@ -104,7 +123,7 @@ logEnableBody: "false"
 ##### Enable HTTPS #####
 ## @param enableBrokerLocalWebserverOverHttps enables Broker client to run a HTTPS server instead of the default HTTP server
 ## @param httpsCert provides HTTPS cert
-## @param httpskey provides HTTPS cert key
+## @param httpsKey provides HTTPS cert key
 
 enableBrokerLocalWebserverOverHttps: false
 httpsCert: ""
@@ -112,69 +131,73 @@ httpsKey: ""
 
 ##### HTTPS Inspection #####
 
-# Set caCert to read certificate content from the values.yaml file as a multiline string:
-# Include any/all certificates required for a full trust chain.
-#
-# caCert: |-
-#   ----- BEGIN CERTIFICATE -----
-#   < certificate data >
-#   ----- END CERTIFICATE -----
-#   ----- BEGIN CERTIFICATE -----
-#   < another certificate >
-#   ----- END CERTIFICATE -----
-#
-# or
-#
-# caCertFile: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
+## @param caCert Set caCert to read certificate content from the values.yaml file as a multiline string:
+## Include any/all certificates required for a full trust chain.
+##
+## caCert: |-
+##   ----- BEGIN CERTIFICATE -----
+##   < certificate data >
+##   ----- END CERTIFICATE -----
+##   ----- BEGIN CERTIFICATE -----
+##   < another certificate >
+##   ----- END CERTIFICATE -----
+##
+## or
+##
+## caCert: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
 caCert: ""
 
-# Set to `true` to disable trust validation when providing your own CA certificate.
+## @param disableCaCertTrust Set to `true` to disable trust validation when providing your own CA certificate.
 disableCaCertTrust: false
 
-# Set to "0" to disable trust validation when using self signed certificates.
+## @param tlsRejectUnauthorized Set to "0" to disable trust validation when using self signed certificates.
 tlsRejectUnauthorized: ""
 
 ##### Use behind proxy #####
 
-# Do not change unless advised by your Snyk Representative. You probably need to use HTTPS proxy setting and leave this blank. - HTTP Proxy URL
+## @param httpProxy Do not change unless advised by your Snyk Representative. You probably need to use HTTPS proxy setting and leave this blank. - HTTP Proxy URL
+## @param httpsProxy HTTPS Proxy URL - This will apply to both Snyk Broker 
+## @param noProxy provide URl here which doesn't need to go through a proxy(do not include protocol)  
 httpProxy: ""
-
-# HTTPS Proxy URL - This will apply to both Snyk Broker 
 httpsProxy: ""
-
-# No Proxy URL - This will apply to both Snyk Broker 
 noProxy: ""
 
 ##### Broker Image Parameters #####
-
+## @param image.registry [default: REGISTRY_NAME] Universal Broker image registry
+## @param image.repository [default: REPOSITORY_NAME/broker] Universal Broker image repository
+## @skip image.tag Universal Broker image tag (immutable tags are recommended)
+## @param image.pullPolicy Universal Broker image pull policy
+## @param image.pullSecrets Universal Broker image pull secrets
 image:
+  registry: docker.io
   repository: snyk/broker
   pullPolicy: IfNotPresent
   # Overrides the image tag. If left empty the latest version is used
-  tag: "universal"
-##### Broker Image Pull Secrets Parameters #####
-imagePullSecrets: []
-# - name: registrySecretName
+  tag: universal
+  pullSecrets: []
+  # - name: registrySecretName
 
 ##### Service Account Values. Nothing to change here #####
 
 serviceAccount:
-  # Specifies whether a service account should be created
+  ## @param serviceAccount.create Enable creation of ServiceAccount for  Universal Broker pod
   create: true
-  # Annotations to add to the service account
+  ## @param serviceAccount.existingServiceAccount Name of existing service account name
+  existingServiceAccount: ""
+  ## @param serviceAccount.annotations Additional custom annotations for the ServiceAccount
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: "snyk-broker"
-
-podAnnotations: {}
+  ## @param serviceAccount.name The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the common.names.fullname template
+  name: ""
 
 ##### security context #####
-  ## @param SecurityContext.runAsUser Set Consul containers' Security Context runAsUser
-  ## @param SecurityContext.allowPrivilegeEscalation Set Consul containers' Security Context allowPrivilegeEscalation
-  ## @param SecurityContext.capabilities.drop Set containers' repo server Security Context capabilities to be dropped
-  ## @param SecurityContext.readOnlyRootFilesystem Set containers' repo server Security Context readOnlyRootFilesystem
-  ## @param SecurityContext.runAsNonRoot Set Consul containers' Security Context runAsNonRoot
+  ## @param securityContext.runAsUser Set Universal Broker containers' Security Context runAsUser
+  ## @param securityContext.allowPrivilegeEscalation Set Universal Broker containers' Security Context allowPrivilegeEscalation
+  ## @param securityContext.capabilities.drop Set containers' repo server Security Context capabilities to be dropped
+  ## @param securityContext.readOnlyRootFilesystem Set containers' repo server Security Context readOnlyRootFilesystem
+  ## @param securityContext.runAsNonRoot Set Universal Broker containers' Security Context runAsNonRoot
+  ## @param securityContext.fsGroup Group ID for the volumes of the pod
+
 securityContext:
    capabilities:
      drop:
@@ -188,9 +211,11 @@ securityContext:
 
 ##### Service Types #####
 # If you prefer to adjust how communication to the cluster occurs, these values can be adjusted
+## @param service.type Universal broker svc type
+## @param service.port Universal broker svc port
+## @param service.tls is running Universal broker with https
 service:
-  # Snyk Broker
-  brokerType: ClusterIP
+  type: ClusterIP
   port: 8000
   tls: []
   #  - secretName: chart-example-tls
@@ -199,14 +224,19 @@ service:
 
 
 ##### Optionally Deploy a Broker Ingress Resource #####
-## @param broker.ingress.enabled Set to true to create an Ingress
-## @param broker.ingress.ingressClassName Optionally define the Ingress Class for this ingress - otherwise leave blank
-## @param broker.ingress.host define the host associated with this ingress - add Broker_client_url here
-## @param broker.ingress.tls.enabled Set to true to enable TLS on the in-built ingress
-## @param broker.ingress.tls.secret.name Either specify the name of a pre-existing Kubernetes secret containing TLS secrets, or leave blank to create a new secret
-## @param broker.ingress.tls.secret.key [string] The TLS key for TLS encryption, in PEM format
-## @param broker.ingress.tls.secret.cert [string] The TLS certificate for TLS encryption, in PEM format
-brokerIngress:
+## @param ingress.enabled Set to true to create an Ingress
+## @param ingress.ingressClassName Optionally define the Ingress Class for this ingress - otherwise leave blank
+## @param ingress.hosts define the host associated with this ingress - add Broker_client_url here
+## @param ingress.tls.enabled Set to true to enable TLS on the in-built ingress
+## @param ingress.tls.secret.name Either specify the name of a pre-existing Kubernetes secret containing TLS secrets, or leave blank to create a new secret
+## @param ingress.tls.secret.key [string] The TLS key for TLS encryption, in PEM format
+## @param ingress.tls.secret.cert [string] The TLS certificate for TLS encryption, in PEM format
+## @param ingress.annotations Additional annotations for the Ingress resource.
+## @param ingress.path Path for the default host
+## @param ingress.pathType Ingress path type
+## @param ingress.extraPaths Any additional arbitrary paths that may need to be added to the ingress under the main host.
+## @param ingress.existingSecret It is you own the certificate as secret.
+ingress:
   enabled: false
   ingressClassName: ""
   annotations: {}
@@ -230,21 +260,9 @@ brokerIngress:
       cert: |
         # Should start with -----BEGIN CERTIFICATE-----
 
-##### Extra K8s resources, Volumes and VolumeMounts
-# These are useful when there is a need to introduce additional K8s resources (Drivers, Volumes, etc.) into the mix.
-# Secrets Store CSI Driver is one perfect example that can utilize these
-extraObjects: []
-
+## @param extraVolumes Optionally specify extra list of additional volumes for Universal Broker container
 extraVolumes: []
 
+## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for Universal Broker container
 extraVolumeMounts: []
-extraContainerSpecs:
 
-extraPodSpecs:
-  # tolerations:
-  # - key: "networking/something"
-  #   operator: "Equal"
-  #   value: "internal-pods"
-  #   effect: "NoSchedule"
-  # nodeSelector:
-  #   networking.company.com/network-segment: internal-pods

@@ -8,3 +8,10 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Return the proper universal-broker image name
+*/}}
+{{- define "universal-broker.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.image) }}
+{{- end -}}

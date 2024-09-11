@@ -24,63 +24,57 @@ spec:
       {{- if .Values.extraPodSpecs }}
           {{- toYaml .Values.extraPodSpecs | nindent 6 }}
       {{- end }}
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
+      {{- with .Values.image.pullSecrets }}
+      pullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "snyk-broker.serviceAccountName" . }}
+      serviceAccountName: {{ .Values.serviceAccount.existingName | default (include "snyk-broker.serviceAccountName" .) }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: universal-broker
-          resources:
-            limits:
-              cpu: {{ .Values.brokerResources.limits.cpu }}
-              memory: {{ .Values.brokerResources.limits.memory }}
-            requests:
-              cpu: {{ .Values.brokerResources.requests.cpu }}
-              memory: {{ .Values.brokerResources.requests.memory}}
+          {{- if .Values.resources }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- else if ne .Values.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.resourcesPreset) | nindent 12 }}
+          {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          {{- if .Values.image.tag }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          {{- else }}
-          image: "{{ .Values.image.repository }}"
-          {{- end }}
+          image: {{ include "universal-broker.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.containerPort }}
-          {{- if .Values.brokerLivenessProbe.enabled }}
+          {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
               port: {{ .Values.containerPort }}
-              path: {{ .Values.brokerLivenessProbe.path }}
+              path: {{ .Values.livenessProbe.path }}
               {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) }}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
               {{- end }}
-            {{- toYaml .Values.brokerLivenessProbe.config | nindent 12 }}
+            {{- toYaml .Values.livenessProbe.config | nindent 12 }}
           {{- end }}
-          {{- if .Values.brokerReadinessProbe.enabled }}
+          {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
               port: {{ .Values.containerPort }}
-              path: {{ .Values.brokerReadinessProbe.path }}
+              path: {{ .Values.readinessProbe.path }}
               {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) }}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
               {{- end }}
-            {{- toYaml .Values.brokerReadinessProbe.config | nindent 12 }}
+            {{- toYaml .Values.readinessProbe.config | nindent 12 }}
           {{- end }}
           {{- if .Values.extraContainerSpecs }}
           {{- toYaml .Values.extraContainerSpecs | nindent 10 }}
           {{- end }}
           envFrom:
             - secretRef:
-                name: {{ ternary .Values.existingAuthSecret (printf "%s-broker-platform-auth" (include "common.names.fullname" .)) (not (empty .Values.existingAuthSecret)) }}
+                name: {{ ternary .Values.existingAuthSecret (printf "%s-platform-auth" (include "common.names.fullname" .)) (not (empty .Values.existingAuthSecret)) }}
           volumeMounts:
               {{- if .Values.caCert }}
               - name: {{ include "common.names.fullname" . }}-cacert-volume
