@@ -1,9 +1,4 @@
-# Default values for snyk-universal-broker.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-##### Snyk Specific Values #####
-
+## @section Snyk Universal Broker parameters
 ## @param brokerClientUrl is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup.
 ## @param brokerServerUrl is default endpoint for broker server
 ## @param preflightChecks.enabled broker client preflight checks
@@ -16,7 +11,7 @@ brokerServerUrl: "https://broker.snyk.io"
 preflightChecks:
   enabled: true
 
-##### Snyk Platform Server Auth #####
+## Snyk Platform Server Auth #####
 ## @param deploymentId is obtained by installing the Universal Broker App at the Organization level
 ## @param clientId is obtained by installing the Universal Broker App at the Organization level
 ## @param clientSecret is obtained by installing the Universal Broker App at the Organization level
@@ -103,7 +98,7 @@ readinessProbe:
     timeoutSeconds: 1
     failureThreshold: 3
 
-##### HA MODE #####
+## HA MODE #####
 ## @param highAvailabilityMode.enabled snyk broker HA mode
 ## @param brokerDispatcherUrl is required when running snyk broker in HA mode. The Dispatcher Base Url should be specific to your region if you are using a regional Snyk platform, for example, api.eu.snyk.io.
 ## @param replicaCount number for snyk broker when running in HA mode (min 2, max 4)
@@ -113,14 +108,14 @@ highAvailabilityMode:
 brokerDispatcherUrl: "https://api.snyk.io"
 replicaCount: 2
 
-##### Logging #####
+## Logging #####
 ## @param logLevel defines Log Level for broker client pod. Can be set to "debug" for more information
 ## @param logEnableBody adds additional logging by setting to true
 
 logLevel: "info"
 logEnableBody: "false"
 
-##### Enable HTTPS #####
+## Enable HTTPS #####
 ## @param enableBrokerLocalWebserverOverHttps enables Broker client to run a HTTPS server instead of the default HTTP server
 ## @param httpsCert provides HTTPS cert
 ## @param httpsKey provides HTTPS cert key
