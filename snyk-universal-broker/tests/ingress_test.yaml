@@ -1,0 +1,106 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Ingress
+templates:
+  - ingress.yaml
+  - statefulset.yaml
+values:
+  - fixtures/universal_broker_default_values.yaml
+set:
+  ingress.enabled: true
+
+tests:
+  - it: Renders an ingress if enabled
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: apiVersion
+          value: "networking.k8s.io/v1"
+        template: ingress.yaml
+
+  - it: Modifies the api version accordingly (pre 1.14)
+    capabilities:
+      majorVersion: 1
+      minorVersion: 13
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: apiVersion
+          value: "extensions/v1beta1"
+        template: ingress.yaml
+
+  - it: Modifies the api version accordingly (pre 1.20)
+    capabilities:
+      majorVersion: 1
+      minorVersion: 19
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: apiVersion
+          value: "networking.k8s.io/v1beta1"
+        template: ingress.yaml
+
+  - it: Accepts a provided ingressClassName
+    set:
+      ingress.ingressClassName: "myCustomClass"
+    asserts:
+      - equal:
+          path: spec.ingressClassName
+          value: "myCustomClass"
+        template: ingress.yaml
+
+  - it: Serves broker via https with an existing secret
+    set:
+      ingress.tls.enabled: true
+      ingress.tls.secret: "my-broker-certificate"
+    asserts:
+      - contains:
+          path: spec.tls
+          content:
+            secretName: "my-broker-certificate"
+        template: ingress.yaml
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.scheme
+          value: "HTTPS"
+        template: statefulset.yaml
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.scheme
+          value: "HTTPS"
+        template: statefulset.yaml
+            
+  # - it: Serves broker via https with a new secret
+  # # Where does this secret get created?
+  #   set:
+  #     ingress.tls.enabled: true
+  #     ingress.tls.key: "-----BEGIN PRIVATE KEY-----\nFAKE KEY\n-----END PRIVATE KEY-----"
+  #     ingress.tls.cert: "-----BEGIN CERTIFICATE-----\n FAKE CERT\n-----END CERTIFICATE-----"
+  #   asserts:
+  #     - contains:
+  #         path: spec.tls
+  #         content:
+  #           secretName: ""
+
+  - it: Adds extra hosts
+    set:
+      ingress.hosts[0]: my.broker.tld
+      ingress.hosts[1]: my.other.host.tld
+    asserts:
+      - isKind:
+          of: Ingress
+    template: ingress.yaml
+      # where am I asserting the hosts?
+
+  # - it: Respects a different container port
+  #   set:
+  #     service.port: 1234
+  #   asserts:
+  #     - 
+
+  # - it: Respects my custom path
+  #   set:
+  #     ingress.path: "/*"
+  #   asserts:
+  #     - 
+
