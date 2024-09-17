@@ -11,4 +11,4 @@ repos:
       pass_filenames: false
       always_run: true
       # default args are [--readme=chart/README.md, --values=chart/values.yaml]
-      args: [--readme=snyk-universal-broker/README.md, --values=snyk-universal-broker/values.yaml]
+      args: [--readme=README.md, --values=snyk-universal-broker/values.yaml]
