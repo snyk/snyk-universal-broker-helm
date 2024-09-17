@@ -43,7 +43,7 @@ spec:
           {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: {{ include "universal-broker.image" . }}
+          image: {{ printf "%s/%s/%s:%s-universal" .Values.image.registry .Values.image.repository .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http

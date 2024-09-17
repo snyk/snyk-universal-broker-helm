@@ -2,17 +2,11 @@ version: 2.1
 
 jobs:
   validate_charts:
-    machine:
-      image: ubuntu-2204:current  # Use a Docker image that has Helm support or install Helm manually
+    docker:
+      - image: alpine/k8s:1.28.14
     resource_class: medium
     steps:
       - checkout
-
-      - run:
-          name: Install Helm
-          command: |
-            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-            helm version
 
       - run:
           name: Install helm-unittest plugin

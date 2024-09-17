@@ -168,7 +168,7 @@ image:
   repository: snyk/broker
   pullPolicy: IfNotPresent
   # Overrides the image tag. If left empty the latest version is used
-  tag: universal
+  tag: ""
   pullSecrets: []
   # - name: registrySecretName
 
@@ -188,8 +188,8 @@ serviceAccount:
 ##### security context #####
   ## @param securityContext.runAsUser Set Universal Broker containers' Security Context runAsUser
   ## @param securityContext.allowPrivilegeEscalation Set Universal Broker containers' Security Context allowPrivilegeEscalation
-  ## @param securityContext.capabilities.drop Set containers' repo server Security Context capabilities to be dropped
-  ## @param securityContext.readOnlyRootFilesystem Set containers' repo server Security Context readOnlyRootFilesystem
+  ## @param securityContext.capabilities.drop Drop all the Linux capabilities for Universal broker Container
+  ## @param securityContext.readOnlyRootFilesystem Set Universal broker containers' Security Context readOnlyRootFilesystem
   ## @param securityContext.runAsNonRoot Set Universal Broker containers' Security Context runAsNonRoot
   ## @param securityContext.fsGroup Group ID for the volumes of the pod
 

@@ -23,9 +23,20 @@ tests:
           value: 1
   - it: allows values-level overrides
     set:
-      readinessProbe.initialDelaySeconds: 5
-      readinessProbe.periodSeconds.default: 10
+      readinessProbe.config.initialDelaySeconds: 5
+      readinessProbe.config.periodSeconds: 15
+      livenessProbe.config.timeoutSeconds: 3
+      livenessProbe.config.failureThreshold: 5
     asserts:
       - equal:
+          path: spec.template.spec.containers[0].readinessProbe.initialDelaySeconds
+          value: 5
+      - equal:
           path: spec.template.spec.containers[0].readinessProbe.periodSeconds
-          value: 10
+          value: 15
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.timeoutSeconds
+          value: 3
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.failureThreshold
+          value: 5
