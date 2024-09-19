@@ -1,0 +1,111 @@
+suite: Pod runtime tests
+values:
+  - ../values.yaml
+templates:
+  - templates/statefulset.yaml
+
+tests:
+  - it: should set pod security context when enabled
+    set:
+      podSecurityContext.enabled: true
+      podSecurityContext.fsGroup: 1001
+      podSecurityContext.fsGroupChangePolicy: "Always"
+      podSecurityContext.supplementalGroups: [2000]
+      podSecurityContext.sysctls:
+        - name: "net.core.somaxconn"
+          value: "1024"
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001
+      - equal:
+          path: spec.template.spec.securityContext.fsGroupChangePolicy
+          value: "Always"
+      - equal:
+          path: spec.template.spec.securityContext.supplementalGroups[0]
+          value: 2000
+      - equal:
+          path: spec.template.spec.securityContext.sysctls[0].name
+          value: "net.core.somaxconn"
+      - equal:
+          path: spec.template.spec.securityContext.sysctls[0].value
+          value: "1024"
+
+  - it: should set container security context when enabled
+    set:
+      containerSecurityContext.enabled: true
+      containerSecurityContext.runAsUser: 1001
+      containerSecurityContext.runAsGroup: 1001
+      containerSecurityContext.runAsNonRoot: true
+      containerSecurityContext.allowPrivilegeEscalation: false
+      containerSecurityContext.capabilities.drop: ["ALL"]
+      containerSecurityContext.seccompProfile.type: "RuntimeDefault"
+      containerSecurityContext.privileged: false
+      containerSecurityContext.readOnlyRootFilesystem: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1001
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsGroup
+          value: 1001
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop[0]
+          value: "ALL"
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.seccompProfile.type
+          value: "RuntimeDefault"
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.privileged
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+  
+  - it: can add tolerations
+    set:
+      tolerations:
+        - key: "key1"
+          operator: "Exists"
+          effect: "NoSchedule"
+    asserts:
+      - contains:
+          path: spec.template.spec.tolerations
+          content:
+            key: "key1"
+            operator: "Exists"
+            effect: "NoSchedule"
+
+  - it: can add nodeSelectors
+    set:
+      nodeSelector:
+        disktype: ssd
+        cpu: high
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector.disktype
+          value: ssd
+      - equal:
+          path: spec.template.spec.nodeSelector.cpu
+          value: high
+
+  - it: should set arbitrary hostAliases on the pod
+    set:
+      hostAliases:
+        - hostnames:
+            - "example.com"
+          ip: "127.0.0.1"
+    asserts:
+    - equal:
+        path: spec.template.spec.hostAliases[0].hostnames
+        value:
+          - "example.com"
+    - equal:
+        path: spec.template.spec.hostAliases[0].ip
+        value: "127.0.0.1"

@@ -19,10 +19,10 @@ spec:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
   template:
     metadata:
-    {{- if or .Values.podAnnotations }}
+    {{- if .Values.podAnnotations }}
       annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.podAnnotations "context" $ ) | nindent 8 }}
     {{- end }}
-      labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 8 }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
     spec:
       {{- if .Values.extraPodSpecs }}
           {{- toYaml .Values.extraPodSpecs | nindent 6 }}
@@ -32,8 +32,18 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ .Values.serviceAccount.existingName | default (include "snyk-broker.serviceAccountName" .) }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
       containers:
         - name: universal-broker
           {{- if .Values.resources }}
@@ -41,10 +51,11 @@ spec:
           {{- else if ne .Values.resourcesPreset "none" }}
           resources: {{- include "common.resources.preset" (dict "type" .Values.resourcesPreset) | nindent 12 }}
           {{- end }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: {{ printf "%s/%s/%s:%s-universal" .Values.image.registry .Values.image.repository .Values.image.tag }}
+          image: {{ printf "%s/%s:%s-universal" .Values.image.registry .Values.image.repository .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.containerPort }}
@@ -94,17 +105,13 @@ spec:
 {{- end }}
           env:
             - name: BROKER_SERVER_URL
-              value: {{ .Values.brokerServerUrl }}
-            - name: BROKER_HEALTHCHECK_PATH
-              value: {{ .Values.healthCheckPath }}
-            - name: BROKER_SYSTEMCHECK_PATH
-              value: {{ .Values.systemCheckPath }}
+              value: {{ include "snyk-broker.brokerServerUrl" . }}
             - name: PORT
               value: {{ .Values.containerPort | squote }}
             - name: BROKER_CLIENT_URL
               value: {{ .Values.brokerClientUrl }}
             - name: BROKER_HA_MODE_ENABLED
-              value: {{ .Values.highAvailabilityMode.enabled | default false | quote }}
+              value: {{ if and (.Values.highAvailabilityMode.enabled) (gt (int .Values.replicaCount) 1) }} "true" {{ else }} "false" {{ end }}
          # Logging
             - name: LOG_LEVEL
               value: {{ .Values.logLevel }}
@@ -160,7 +167,7 @@ spec:
               value: {{ .value | squote }}
         {{- end}}
             - name: BROKER_DISPATCHER_BASE_URL
-              value: {{ .Values.brokerDispatcherUrl }}
+              value: {{ include "snyk-broker.brokerDispatcherUrl" . }}
       # Mount Accept.json and Certs
       volumes:
       {{- if .Values.caCert }}

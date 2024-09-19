@@ -36,6 +36,23 @@ tests:
           path: "metadata.annotations"
           value:
             description: "My application"
+
+  - it: "should include provided pod-level annotations"
+    set:
+      podAnnotations.custom-annotation: "test-annotation"
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations.custom-annotation
+          value: "test-annotation"
+
+  - it: "should include provided pod-level labels"
+    set:
+      podLabels.custom-label: "my-label-value"
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.custom-label
+          value: "my-label-value"
+
   
   - it: should apply commonLabels to Service metadata
     asserts:

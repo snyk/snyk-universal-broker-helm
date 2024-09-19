@@ -2,7 +2,7 @@
 
 suite: Image Pull Secrets & Custom Registry/Repositories
 templates:
-  - statefulset.yaml
+  - templates/statefulset.yaml
 values:
   - fixtures/universal_broker_default_values.yaml
 set:
@@ -64,7 +64,6 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image
-          # What's the value of image.tag?
           value: my.private.docker.tld/snyk/broker:1.0.0-universal
 
   - it: Sets a custom image repository

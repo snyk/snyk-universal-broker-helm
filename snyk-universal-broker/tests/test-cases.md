@@ -1,39 +1,39 @@
 # Metadata
-- [ ] I can provide arbitrary annotations
-- [ ] I can provide arbitrary labels
+- [✅] I can provide arbitrary annotations
+- [✅] I can provide arbitrary labels
 
 # Pod
-- [ ] I can provide pod-level annotations
-- [ ] I can provide pod-level labels
+- [✅] I can provide pod-level annotations
+- [✅] I can provide pod-level labels
 
 # Image Pull
-- [ ] I can provide my own external ImagePullSecret
-- [ ] I can provide multiple imagePullSecret(s)
-- [ ] I can provide a custom image registry
-- [ ] I can provide a custom image repository
-- [ ] I can override the version
-- [ ] I can set my own image pull policy
+- [✅] I can provide my own external ImagePullSecret
+- [✅] I can provide multiple imagePullSecret(s)
+- [✅] I can provide a custom image registry
+- [✅] I can provide a custom image repository
+- [✅] I can override the version
+- [✅] I can set my own image pull policy
 
 # Pod Runtime
-- [ ] I can provide my own security context
+- [✅ ] I can provide my own security context
 - [ ] I can add a pod security context, specific to Broker
-- [ ] I can add tolerations
-- [ ] I can add nodeSelectors
+- [✅] I can add tolerations
+- [✅] I can add nodeSelectors
 - [ ] I can add affinities/anti-affinities
-- [ ] I can set my own runAsUser, runAsGroup, etc.
+- [✅] I can set my own runAsUser, runAsGroup, etc.
 
 # SA
-- [ ] I can enable the service account
-- [ ] I can use an existing service account
+- [✅] I can enable the service account
+- [✅] I can use an existing service account
 
 # Overrides
 
 # Resources
-- [ ] I can specify my own limits
-- [ ] I can specify my own requests
+- [✅] I can specify my own limits
+- [✅] I can specify my own requests
 
 # Statefulset
-- [ ] I can set replicas (>1 == HA Mode)
+- [✅] I can set replicas (>1 == HA Mode)
 
 # OpenShift
 
@@ -45,10 +45,10 @@
 - [ ] I can ignore a certificate that the proxy presents
 
 # Other Networking
-- [ ] I can set arbitrary hostAliases on the pod
+- [✅] I can set arbitrary hostAliases on the pod
 
 # Tenancy
-- [ ] I can set which Snyk Tenant I am using (EU, AU, my.<>, etc.)
+- [✅] I can set which Snyk Tenant I am using (EU, AU, my.<>, etc.)
 
 # Broker Parameters
 
