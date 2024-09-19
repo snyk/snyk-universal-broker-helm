@@ -7,16 +7,16 @@ jobs:
     resource_class: medium
     steps:
       - checkout
-
       - run:
-          name: Install helm-unittest plugin
-          command: |
-            helm plugin install https://github.com/helm-unittest/helm-unittest
-
+          name: Helm dependencies
+          command: helm dep up
+          working_directory: 
+            snyk-universal-broker
       - run:
           name: Run helm unittest
-          command: |
-            helm unittest snyk-universal-broker
+          command: helm unittest .
+          working_directory: 
+            snyk-universal-broker
 
 workflows:
   validate:

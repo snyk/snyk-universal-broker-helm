@@ -1,13 +1,14 @@
 ## @section Snyk Broker parameters
 ## @param brokerClientUrl is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup.
-## @param brokerServerUrl is default endpoint for broker server
-## @param preflightChecks.enabled broker client preflight checks
-
 ## brokerClientUrl:http://kubernetes-ingress.domain.com:8000
 brokerClientUrl: ""
+
 ## See https://docs.snyk.io/working-with-snyk/regional-hosting-and-data-residency#broker-urls for regional endpoints
 ## Default endpoints are for the Snyk US tenant.
+## @param tenant Optionally specify a Snyk Region - defaults to "US".
 tenant: "default"  # Options: "EU", "AU", "default", or any custom domain
+
+## @param preflightChecks.enabled broker client preflight checks
 preflightChecks:
   enabled: true
 
@@ -34,7 +35,10 @@ containerPort: 8000
 ##
 hostAliases: []
 
-## @param resources  Set container requests and limits for different resources like CPU or memory (essential for production workloads)
+## @param resources.requests.cpu Set CPU requests
+## @param resources.requests.memory Set memory requests
+## @param resources.limits.cpu Set CPU limits
+## @param resources.limits.memory Set memory limits
 resources: 
   requests:
     cpu: 2
@@ -169,7 +173,7 @@ image:
 serviceAccount:
   ## @param serviceAccount.create Enable creation of ServiceAccount for Broker pod
   create: true
-  ## @param serviceAccount.existingServiceAccount Name of existing service account name
+  ## @param serviceAccount.existingName Optionally provide an existing service account name
   existingName: ""
   ## @param serviceAccount.annotations Additional custom annotations for the ServiceAccount
   annotations: {}
