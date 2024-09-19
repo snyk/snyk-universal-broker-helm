@@ -251,39 +251,27 @@ service:
 ## @param ingress.existingSecret It is you own the certificate as secret.
 ingress:
   enabled: true
-  ingressClassName: "nginx"
-  annotations: 
-    kubernetes.io/ingress.class: "nginx"
-    kubernetes.io/tls-acme: "true"
+  ingressClassName: ""
+  annotations: {}
     ## E.g.
     ## kubernetes.io/ingress.class: nginx
     ## kubernetes.io/tls-acme: "true"
   path: /
   pathType: Prefix
-  hosts: 
-    - broker.config
+  hosts: [] # Must match the Broker client url
   ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
-  extraPaths: 
-    - path: "/additional-path"
-      pathType: "Prefix"
-      backend:
-        service:
-          name: "additional-service"
-          port:
-            number: 8080
+  extraPaths: []
   existingSecret: ""
   tls:
-    enabled: false
+    enabled: true
     secret:
       name: ""
       key: |
-        -----BEGIN PRIVATE KEY-----
-        YOUR_PRIVATE_KEY_HERE
-        -----END PRIVATE KEY-----
+        # Should start with -----BEGIN PRIVATE KEY-----
+
       cert: |
-        -----BEGIN CERTIFICATE-----
-        YOUR_CERTIFICATE_HERE
-        -----END CERTIFICATE-----
+        # Should start with -----BEGIN CERTIFICATE-----
+
 ## @param extraVolumes Optionally specify extra list of additional volumes for Broker container
 extraVolumes: []
 
