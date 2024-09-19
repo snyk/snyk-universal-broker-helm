@@ -1,0 +1,19 @@
+{
+  "branches": [
+    {
+      "name": "main",
+      "prerelease": false
+    }
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    [
+      "@semantic-release/exec",
+      {
+        "verifyConditionsCmd": "helm dep up snyk-universal-broker",
+        "prepareCmd": "helm package --version ${nextRelease.version} snyk-universal-broker"
+      }
+    ],
+    "@semantic-release/github"
+  ]
+}

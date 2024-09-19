@@ -7,18 +7,27 @@ jobs:
     resource_class: medium
     steps:
       - checkout
+
       - run:
-          name: Helm dependencies
-          command: helm dep up
-          working_directory: 
-            snyk-universal-broker
+          name: Install helm-unittest plugin
+          command: |
+            helm plugin install https://github.com/helm-unittest/helm-unittest
+
       - run:
           name: Run helm unittest
-          command: helm unittest .
-          working_directory: 
-            snyk-universal-broker
+          command: |
+            helm unittest snyk-universal-broker
+
+  publish:
+    docker:
+      - image: cimg/node:20.16
+    resource_class: small
+    steps:
+      - checkout
+      - run: npx semantic-release
 
 workflows:
   validate:
     jobs:
       - validate_charts
+    publish:
