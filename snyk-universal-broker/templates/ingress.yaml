@@ -15,31 +15,34 @@ spec:
   ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
   {{- end }}
   rules:
-    {{- if .Values.ingress.hostname }}
-    - host: {{ tpl .Values.ingress.hostname . }}
+    {{- range .Values.ingress.hosts }}
+    - host: 
+      - {{ tpl . . | quote }}
       http:
         paths:
-          {{- if .Values.ingress.extraPaths }}
-          {{- include "common.tplvalues.render" (dict "value"  .Values.ingress.extraPaths "context" $) | nindent 10 }}
+          {{- if $.Values.ingress.extraPaths }}
+          {{- include "common.tplvalues.render" (dict "value"  $.Values.ingress.extraPaths "context" $) | nindent 10 }}
           {{- end }}
-          - path: {{ .Values.ingress.path }}
+          - path: {{ $.Values.ingress.path }}
             {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
-            pathType: {{ .Values.ingress.pathType }}
+            pathType: {{ $.Values.ingress.pathType }}
             {{- end }}
             backend: 
               service:
-                name: {{ include "common.names.fullname" . }}
+                name: {{ include "common.names.fullname" $ }}
                 port:
-                  number: {{ .Values.service.port }}
+                  number: {{ $.Values.service.port }}
     {{- end }}
-  {{- if .Values.ingress.tls }}
+  {{- if .Values.ingress.tls.enabled }}
   tls:
+    {{- range .Values.ingress.hosts }}
     - hosts:
-        - {{ tpl .Values.ingress.hostname . | quote }}
-      {{- if .Values.ingress.existingSecret }}
-      secretName: {{ .Values.ingress.existingSecret }}
+        - {{ tpl . $ | quote }}
+      {{- if $.Values.ingress.existingSecret }}
+      secretName: {{ $.Values.ingress.existingSecret }}
       {{- else }}
-      secretName: {{ printf "%s-tls" (tpl .Values.ingress.hostname .) | trunc 63 | trimSuffix "-" }}
+      secretName: {{ printf "%s-tls" (tpl . $) | trunc 63 | trimSuffix "-" }}
       {{- end }}
     {{- end }}
+  {{- end }}
 {{- end }}

@@ -1,0 +1,50 @@
+suite: Service Tests
+templates:
+  - templates/service.yaml
+values:
+  - fixtures/universal_broker_default_values.yaml
+
+tests:
+  - it: change the serviceType
+    set:
+      service:
+        type: NodePort
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.type
+          value: NodePort
+
+  - it: set the service port and targetPort
+    set:
+      service:
+        ports:
+          http: 80
+      containerPort: 8080
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.ports[0].port
+          value: 80
+      - equal:
+          path: spec.ports[0].targetPort
+          value: 8080
+
+  - it: Add extraPorts
+    set:
+      service:
+        extraPorts:
+          - name: https
+            port: 443
+            targetPort: 8443
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.ports[1].port
+          value: 443
+      - equal:
+          path: spec.ports[1].targetPort
+          value: 8443

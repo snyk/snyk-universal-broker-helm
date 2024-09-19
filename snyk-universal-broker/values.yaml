@@ -222,11 +222,14 @@ containerSecurityContext:
 ##### Service Types #####
 # If you prefer to adjust how communication to the cluster occurs, these values can be adjusted
 ## @param service.type Broker svc type
-## @param service.port Broker svc port
+## @param service.ports.http Broker svc port
 ## @param service.tls is running Broker with https
+## @param service.extraPorts Extra ports to expose
 service:
   type: ClusterIP
-  port: 8000
+  ports: 
+    http: 8000
+  extraPorts: []
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -247,28 +250,40 @@ service:
 ## @param ingress.extraPaths Any additional arbitrary paths that may need to be added to the ingress under the main host.
 ## @param ingress.existingSecret It is you own the certificate as secret.
 ingress:
-  enabled: false
-  ingressClassName: ""
-  annotations: {}
+  enabled: true
+  ingressClassName: "nginx"
+  annotations: 
+    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/tls-acme: "true"
     ## E.g.
     ## kubernetes.io/ingress.class: nginx
     ## kubernetes.io/tls-acme: "true"
   path: /
   pathType: Prefix
-  hosts: [] # Must match the Broker client url
+  hosts: 
+    - broker.config
   ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
-  extraPaths: []
+  extraPaths: 
+    - path: "/additional-path"
+      pathType: "Prefix"
+      backend:
+        service:
+          name: "additional-service"
+          port:
+            number: 8080
   existingSecret: ""
   tls:
     enabled: false
     secret:
-      name: "abc"
+      name: ""
       key: |
-        # Should start with -----BEGIN PRIVATE KEY-----
-
+        -----BEGIN PRIVATE KEY-----
+        YOUR_PRIVATE_KEY_HERE
+        -----END PRIVATE KEY-----
       cert: |
-        # Should start with -----BEGIN CERTIFICATE-----
-
+        -----BEGIN CERTIFICATE-----
+        YOUR_CERTIFICATE_HERE
+        -----END CERTIFICATE-----
 ## @param extraVolumes Optionally specify extra list of additional volumes for Broker container
 extraVolumes: []
 
