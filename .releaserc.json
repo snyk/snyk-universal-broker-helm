@@ -10,10 +10,19 @@
     [
       "@semantic-release/exec",
       {
-        "verifyConditionsCmd": "helm dep up snyk-universal-broker",
-        "prepareCmd": "helm package --version ${nextRelease.version} snyk-universal-broker"
+        "prepareCmd": "helm dep up && helm package --version ${nextRelease.version} .",
+        "execCwd": "snyk-universal-broker"
       }
     ],
-    "@semantic-release/github"
+    [
+    "@semantic-release/github",
+    {
+      "assets": [
+        { "path" : "snyk-universal-broker/snyk-universal-broker-${nextRelease.version}.tgz" }
+      ],
+      "successCommentCondition": false,
+      "failCommentCondition": false
+    }
+    ]
   ]
 }
