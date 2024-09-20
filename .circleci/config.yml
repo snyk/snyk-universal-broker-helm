@@ -9,9 +9,15 @@ jobs:
       - checkout
 
       - run:
+          name: Helm dependencies
+          command: helm dep up
+          working_directory: 
+            snyk-universal-broker
+      - run:
           name: Run helm unittest
-          command: |
-            helm unittest snyk-universal-broker  # Adjust to your chart path
+          command: helm unittest .
+          working_directory: 
+            snyk-universal-broker
 
   publish:
     docker:
