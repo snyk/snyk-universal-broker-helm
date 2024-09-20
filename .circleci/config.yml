@@ -9,11 +9,6 @@ jobs:
       - checkout
 
       - run:
-          name: Install helm-unittest plugin
-          command: |
-            helm plugin install https://github.com/helm-unittest/helm-unittest
-
-      - run:
           name: Run helm unittest
           command: |
             helm unittest snyk-universal-broker  # Adjust to your chart path
