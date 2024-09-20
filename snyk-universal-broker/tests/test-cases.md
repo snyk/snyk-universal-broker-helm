@@ -38,11 +38,11 @@
 # OpenShift
 
 # Proxy/Egress
-- [ ] I can specify my own external proxy
+- [✅] I can specify my own external proxy
 - [ ] I can specify my external proxy address from a secret (username/password auth)
-- [ ] I can specify urls that do _not_ transit the proxy
-- [ ] I can trust a certificate that the proxy presents
-- [ ] I can ignore a certificate that the proxy presents
+- [✅] I can specify urls that do _not_ transit the proxy
+- [✅] I can trust a certificate that the proxy presents
+- [✅] I can ignore a certificate that the proxy presents
 
 # Other Networking
 - [✅] I can set arbitrary hostAliases on the pod
@@ -69,10 +69,10 @@
 - [ ] I can specify an existing secret for tls
 
 # Service
-- [ ] I can set my service type
-- [ ] I can set my service port
-- [ ] I can set extra ports
-- [ ] I can 
+- [✅] I can set my service type
+- [✅] I can set my service port
+- [✅] I can set extra ports
+- [✅] I can 
 
 # Extras
 - [ ] I can specify arbitrary environment variables

@@ -16,18 +16,40 @@ jobs:
       - run:
           name: Run helm unittest
           command: |
-            helm unittest snyk-universal-broker
+            helm unittest snyk-universal-broker  # Adjust to your chart path
 
   publish:
     docker:
-      - image: cimg/node:20.16
+      - image: cimg/node:22.9 
     resource_class: small
     steps:
       - checkout
-      - run: npx semantic-release
+      - run:
+          name: Install dependencies
+          command: npm ci
+
+      - run:
+          name: Install Helm
+          command: |
+            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - run:
+          name: Docker Login for OCI Push
+          command: |
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+      - run:
+          name: Run semantic-release
+          command: npx semantic-release
+          environment:
+            GH_TOKEN: $GH_TOKEN 
+            DOCKER_USERNAME: $DOCKER_USERNAME 
+            DOCKER_PASSWORD: $DOCKER_PASSWORD  
 
 workflows:
-  validate:
+  validate_and_publish:
     jobs:
-      - validate_charts
-    publish:
+      - validate_charts  
+      - publish:
+          requires:
+            - validate_charts 

@@ -16,7 +16,7 @@ tests:
       - equal:
           path: apiVersion
           value: "networking.k8s.io/v1"
-        template: ingress.yaml
+    template: ingress.yaml
 
   - it: Modifies the api version accordingly (pre 1.14)
     capabilities:
@@ -28,19 +28,31 @@ tests:
       - equal:
           path: apiVersion
           value: "extensions/v1beta1"
-        template: ingress.yaml
+    template: ingress.yaml
 
-  - it: Modifies the api version accordingly (pre 1.20)
+  - it: Modifies the api version accordingly (pre 1.19)
     capabilities:
       majorVersion: 1
-      minorVersion: 19
+      minorVersion: 18
     asserts:
       - isKind:
           of: Ingress
       - equal:
           path: apiVersion
           value: "networking.k8s.io/v1beta1"
-        template: ingress.yaml
+    template: ingress.yaml
+  
+  - it: Modifies the api version accordingly (pre 1.21)
+    capabilities:
+      majorVersion: 1
+      minorVersion: 20
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: apiVersion
+          value: "networking.k8s.io/v1"
+    template: ingress.yaml
 
   - it: Accepts a provided ingressClassName
     set:
@@ -54,11 +66,13 @@ tests:
   - it: Serves broker via https with an existing secret
     set:
       ingress.tls.enabled: true
-      ingress.tls.secret: "my-broker-certificate"
+      ingress.existingSecret: "my-broker-certificate"
     asserts:
       - contains:
           path: spec.tls
           content:
+            hosts:
+              - broker.local
             secretName: "my-broker-certificate"
         template: ingress.yaml
       - equal:
@@ -70,17 +84,19 @@ tests:
           value: "HTTPS"
         template: statefulset.yaml
             
-  # - it: Serves broker via https with a new secret
-  # # Where does this secret get created?
-  #   set:
-  #     ingress.tls.enabled: true
-  #     ingress.tls.key: "-----BEGIN PRIVATE KEY-----\nFAKE KEY\n-----END PRIVATE KEY-----"
-  #     ingress.tls.cert: "-----BEGIN CERTIFICATE-----\n FAKE CERT\n-----END CERTIFICATE-----"
-  #   asserts:
-  #     - contains:
-  #         path: spec.tls
-  #         content:
-  #           secretName: ""
+  - it: Serves broker via https with a new secret
+    set:
+      ingress.tls.enabled: true
+      ingress.tls.secret.key: "-----BEGIN PRIVATE KEY-----\nFAKE KEY\n-----END PRIVATE KEY-----"
+      ingress.tls.secret.cert: "-----BEGIN CERTIFICATE-----\n FAKE CERT\n-----END CERTIFICATE-----"
+    asserts:
+      - contains:
+          path: spec.tls
+          content:
+            hosts:
+              - broker.local
+            secretName: broker.local-tls
+        template: ingress.yaml
 
   - it: Adds extra hosts
     set:

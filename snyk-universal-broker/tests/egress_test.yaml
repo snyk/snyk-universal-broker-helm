@@ -1,0 +1,52 @@
+suite: Proxy configuration tests
+
+templates:
+  - templates/statefulset.yaml
+
+tests:
+  # Test specifying an external proxy URL
+  # Test specifying an external proxy URL
+  - it: should allow specifying an external proxy
+    set:
+      httpProxy: "http://my-external-proxy:8080"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name=="HTTP_PROXY")].value
+          value: "http://my-external-proxy:8080"
+
+  # # Test specifying external proxy credentials from a secret
+  # - it: should allow specifying proxy credentials from a secret
+  #   set:
+  #     .Values.existingAuthSecret: "proxy-credentials-secret"
+  #   asserts:
+  #     - equal:
+  #         path: spec.template.spec.containers[0].envFrom[0].secretRef.name
+  #         value: "proxy-credentials-secret"
+
+  # Test specifying URLs that do not transit the proxy (NO_PROXY)
+  - it: should allow specifying URLs that bypass the proxy
+    set:
+      noProxy: "localhost,127.0.0.1,my-internal-domain.com"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name=="NO_PROXY")].value
+          value: "localhost,127.0.0.1,my-internal-domain.com"
+
+  # Test trusting the proxy's certificate
+  - it: should trust the proxy's certificate
+    set:
+      caCert: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name=="NODE_EXTRA_CA_CERTS")].value
+          value: "/home/node/cacert/cacert"
+
+  # Test ignoring the proxy's certificate (disable TLS verification)
+  - it: should disable certificate validation for proxy
+    set:
+      disableCaCertTrust: true
+      caCert: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name=="NODE_TLS_REJECT_UNAUTHORIZED")].value
+          value: "0"

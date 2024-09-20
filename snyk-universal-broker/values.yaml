@@ -101,7 +101,6 @@ readinessProbe:
 
 highAvailabilityMode:
   enabled: false
-brokerDispatcherUrl: "https://api.snyk.io"
 replicaCount: 1
 
 ## Logging #####
@@ -136,10 +135,10 @@ httpsKey: ""
 ## or
 ##
 ## caCert: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
-caCert: ""
+caCert: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
 
 ## @param disableCaCertTrust Set to `true` to disable trust validation when providing your own CA certificate.
-disableCaCertTrust: false
+disableCaCertTrust: true
 
 ## @param tlsRejectUnauthorized Set to "0" to disable trust validation when using self signed certificates.
 tlsRejectUnauthorized: ""
@@ -243,9 +242,9 @@ service:
 ##### Optionally Deploy a Broker Ingress Resource #####
 ## @param ingress.enabled Set to true to create an Ingress
 ## @param ingress.ingressClassName Optionally define the Ingress Class for this ingress - otherwise leave blank
-## @param ingress.hosts define the host associated with this ingress - add Broker_client_url here
+## @param ingress.hostname define the host associated with this ingress - add Broker_client_url here
+## @param ingress.extraHosts An array with additional hostname(s) to be covered with the ingress record
 ## @param ingress.tls.enabled Set to true to enable TLS on the in-built ingress
-## @param ingress.tls.secret.name Either specify the name of a pre-existing Kubernetes secret containing TLS secrets, or leave blank to create a new secret
 ## @param ingress.tls.secret.key [string] The TLS key for TLS encryption, in PEM format
 ## @param ingress.tls.secret.cert [string] The TLS certificate for TLS encryption, in PEM format
 ## @param ingress.annotations Additional annotations for the Ingress resource.
@@ -262,14 +261,14 @@ ingress:
     ## kubernetes.io/tls-acme: "true"
   path: /
   pathType: Prefix
-  hosts: [] # Must match the Broker client url
+  hostname: broker.local # Must match the Broker client url
+  extraHosts: []
   ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
   extraPaths: []
   existingSecret: ""
   tls:
     enabled: true
     secret:
-      name: ""
       key: |
         # Should start with -----BEGIN PRIVATE KEY-----
 

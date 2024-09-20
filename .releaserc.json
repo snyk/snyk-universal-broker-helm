@@ -7,6 +7,8 @@
   ],
   "plugins": [
     "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
     [
       "@semantic-release/exec",
       {
@@ -14,6 +16,13 @@
         "prepareCmd": "helm package --version ${nextRelease.version} snyk-universal-broker"
       }
     ],
+    [
+        "semantic-release-helm",
+        {
+          "chartPath": "snyk-universal-broker/",  
+          "registry": "oci://docker.io/r/snyk/snyk/charts" 
+        }
+      ],
     "@semantic-release/github"
   ]
 }

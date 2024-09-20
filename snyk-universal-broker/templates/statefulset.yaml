@@ -64,7 +64,7 @@ spec:
             httpGet:
               port: {{ .Values.containerPort }}
               path: {{ .Values.livenessProbe.path }}
-              {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) }}
+              {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) ( .Values.ingress.enabled )}}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
@@ -76,7 +76,7 @@ spec:
             httpGet:
               port: {{ .Values.containerPort }}
               path: {{ .Values.readinessProbe.path }}
-              {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) }}
+              {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) (.Values.ingress.enabled) }}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
@@ -133,7 +133,7 @@ spec:
             - name: HTTPS_KEY
               value: /home/node/tls-cert/tls.key
          {{- end }}
-         {{- if or ( and .Values.tlsRejectUnauthorized (not .Values.caCert ) ) ( and (or .Values.caCert ) .Values.disableCaCertTrust ) }}
+        {{- if or (and .Values.tlsRejectUnauthorized (not .Values.caCert)) (and .Values.caCert .Values.disableCaCertTrust) }}
          # Troubleshooting - Set to 0 for SSL inspection testing
             - name: NODE_TLS_REJECT_UNAUTHORIZED
               value: "0"
@@ -173,7 +173,7 @@ spec:
       {{- if .Values.caCert }}
       - name: {{ include "common.names.fullname" . }}-cacert-volume
         secret:
-          secretName: {{ include "snyk-broker.caCertSecretName" . }}
+          secretName: {{- printf "%s-cacerts" (include "common.names.fullname" .) }}
       {{- end }}
       {{- if and (.Values.httpsCert) (.Values.httpsKey) }}
       - name: {{ include "common.names.fullname" . }}-tls-secret-volume
