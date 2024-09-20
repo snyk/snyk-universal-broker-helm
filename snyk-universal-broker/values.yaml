@@ -169,14 +169,14 @@ image:
 
 ##### Service Account Values. Nothing to change here #####
 
-serviceAccount:
-  ## @param serviceAccount.create Enable creation of ServiceAccount for Broker pod
+serviceaccount:
+  ## @param serviceaccount.create Enable creation of serviceaccount for Broker pod
   create: true
-  ## @param serviceAccount.existingName Optionally provide an existing service account name
+  ## @param serviceaccount.existingName Optionally provide an existing service account name
   existingName: ""
-  ## @param serviceAccount.annotations Additional custom annotations for the ServiceAccount
+  ## @param serviceaccount.annotations Additional custom annotations for the serviceaccount
   annotations: {}
-  ## @param serviceAccount.name The name of the ServiceAccount to use.
+  ## @param serviceaccount.name The name of the serviceaccount to use.
   ## If not set and create is true, a name is generated using the common.names.fullname template
   name: ""
 

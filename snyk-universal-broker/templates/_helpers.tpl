@@ -1,11 +1,11 @@
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "snyk-broker.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default ( include "common.names.fullname" . ) .Values.serviceAccount.name }}
+{{- define "snyk-broker.serviceaccountName" -}}
+{{- if .Values.serviceaccount.create }}
+{{- default ( include "common.names.fullname" . ) .Values.serviceaccount.name }}
 {{- else }}
-{{- default "default" .Values.serviceAccount.name }}
+{{- default "default" .Values.serviceaccount.name }}
 {{- end }}
 {{- end }}
 
