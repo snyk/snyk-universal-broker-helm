@@ -96,7 +96,6 @@ readinessProbe:
 
 ## HA MODE #####
 ## @param highAvailabilityMode.enabled snyk broker HA mode
-## @param brokerDispatcherUrl is required when running snyk broker in HA mode. The Dispatcher Base Url should be specific to your region if you are using a regional Snyk platform, for example, api.eu.snyk.io.
 ## @param replicaCount number for snyk broker when running in HA mode (min 2, max 4)
 
 highAvailabilityMode:
