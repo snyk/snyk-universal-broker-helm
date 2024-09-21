@@ -10,9 +10,11 @@ tests:
     set:
       httpProxy: "http://my-external-proxy:8080"
     asserts:
-      - equal:
-          path: spec.template.spec.containers[0].env[?(@.name=="HTTP_PROXY")].value
-          value: "http://my-external-proxy:8080"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTP_PROXY
+            value: "http://my-external-proxy:8080"
 
   # # Test specifying external proxy credentials from a secret
   # - it: should allow specifying proxy credentials from a secret

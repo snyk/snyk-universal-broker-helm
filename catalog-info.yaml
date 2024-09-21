@@ -1,8 +1,13 @@
-apiVersion: backstage.io/v1alpha1
+apiVersion: backstage.io/v1beta1
 kind: Component
 metadata:
   name: snyk-universal-broker-helmcharts
+  description: Universal Broker Helm Charts
+  annotations:
+    github.com/project-slug: snyk/snyk/snyk-universal-broker-helmcharts
+    backstage.io/techdocs-ref: dir:.
+    github.com/team-slug: snyk/hybrid
 spec:
-  type: iac
-  lifecycle: "-"
   owner: hybrid
+  lifecycle: '-'
+  type: external-tooling

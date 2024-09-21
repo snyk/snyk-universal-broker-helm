@@ -12,29 +12,23 @@ Create the name of the service account to use
 {{/*
 Return the correct broker server URL based on the tenant value.
 */}}
-{{- define "snyk-broker.brokerServerUrl" -}}
-  {{- if eq .Values.tenant "EU" -}}
-    "https://broker.eu.snyk.io"
-  {{- else if eq .Values.tenant "AU" -}}
-    "https://broker.au.snyk.io"
-  {{- else if or (eq .Values.tenant "default") (eq .Values.tenant "") -}}
-    "https://broker.snyk.io"
+{{- define "snyk-broker.brokerServerUrl" }}
+  {{- $tenant := .Values.tenant | default "default" -}}
+  {{- if eq $tenant "default" -}}
+    https://broker.snyk.io
   {{- else -}}
-    "https://broker.{{ .Values.tenant }}"
-  {{- end }}
+    {{- printf "https://broker.%s.snyk.io" $tenant -}}
+  {{- end -}}
 {{- end }}
 
 {{/*
 Return the correct broker dispatcher URL based on the tenant value.
 */}}
-{{- define "snyk-broker.brokerDispatcherUrl" -}}
-  {{- if eq .Values.tenant "EU" -}}
-    "https://api.eu.snyk.io"
-  {{- else if eq .Values.tenant "AU" -}}
-    "https://api.au.snyk.io"
-  {{- else if or (eq .Values.tenant "default") (eq .Values.tenant "") -}}
-    "https://api.snyk.io"
+{{- define "snyk-broker.brokerDispatcherUrl" }}
+  {{- $tenant := .Values.tenant | default "default" -}}
+  {{- if eq $tenant "default" -}}
+    https://api.snyk.io
   {{- else -}}
-    "https://api.{{ .Values.tenant }}"
-  {{- end }}
+    {{- printf "https://api.%s.snyk.io" $tenant -}}
+  {{- end -}}
 {{- end }}

@@ -2,15 +2,11 @@
 # Ex: http://kubernetes-ingress.domain.com:8000/broker
 brokerClientUrl: "http://brokerclient"
 
-# Do not touch unless directed by a Snyk Representative
-brokerServerUrl: "https://broker.dev.snyk.io"
-
 preflightChecks:
   enabled: true
 
 highAvailabilityMode:
   enabled: false
-brokerDispatcherUrl: "https://api.dev.snyk.io"
 
 ##### Snyk Platform Server Auth #####
 deploymentId: 8B338A3B-424A-497E-836E-5E0F9486605A

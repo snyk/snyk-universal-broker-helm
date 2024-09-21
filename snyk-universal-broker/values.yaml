@@ -134,7 +134,7 @@ httpsKey: ""
 ## or
 ##
 ## caCert: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
-caCert: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
+caCert: ""
 
 ## @param disableCaCertTrust Set to `true` to disable trust validation when providing your own CA certificate.
 disableCaCertTrust: true
@@ -266,7 +266,7 @@ ingress:
   extraPaths: []
   existingSecret: ""
   tls:
-    enabled: true
+    enabled: false
     secret:
       key: |
         # Should start with -----BEGIN PRIVATE KEY-----
