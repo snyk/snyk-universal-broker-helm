@@ -46,10 +46,7 @@ spec:
       {{- end }}
       containers:
         - name: universal-broker
-          {{- if .Values.resources }}
           resources: {{- toYaml .Values.resources | nindent 12 }}
-          {{- else if ne .Values.resourcesPreset "none" }}
-          resources: {{- include "common.resources.preset" (dict "type" .Values.resourcesPreset) | nindent 12 }}
           {{- end }}
           image: {{ printf "%s/%s:%s-universal" .Values.image.registry .Values.image.repository .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -82,9 +79,6 @@ spec:
               scheme: HTTP
               {{- end }}
             {{- toYaml .Values.readinessProbe.config | nindent 12 }}
-          {{- end }}
-          {{- if .Values.extraContainerSpecs }}
-          {{- toYaml .Values.extraContainerSpecs | nindent 10 }}
           {{- end }}
           envFrom:
             - secretRef:
