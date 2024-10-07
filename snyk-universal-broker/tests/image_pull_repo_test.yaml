@@ -52,11 +52,11 @@ tests:
           path: spec.template.spec.containers[0].imagePullPolicy
           value: "Always"
 
-  # - it: Fails if an unrecognised image pull policy is specified
-  #   set:
-  #     image.pullPolicy: "Sometimes"
-  #   asserts:
-  #     - failedTemplate: {}
+  - it: Fails if an unrecognised image pull policy is specified
+    set:
+      image.pullPolicy: "Sometimes"
+    asserts:
+      - failedTemplate: {}
 
   - it: Sets a custom image registry
     set:

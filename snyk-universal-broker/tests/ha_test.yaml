@@ -31,12 +31,12 @@ tests:
             name: BROKER_HA_MODE_ENABLED
             value: "true"
 
-  # - it: does not allow more than 4 replicas
-  #   set:
-  #     replicaCount: 5
-  #     highAvailabilityMode.enabled: true
-  #   asserts:
-  #     - failedTemplate: {}
+  - it: does not allow more than 4 replicas
+    set:
+      replicaCount: 5
+      highAvailabilityMode.enabled: true
+    asserts:
+      - failedTemplate: {}
 
   - it: does not set HA mode with only 1 replica
     set:

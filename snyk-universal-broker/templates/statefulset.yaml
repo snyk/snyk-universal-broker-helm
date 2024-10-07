@@ -47,7 +47,6 @@ spec:
       containers:
         - name: universal-broker
           resources: {{- toYaml .Values.resources | nindent 12 }}
-          {{- end }}
           image: {{ printf "%s/%s:%s-universal" .Values.image.registry .Values.image.repository .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.containerSecurityContext.enabled }}
