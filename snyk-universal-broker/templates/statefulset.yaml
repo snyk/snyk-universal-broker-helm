@@ -8,7 +8,8 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  replicas: {{ ternary .Values.replicaCount 1 .Values.highAvailabilityMode.enabled }}
+  {{ include "snyk-broker.validateImagePullPolicy" . }}
+  replicas: {{ include "snyk-broker.replicas" .}}
   updateStrategy:
     type: "RollingUpdate"
     rollingUpdate:

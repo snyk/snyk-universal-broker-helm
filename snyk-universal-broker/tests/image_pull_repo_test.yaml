@@ -56,7 +56,8 @@ tests:
     set:
       image.pullPolicy: "Sometimes"
     asserts:
-      - failedTemplate: {}
+      - failedTemplate:
+          errorMessage: "Invalid imagePullPolicy: Sometimes. Allowed values are: IfNotPresent, Always, Never."
 
   - it: Sets a custom image registry
     set:

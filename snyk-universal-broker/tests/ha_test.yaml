@@ -36,7 +36,8 @@ tests:
       replicaCount: 5
       highAvailabilityMode.enabled: true
     asserts:
-      - failedTemplate: {}
+      - failedTemplate:
+          errorMessage: "Cannot have more than 4 replicas in High Availability mode."
 
   - it: does not set HA mode with only 1 replica
     set:

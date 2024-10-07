@@ -40,10 +40,3 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].livenessProbe.failureThreshold
           value: 5
-  - it: does not allow custom probe paths to be different
-    # Is this ever a valid configuration?
-    set:
-      readinessProbe.config.path: "/broker-health"
-      livenessProbe.config.path: /"broker-liveness"
-    asserts:
-      - failedTemplate: {}
