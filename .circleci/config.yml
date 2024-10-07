@@ -27,10 +27,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install dependencies
-          command: npm ci
-
-      - run:
           name: Install Helm
           command: |
             curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -45,6 +41,14 @@ jobs:
           command: helm package snyk-universal-broker
           
       - run:
+          name: Run semantic-release
+          command: npx semantic-release
+          environment:
+            GH_TOKEN: $GH_TOKEN
+            DOCKER_USERNAME: $DOCKER_USERNAME
+            DOCKER_PASSWORD: $DOCKER_PASSWORD
+
+      - run:
           name: Push Helm Chart to OCI Registry
           command: |
             helm registry login $OCI_REGISTRY
@@ -55,18 +59,14 @@ jobs:
             DOCKER_USERNAME: $DOCKER_USERNAME
             DOCKER_PASSWORD: $DOCKER_PASSWORD
 
-      - run:
-          name: Run semantic-release
-          command: npx semantic-release
-          environment:
-            GH_TOKEN: $GH_TOKEN
-            DOCKER_USERNAME: $DOCKER_USERNAME
-            DOCKER_PASSWORD: $DOCKER_PASSWORD
-
 workflows:
   validate_and_publish:
     jobs:
       - validate_charts  
       - publish:
           requires:
-            - validate_charts 
+            - validate_charts
+          filters:
+            branches:
+              only:
+                - main
