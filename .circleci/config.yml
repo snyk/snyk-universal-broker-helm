@@ -51,11 +51,9 @@ jobs:
       - run:
           name: Push Helm Chart to OCI Registry
           command: |
-            helm registry login $OCI_REGISTRY
-            helm push snyk-universal-broker-*.tgz oci://$OCI_REGISTRY/$HELM_REPO
+            helm registry login oci://registry-1.docker.io
+            helm push snyk-universal-broker-*.tgz oci://registry-1.docker.io/snyk
           environment:
-            OCI_REGISTRY: $OCI_REGISTRY
-            HELM_REPO: $HELM_REPO
             DOCKER_USERNAME: $DOCKER_USERNAME
             DOCKER_PASSWORD: $DOCKER_PASSWORD
 
