@@ -280,3 +280,5 @@ extraVolumes: []
 ## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for Broker container
 extraVolumeMounts: []
 
+## @param extraEnvVars Optionally specify extra list of additional environment variables for Broker container
+extraEnvVars: []

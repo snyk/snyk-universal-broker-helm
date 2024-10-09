@@ -155,11 +155,11 @@ spec:
             - name: PREFLIGHT_CHECKS_ENABLED
               value: "false"
         {{- end}}
-        {{- range .Values.env }}
-         # custom env var in override.yaml
+        # Custom environment variables
+        {{- range .Values.extraEnvVars }}
             - name: {{ .name }}
               value: {{ .value | squote }}
-        {{- end}}
+        {{- end }}
             - name: BROKER_DISPATCHER_BASE_URL
               value: {{ include "snyk-broker.brokerDispatcherUrl" . }}
       # Mount Accept.json and Certs
