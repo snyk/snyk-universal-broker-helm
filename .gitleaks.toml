@@ -1,0 +1,5 @@
+[extend]
+useDefault = true
+
+[allowList]
+paths = ['''snyk-universal-broker/tests''']

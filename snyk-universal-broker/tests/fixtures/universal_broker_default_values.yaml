@@ -1,0 +1,18 @@
+# brokerClientUrl is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup.
+# Ex: http://kubernetes-ingress.domain.com:8000/broker
+brokerClientUrl: "http://brokerclient"
+
+preflightChecks:
+  enabled: true
+
+highAvailabilityMode:
+  enabled: false
+
+##### Snyk Platform Server Auth #####
+deploymentId: 8B338A3B-424A-497E-836E-5E0F9486605A
+clientId: 8B338A3B-424A-497E-836E-5E0F9486605A
+clientSecret: 8B338A3B-424A-497E-836E-5E0F9486605A
+
+##### SCM Tokens #####
+credentialReferences: 
+  mygithubtoken: "8B338A3B-424A-497E-836E-5E0F9486605A"
