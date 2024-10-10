@@ -38,7 +38,9 @@ jobs:
 
       - run:
           name: Package Helm Chart
-          command: helm package snyk-universal-broker
+          command: |
+            helm dependency update snyk-universal-broker
+            helm package snyk-universal-broker
           
       - run:
           name: Run semantic-release
