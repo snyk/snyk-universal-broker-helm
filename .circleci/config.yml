@@ -8,9 +8,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install npm dependencies
-          command: npm ci
-      - run:
           name: Helm dependencies
           command: helm dep up
           working_directory: 
@@ -28,6 +25,10 @@ jobs:
     resource_class: small
     steps:
       - checkout
+      - run:
+          name: Install npm dependencies
+          command: npm ci
+
       - run:
           name: Install Helm
           command: |
