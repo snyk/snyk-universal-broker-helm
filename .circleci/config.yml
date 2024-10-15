@@ -1,5 +1,10 @@
 version: 2.1
 
+parameters:
+  release_enabled:
+    type: boolean
+    default: false
+
 jobs:
   validate_charts:
     docker:
@@ -85,3 +90,4 @@ workflows:
             branches:
               only:
                 - main
+          when: << parameters.release_enabled >>      
