@@ -42,8 +42,7 @@ jobs:
       - run:
           name: Docker Login for OCI Push
           command: |
-            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
+           echo "$DOCKER_PASSWORD" | helm registry login -u snykdocker --password-stdin registry-1.docker.io
 
           
       - run:
@@ -70,7 +69,6 @@ jobs:
       - run:
           name: Push Helm Chart to OCI Registry
           command: |
-            echo "$DOCKER_PASSWORD" | helm registry login -u snykdocker --password-stdin registry-1.docker.io
             helm push snyk-universal-broker-*.tgz oci://registry-1.docker.io/snyk
           environment:
             DOCKER_USERNAME: $DOCKER_USERNAME
