@@ -5,6 +5,7 @@
       "prerelease": false
     }
   ],
+  "repositoryUrl": "git@github.com:snyk/snyk-universal-broker-helmchart.git",
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
