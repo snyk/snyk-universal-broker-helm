@@ -57,7 +57,8 @@ jobs:
           name: Update Chart Version
           command: |
             CHART_DIR="snyk-universal-broker"
-            NEW_VERSION=$(jq -r '.version' <(npx semantic-release --dry-run --json))
+            NEW_VERSION=$(git describe --tags --abbrev=0)
+            echo "Updating Chart.yaml to version $NEW_VERSION"
             sed -i "s/^version: .*/version: $NEW_VERSION/" $CHART_DIR/Chart.yaml
 
       - run:
