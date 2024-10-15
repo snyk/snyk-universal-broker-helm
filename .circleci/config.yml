@@ -32,9 +32,7 @@ jobs:
       - run:
           name: Set up Git
           command: |
-            git remote set-url origin https://$GH_TOKEN@github.com/snyk/snyk-universal-broker-helmchart.git
-          environment:
-            GH_TOKEN: $GH_TOKEN
+            git remote set-url origin git@github.com/snyk/snyk-universal-broker-helmchart.git
             
       - run:
           name: Install Helm
@@ -56,7 +54,6 @@ jobs:
           name: Run semantic-release
           command: npx semantic-release
           environment:
-            GH_TOKEN: $GH_TOKEN
             DOCKER_USERNAME: $DOCKER_USERNAME
             DOCKER_PASSWORD: $DOCKER_PASSWORD
 
