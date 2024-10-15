@@ -30,6 +30,13 @@ jobs:
           command: npm ci
 
       - run:
+          name: Set up Git
+          command: |
+            git remote set-url origin https://$GH_TOKEN@github.com/snyk/snyk-universal-broker-helmchart.git
+          environment:
+            GH_TOKEN: $GH_TOKEN
+            
+      - run:
           name: Install Helm
           command: |
             curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
