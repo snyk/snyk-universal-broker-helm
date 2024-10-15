@@ -44,11 +44,7 @@ jobs:
           command: |
             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-      - run:
-          name: Package Helm Chart
-          command: |
-            helm dep up snyk-universal-broker
-            helm package snyk-universal-broker
+
           
       - run:
           name: Run semantic-release
@@ -56,11 +52,24 @@ jobs:
           environment:
             DOCKER_USERNAME: $DOCKER_USERNAME
             DOCKER_PASSWORD: $DOCKER_PASSWORD
+            
+      - run:
+          name: Update Chart Version
+          command: |
+            CHART_DIR="snyk-universal-broker"
+            NEW_VERSION=$(jq -r '.version' <(npx semantic-release --dry-run --json))
+            sed -i "s/^version: .*/version: $NEW_VERSION/" $CHART_DIR/Chart.yaml
 
+      - run:
+          name: Package Helm Chart
+          command: |
+            helm dep up snyk-universal-broker
+            helm package snyk-universal-broker
+  
       - run:
           name: Push Helm Chart to OCI Registry
           command: |
-            helm registry login oci://registry-1.docker.io
+            echo "$DOCKER_PASSWORD" | helm registry login -u snykdocker --password-stdin registry-1.docker.io
             helm push snyk-universal-broker-*.tgz oci://registry-1.docker.io/snyk
           environment:
             DOCKER_USERNAME: $DOCKER_USERNAME
