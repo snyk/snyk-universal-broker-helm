@@ -44,6 +44,12 @@ credentialReferences: {}
 credentialReferencesSecret:
   name: "" # Name of an existing secret if it exists
 
+## @param acceptCode [default: true] Set to false to block Broker rules relating to Snyk Code analysis
+## @param acceptAppRisk [default: true] Set to false to block Broker rules relating to AppRisk
+## @param acceptIaC [default: true] Set to false to block Broker rules relating to Snyk IaC analysis
+acceptCode: true
+acceptAppRisk: true
+acceptIaC: true
 ## @section Networking Parameters
 
 ## @param containerPort [default: 8000] The port the Broker container will expose.

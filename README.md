@@ -16,16 +16,19 @@ Credential References should contain one or more key/value pairs where each key 
 helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 ```
 
-| Name                              | Description                                                                                                    | Value |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----- |
-| `brokerClientUrl`                 | The resolvable address of the Broker. This is likely the address of the Ingress (if enabled)                   | `""`  |
-| `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io           | `""`  |
-| `deploymentId`                    | obtained by installing the Broker App                                                                          | `""`  |
-| `clientId`                        | obtained by installing the Broker App                                                                          | `""`  |
-| `clientSecret`                    | obtained by installing the Broker App                                                                          | `""`  |
-| `platformAuthSecret.name`         | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`. | `""`  |
-| `credentialReferences`            | Credential References to pass to Broker.                                                                       | `{}`  |
-| `credentialReferencesSecret.name` | Optionally provide a pre-existing secret with SCM credential reference data                                    | `""`  |
+| Name                              | Description                                                                                                    | Value  |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------ |
+| `brokerClientUrl`                 | The resolvable address of the Broker. This is likely the address of the Ingress (if enabled)                   | `""`   |
+| `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io           | `""`   |
+| `deploymentId`                    | obtained by installing the Broker App                                                                          | `""`   |
+| `clientId`                        | obtained by installing the Broker App                                                                          | `""`   |
+| `clientSecret`                    | obtained by installing the Broker App                                                                          | `""`   |
+| `platformAuthSecret.name`         | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`. | `""`   |
+| `credentialReferences`            | Credential References to pass to Broker.                                                                       | `{}`   |
+| `credentialReferencesSecret.name` | Optionally provide a pre-existing secret with SCM credential reference data                                    | `""`   |
+| `acceptCode`                      | Set to false to block Broker rules relating to Snyk Code analysis                                              | `true` |
+| `acceptAppRisk`                   | Set to false to block Broker rules relating to AppRisk                                                         | `true` |
+| `acceptIaC`                       | Set to false to block Broker rules relating to Snyk IaC analysis                                               | `true` |
 
 ### Networking Parameters
 

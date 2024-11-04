@@ -132,13 +132,13 @@ jobs:
           name: Test Import
           command: |
             LOG_LEVEL="debug" \
-            SNYK_TOKEN=${<<parameters.snyk-token>>} \
-            npx \
-            --yes \
-            tsx \
-            .circleci/scripts/testImport/testImport.ts \
-            ".circleci/snyk-import/snyk-import-ghe.json" \
-            "https://api.dev.snyk.io"
+              SNYK_TOKEN=${<<parameters.snyk-token>>} \
+              npx \
+              --yes \
+              tsx \
+              .circleci/scripts/testImport/testImport.ts \
+              ".circleci/snyk-import/snyk-import-ghe.json" \
+              "https://api.dev.snyk.io"
 
 
   publish:

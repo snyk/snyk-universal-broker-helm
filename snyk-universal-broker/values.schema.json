@@ -108,6 +108,15 @@
     "clientSecret": {
       "type": "string"
     },
+    "acceptAppRisk":{
+      "type":"boolean"
+    },
+    "acceptCode":{
+      "type":"boolean"
+    },
+    "acceptIaC":{
+      "type":"boolean"
+    },
     "platformAuthSecret":{
       "type":"object",
       "properties":{

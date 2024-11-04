@@ -93,7 +93,13 @@ async function pollJobStatus(
       return ["failed", "aborted"].includes(response.data["status"]);
     },
     successFunction: (response) => {
-      return ["complete"].includes(response.data["status"]);
+      const logs = response.data.logs
+      if (logs.length > 0) { 
+        const success = response.data["status"].includes("complete");
+        const noFailedProjects = logs[0].projects.some((project) => project.success === false);
+        logger.info(`${success}, ${noFailedProjects}`);
+        return success && !noFailedProjects;
+      }
     },
   });
   return jobStatusResponse;
