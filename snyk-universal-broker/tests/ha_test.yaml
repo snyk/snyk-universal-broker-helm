@@ -1,8 +1,11 @@
-values:
-  - ../values.yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: HA Mode
 templates:
   - templates/statefulset.yaml
+values:
+- ../values.yaml
+- fixtures/default_values.yaml
+
 tests:
   - it: deploys one replica by default
     set: 
@@ -19,7 +22,7 @@ tests:
 
   - it: configures multiple replicas
     set:
-      replicaCount: 2
+      highAvailabilityMode.replicaCount: 2
       highAvailabilityMode.enabled: true
     asserts:
       - equal:
@@ -33,22 +36,14 @@ tests:
 
   - it: does not allow more than 4 replicas
     set:
-      replicaCount: 5
+      highAvailabilityMode.replicaCount: 5
       highAvailabilityMode.enabled: true
     asserts:
-      - failedTemplate:
-          errorMessage: "Cannot have more than 4 replicas in High Availability mode."
+      - failedTemplate: {}
 
-  - it: does not set HA mode with only 1 replica
+  - it: does not allow setting 1 replica in HA mode
     set:
-      replicaCount: 1
+      highAvailabilityMode.replicaCount: 1
       highAvailabilityMode.enabled: true
     asserts:
-      - equal:
-          path: spec.replicas
-          value: 1
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: BROKER_HA_MODE_ENABLED
-            value: "false"
+      - failedTemplate: {}

@@ -10,35 +10,33 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Return the correct broker server URL based on the tenant value.
+Return the correct broker server URL based on the region value.
 */}}
 {{- define "snyk-broker.brokerServerUrl" }}
-  {{- $tenant := .Values.tenant | default "default" -}}
-  {{- if eq $tenant "default" -}}
+  {{- if not .Values.region -}}
     https://broker.snyk.io
   {{- else -}}
-    {{- printf "https://broker.%s.snyk.io" $tenant -}}
+    {{- printf "https://broker.%s.snyk.io" .Values.region -}}
   {{- end -}}
 {{- end }}
 
 {{/*
-Return the correct broker dispatcher URL based on the tenant value.
+Return the correct broker dispatcher URL based on the region value.
 */}}
 {{- define "snyk-broker.brokerDispatcherUrl" }}
-  {{- $tenant := .Values.tenant | default "default" -}}
-  {{- if eq $tenant "default" -}}
+  {{- if not .Values.region -}}
     https://api.snyk.io
   {{- else -}}
-    {{- printf "https://api.%s.snyk.io" $tenant -}}
+    {{- printf "https://api.%s.snyk.io" .Values.region -}}
   {{- end -}}
 {{- end }}
 
 {{- define "snyk-broker.replicas" -}}
   {{- if .Values.highAvailabilityMode.enabled -}}
-    {{- if gt (int .Values.replicaCount) 4 -}}
+    {{- if gt (int .Values.highAvailabilityMode.replicaCount) 4 -}}
       {{- fail "Cannot have more than 4 replicas in High Availability mode." -}}
     {{- else -}}
-      {{- print (int .Values.replicaCount) -}}
+      {{- print (int .Values.highAvailabilityMode.replicaCount) -}}
     {{- end -}}
   {{- else -}}
     {{- print 1 -}}
@@ -52,3 +50,105 @@ Return the correct broker dispatcher URL based on the tenant value.
     {{- fail (printf "Invalid imagePullPolicy: %s. Allowed values are: IfNotPresent, Always, Never." $policy) -}}
   {{- end -}}
 {{- end -}}
+
+{{/*
+NoProxy helper
+Ensure all values are trimmed, separated by comma, and do not contain protocol or port
+Validate against RFC 1123
+*/}}
+{{- define "snyk-broker.noProxy" -}}
+{{- $proxyUrls := .Values.noProxy | nospace -}}
+{{- $badUrls := list -}}
+{{- range ( $proxyUrls | split ",") -}}
+	{{- if not ( regexMatch "^[a-zA-Z0-9.-]+$" . ) -}}
+	{{- $badUrls = append $badUrls . -}}
+	{{- end }}
+{{- end }}
+{{- if gt ($badUrls | len) 0 -}}
+{{- fail (printf "The following entries for .Values.noProxy are invalid. Specify hostname only (no schema or port):" $badUrls ) -}}
+{{- else }}
+{{- $proxyUrls | trimPrefix "," -}}
+{{- end }}
+{{- end }}
+
+{{/*
+Proxy helper
+Allow mix and match between values.yaml and an external secret
+with external secret taking precedence.
+*/}}
+{{- define "snyk-broker.proxyConfig" -}}
+{{- if and .Values.proxySecret.name .Values.proxySecret.httpsProxyKey -}}
+- name: HTTPS_PROXY
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.proxySecret.name }}
+      key: {{ .Values.proxySecret.httpsProxyKey }}
+{{- else if .Values.httpsProxy }}
+- name: HTTPS_PROXY
+  value: {{ .Values.httpsProxy }}
+{{- end }}
+{{- if and .Values.proxySecret.name .Values.proxySecret.httpProxyKey -}}
+- name: HTTP_PROXY
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.proxySecret.name }}
+      key: {{ .Values.proxySecret.httpProxyKey }}
+{{- else if .Values.httpProxy }}
+- name: HTTP_PROXY
+  value: {{ .Values.httpProxy }}
+{{- end }}
+{{- if and .Values.proxySecret.name .Values.proxySecret.noProxyKey }}
+- name: NO_PROXY
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.proxySecret.name }}
+      key: {{ .Values.proxySecret.noProxyKey }}
+{{- else if .Values.noProxy }}
+- name: NO_PROXY
+  value: {{ include "snyk-broker.noProxy" . }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create a secret name.
+Pass a dict of Context ($) and secretName:
+include "snyk-broker.genericSecretName" (dict "Context" $ "secretName" "secret-name")
+*/}}
+{{- define "snyk-broker.genericSecretName" -}}
+{{ printf "%s-%s" .Context.Release.Name .secretName | trunc 63 | trimSuffix "-" }}
+{{- end -}}
+
+{{- define "snyk-broker.tlsSecretName" -}}
+{{- .Values.localWebServerSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "tls-secret" ) ) -}}
+{{- end }}
+
+{{- define "snyk-broker.caCertSecretName" -}}
+{{- .Values.caCertSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "ca-secret" ) ) -}}
+{{- end }}
+
+{{- define "snyk-broker.credentialReferencesSecretName" -}}
+{{- .Values.credentialReferencesSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "creds-secret" ) ) -}}
+{{- end }}
+
+{{- define "snyk-broker.snykPlatformSecretName" -}}
+{{- .Values.platformAuthSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "platform-secret" ) ) -}}
+{{- end }}
+
+{{/*
+Credential References
+
+Each credential must be a valid env var, with associated string value
+*/}}
+{{- define "snyk-broker.credentialReferences" -}}
+{{- $failedKeys := list -}}
+{{- with .Values.credentialReferences -}}
+{{- range ( . | keys ) }}
+{{- if not (regexMatch "^[a-zA-Z_]{1,}[a-zA-Z0-9_]{0,}$" .) -}}
+{{- $failedKeys = append $failedKeys . -}}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if gt ($failedKeys | len) 0 -}}
+{{- fail (printf "Key(s) \"%s\" in .Values.credentialReferences are unsupported. All keys must be valid environment variable names." ($failedKeys | sortAlpha | join ", ") ) -}}
+{{- end }}
+{{- end }}

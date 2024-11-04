@@ -3,8 +3,10 @@ suite: Ingress
 templates:
   - ingress.yaml
   - statefulset.yaml
+  - tls-secret.yaml
 values:
-  - fixtures/universal_broker_default_values.yaml
+  - ../values.yaml
+  - fixtures/default_values.yaml
 set:
   ingress.enabled: true
 
@@ -54,41 +56,70 @@ tests:
           value: "networking.k8s.io/v1"
     template: ingress.yaml
 
-  - it: Accepts a provided ingressClassName
+  - it: Accepts a provided className
     set:
-      ingress.ingressClassName: "myCustomClass"
+      ingress.className: "myCustomClass"
     asserts:
       - equal:
           path: spec.ingressClassName
           value: "myCustomClass"
         template: ingress.yaml
 
-  - it: Serves broker via https with an existing secret
+  - it: Adds extra hosts
     set:
-      ingress.tls.enabled: true
-      ingress.existingSecret: "my-broker-certificate"
+      ingress.hostname: my.broker.tld
+      ingress.extraHosts:
+        - name: my.other.host.tld
+          pathType: Exact
+          path: /somewhere
     asserts:
       - contains:
-          path: spec.tls
+          path: spec.rules
           content:
-            hosts:
-              - broker.local
-            secretName: "my-broker-certificate"
+            host: my.broker.tld
+            http:
+              paths:
+                - backend:
+                    service:
+                      name: RELEASE-NAME-snyk-universal-broker
+                      port:
+                        number: 8000
+                  path: /
+                  pathType: ImplementationSpecific
         template: ingress.yaml
-      - equal:
-          path: spec.template.spec.containers[0].livenessProbe.httpGet.scheme
-          value: "HTTPS"
-        template: statefulset.yaml
-      - equal:
-          path: spec.template.spec.containers[0].readinessProbe.httpGet.scheme
-          value: "HTTPS"
-        template: statefulset.yaml
-            
-  - it: Serves broker via https with a new secret
+      - contains:
+          path: spec.rules
+          content:
+            host: my.other.host.tld
+            http:
+              paths:
+                - backend:
+                    service:
+                      name: RELEASE-NAME-snyk-universal-broker
+                      port:
+                        number: 8000
+                  path: /somewhere
+                  pathType: Exact
+        template: ingress.yaml
+
+  - it: Respects cert-manager annotations
     set:
       ingress.tls.enabled: true
-      ingress.tls.secret.key: "-----BEGIN PRIVATE KEY-----\nFAKE KEY\n-----END PRIVATE KEY-----"
-      ingress.tls.secret.cert: "-----BEGIN CERTIFICATE-----\n FAKE CERT\n-----END CERTIFICATE-----"
+      ingress.annotations:
+        cert-manager.io/cluster-issuer: myClusterIssuer
+    asserts:
+      - equal:
+          path: spec.tls[0].secretName
+          value: broker.local-tls
+    template: ingress.yaml
+
+  - it: Creates an https ingress with a new secret
+    set:
+      ingress.tls.enabled: true
+      ingress.secrets:
+        - name: "broker.local-tls"
+          key: "-----BEGIN PRIVATE KEY-----\nFAKE KEY\n-----END PRIVATE KEY-----"
+          certificate: "-----BEGIN CERTIFICATE-----\n FAKE CERT\n-----END CERTIFICATE-----"
     asserts:
       - contains:
           path: spec.tls
@@ -98,25 +129,83 @@ tests:
             secretName: broker.local-tls
         template: ingress.yaml
 
-  - it: Adds extra hosts
+  - it: Respects cert-manager annotations with a different hostname
     set:
-      ingress.hosts[0]: my.broker.tld
-      ingress.hosts[1]: my.other.host.tld
+      ingress.tls.enabled: true
+      ingress.annotations:
+        cert-manager.io/cluster-issuer: myClusterIssuer
+      ingress.hostname: broker.corp.tld
     asserts:
-      - isKind:
-          of: Ingress
+      - equal:
+          path: spec.tls[0].secretName
+          value: broker.corp.tld-tls
     template: ingress.yaml
-      # where am I asserting the hosts?
 
-  # - it: Respects a different container port
-  #   set:
-  #     service.port: 1234
-  #   asserts:
-  #     - 
+  - it: Respects existing secret
+    set:
+      ingress.tls.enabled: true
+      ingress.tls.existingSecret: "my-existing-secret"
+    asserts:
+      - equal:
+          path: spec.tls[0].secretName
+          value: my-existing-secret
+    template: ingress.yaml
 
-  # - it: Respects my custom path
-  #   set:
-  #     ingress.path: "/*"
-  #   asserts:
-  #     - 
+  - it: Defaults to first secret if no annotation or existing secret is specified
+    set:
+      ingress.tls.enabled: true
+      ingress.secrets: 
+        - name: "my-new-secret"
+          certificate: "-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----"
+          key: "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----"
+    asserts:
+      - equal:
+          path: spec.tls[0].secretName
+          value: my-new-secret
+        template: ingress.yaml
+      - isKind:
+          of: Secret
+        template: tls-secret.yaml     
+      - hasDocuments:
+         count: 1
+        template: tls-secret.yaml
+      - equal:
+          path: metadata.name
+          value: my-new-secret
+        template: tls-secret.yaml
 
+  - it: Creates many secrets across many hosts
+    set:
+      ingress.tls.enabled: true
+      ingress.secrets: 
+        - name: "my-new-secret"
+          certificate: "-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----"
+          key: "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----"
+        - name: "my-second-secret"
+          certificate: "-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----"
+          key: "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----"
+      ingress.extraHosts:
+        - name: "my.internal.tld"
+          path: "/broker"
+          pathType: "Prefix"
+      ingress.extraTls:
+        - hosts:
+            - my.internal.tld
+          secretName: my-second-secret
+    asserts:
+      - equal:
+          path: spec.tls[0].secretName
+          value: my-new-secret
+      - equal:
+          path: spec.tls[1].secretName
+          value: my-second-secret
+    template: ingress.yaml
+
+  - it: Respects a custom path
+    set:
+      ingress.path: "/*"
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: "/*"
+    template: ingress.yaml

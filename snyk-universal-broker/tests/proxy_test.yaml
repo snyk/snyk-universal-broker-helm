@@ -1,0 +1,107 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Proxy configuration tests
+templates:
+  - templates/statefulset.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: should allow specifying an external proxy
+    set:
+      httpProxy: "http://my-external-proxy:8080"
+      httpsProxy: "http://my-external-proxy:8080"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTP_PROXY
+            value: "http://my-external-proxy:8080"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            value: "http://my-external-proxy:8080"
+
+  - it: rejects proxy without protocol
+    set:
+      httpsProxy: no.protocol.proxy:8080
+    asserts:
+      - failedTemplate: {}
+
+  - it: should allow specifying proxy credentials from a secret
+    set:
+      proxySecret.name: proxy-credentials-secret
+      proxySecret.httpsProxyKey: corp_https_proxy
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            valueFrom:
+              secretKeyRef:
+                name: proxy-credentials-secret
+                key: corp_https_proxy
+
+  - it: should allow specifying URLs that bypass the proxy
+    set:
+      noProxy: "localhost,127.0.0.1,my-internal-domain.com"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NO_PROXY
+            value: "localhost,127.0.0.1,my-internal-domain.com"
+
+  - it: should reject NO_PROXY URLs that include a protocol
+    set:
+      noProxy: "https://my-internal-domain.com"
+    asserts:
+      - failedTemplate: {}
+
+  - it: should trust the proxy's certificate
+    set:
+      caCert: "-----BEGIN CERTIFICATE-----\n.....\n-----END CERTIFICATE-----"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NODE_EXTRA_CA_CERTS
+            value: "/home/node/cacert/cacert"
+
+  - it: should disable certificate validation for proxy
+    set:
+      disableAllCertificateTrust: true
+      caCert: "-----BEGIN CERTIFICATE-----\n.....\n-----END CERTIFICATE-----"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NODE_TLS_REJECT_UNAUTHORIZED
+            value: "0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NODE_EXTRA_CA_CERTS
+            value: "/home/node/cacert/cacert"
+
+  - it: should allow specifying proxy credentials from a secret and in values.yaml
+    set:
+      proxySecret.name: proxy-credentials-secret
+      proxySecret.httpsProxyKey: corp_https_proxy
+      noProxy: my.scm.io
+      httpsProxy: https://do.not.use.me
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            valueFrom:
+              secretKeyRef:
+                name: proxy-credentials-secret
+                key: corp_https_proxy
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NO_PROXY
+            value: my.scm.io

@@ -1,6 +1,8 @@
-suite: Pod runtime tests
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Pod Runtime
 values:
   - ../values.yaml
+  - fixtures/default_values.yaml
 templates:
   - templates/statefulset.yaml
 

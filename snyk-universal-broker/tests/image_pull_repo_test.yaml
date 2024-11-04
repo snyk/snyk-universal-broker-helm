@@ -4,7 +4,8 @@ suite: Image Pull Secrets & Custom Registry/Repositories
 templates:
   - templates/statefulset.yaml
 values:
-  - fixtures/universal_broker_default_values.yaml
+  - ../values.yaml
+  - fixtures/default_values.yaml
 set:
   image.tag: "1.0.0"
 
@@ -56,8 +57,7 @@ tests:
     set:
       image.pullPolicy: "Sometimes"
     asserts:
-      - failedTemplate:
-          errorMessage: "Invalid imagePullPolicy: Sometimes. Allowed values are: IfNotPresent, Always, Never."
+      - failedTemplate: {}
 
   - it: Sets a custom image registry
     set:

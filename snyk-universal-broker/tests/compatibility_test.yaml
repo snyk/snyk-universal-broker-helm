@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
+suite: OpenShift Compatibility
+templates:
+  - statefulset.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: Adjusts the security context for OpenShift
+    capabilities:
+      apiVersions:
+        - "security.openshift.io/v1"
+    asserts:
+      - notExists:
+          path: spec.template.spec.securityContext.fsGroup
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext.runAsGroup
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext.seLinuxOptions
+
+  - it: Keeps the security context if not OpenShift
+    asserts:
+      - exists:
+          path: spec.template.spec.securityContext.fsGroup
+      - exists:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+      - exists:
+          path: spec.template.spec.containers[0].securityContext.runAsGroup
+      - exists:
+          path: spec.template.spec.containers[0].securityContext.seLinuxOptions
+
+  - it: Allows for mounting of OpenShift CA via ConfigMap
+    ## ref: https://docs.openshift.com/container-platform/4.9/networking/configuring-a-custom-pki.html#certificate-injection-using-operators_configuring-a-custom-pki
+    set:
+      extraVolumes:
+        - name: trusted-ca
+          configMap:
+            name: trusted-ca
+            items:
+              - key: ca-bundle.crt
+                path: tls-ca-bundle.pem
+      extraVolumeMounts:
+        - name: trusted-ca
+          mountPath: /home/node/cacert
+          readOnly: true
+      caCertMount:
+        path: /home/node/cacert
+        name: tls-ca-bundle.pem
+      extraEnvVars:
+        - name: CA_CERT
+          value: /home/node/cacert/tls-ca-bundle.pem
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: trusted-ca
+            mountPath: /home/node/cacert
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: trusted-ca
+            configMap:
+              name: trusted-ca
+              items:
+                - key: ca-bundle.crt
+                  path: tls-ca-bundle.pem
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CA_CERT
+            value: /home/node/cacert/tls-ca-bundle.pem

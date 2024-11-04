@@ -45,3 +45,11 @@ bitbucket.crt
 
 # Packaged Helm Charts
 *.tgz
+Chart.lock
+
+# Release
+node_modules
+
+# Helm unittest
+snyk-universal-broker/.debug
+snyk-universal-broker/charts

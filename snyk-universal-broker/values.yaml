@@ -1,65 +1,173 @@
-## @section Snyk Broker parameters
-## @param brokerClientUrl is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup.
-## brokerClientUrl:http://kubernetes-ingress.domain.com:8000
+## @section Snyk Broker Configuration
+## @param brokerClientUrl is the resolvable address of the Broker. This is likely the address of the Ingress pointing to Broker.
 brokerClientUrl: ""
 
-## See https://docs.snyk.io/working-with-snyk/regional-hosting-and-data-residency#broker-urls for regional endpoints
-## Default endpoints are for the Snyk US tenant.
-## @param tenant Optionally specify a Snyk Region - defaults to "US".
-tenant: "default"  # Options: "EU", "AU", "default", or any custom domain
+## @param region [string] Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io
+## Default endpoints are for the Snyk-US-01 region.
+## See https://docs.snyk.io/working-with-snyk/regional-hosting-and-data-residency#regional-urls for options.
+region: ""
 
-## @param preflightChecks.enabled broker client preflight checks
-preflightChecks:
-  enabled: true
+##### Snyk Platform Auth #####
+## @descriptionStart
+## Refer to documentation via [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/initial-configuration-of-the-universal-broker) to obtain `deploymentId`, `clientId`, `clientSecret` values.
+##
+## Credential References should contain one or more key/value pairs where each key matches the `environment_variable_name` of a `deployment_credential`, and the value provides the secret. For example:
+## ```yaml
+## credentialReferences:
+##     MY_GITHUB_TOKEN: <gh-pat>
+## ```
+## @descriptionEnd
 
-## Snyk Platform Server Auth #####
-## @param deploymentId is obtained by installing the Broker App at the Organization level
-## @param clientId is obtained by installing the Broker App at the Organization level
-## @param clientSecret is obtained by installing the Broker App at the Organization level
-## see https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/initial-configuration-of-the-universal-broker
+## @param deploymentId obtained by installing the Broker App
+## @param clientId obtained by installing the Broker App
+## @param clientSecret obtained by installing the Broker App
 
 deploymentId: ""
 clientId: ""
 clientSecret: ""
 
-## @param existingAuthSecret  Name of existing secret with Snyk platform auth and scm credential reference data
-## @param credentialReferences SCM token credential reference
-existingAuthSecret: "" # Name of an existing secret if it exists
-credentialReferences: []
+## @param platformAuthSecret.name [string] Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`.
+platformAuthSecret:
+  name: ""
 
-## @param containerPort Port to open for HTTP in Broker
+## See https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/set-up-a-github-connection-using-the-api for an example GitHub connection
+## See https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/restart-your-broker-with-the-required-environment-variable-and-connect for an example of passing tokens required for the above GitHub connection to the Broker
+## @param credentialReferences Credential References to pass to Broker.
+## Each entry should be of form <ENV_VALUE_NAME>:<SECRET_VALUE>, which should match a configured Credential Reference.
+## e.g:
+## credentialReferences:
+##   MY_GITHUB_TOKEN: <github-pat>
+##   MY_OTHER_GITHUB_TOKEN: <another-github-pat>
+##
+##
+credentialReferences: {}
+
+## @param credentialReferencesSecret.name Optionally provide a pre-existing secret with SCM credential reference data
+## This secret should contain one or more key/value pairs, where the key matches the `environment_variable_name` of a `deployment_credential`
+
+credentialReferencesSecret:
+  name: "" # Name of an existing secret if it exists
+
+## @section Networking Parameters
+
+## @param containerPort The port the Broker container will expose.
 containerPort: 8000
 
-## @param hostAliases Broker pod host aliases
+## @param hostAliases Add extra hosts to the Broker pod if required
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##
 hostAliases: []
 
-## @param resources.requests.cpu Set CPU requests
-## @param resources.requests.memory Set memory requests
-## @param resources.limits.cpu Set CPU limits
-## @param resources.limits.memory Set memory limits
-resources: 
-  requests:
-    cpu: 2
-    memory: 512Mi
-  limits:
-    cpu: 3
-    memory: 1024Mi
+## @param service.type Set the included Service Type
+## @param service.port Set the port the Service will expose
+## @param service.nodePort Optionally specify a nodePort (only takes effect if service.type=NodePort)
+## @param service.clusterIP Optionally specify an IP address (only takes effect if service.type=ClusterIP)
+## @param service.loadBalancerIP Optionally specify an IP address (only takes effect if service.type=LoadBalancer)
+## @param service.loadBalancerSourceRanges Specify an array of CIDR blocks to permit traffic from (only takes effect if service.type=LoadBalancer)
+## @param service.externalTrafficPolicy [string, default: Cluster] Set the externalTrafficPolicy of the service (only takes effect if service.type=LoadBalancer)
+## @param service.extraPorts [array] Add extra ports to the Service
+## @param service.tls [array] Enable TLS at the Service level
+service:
+  type: ClusterIP
+  port: 8000
+  nodePort: null
+  clusterIP: null
+  loadBalancerIP: null
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: Cluster
+  extraPorts: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
 
-## @param commonLabels Labels to add to all deployed objects (sub-charts are not considered)
-##
+## @section Broker Ingress
+
+## @param ingress.enabled [default: false] Set to true to create an Ingress
+## @param ingress.className [string] Optionally define an Ingress Class
+## @param ingress.annotations [object] Additional annotations for the Ingress resource.
+## @param ingress.path [string, default: "/"] sets the path associated with the ingress
+## @param ingress.pathType [string, default: "ImplementationSpecific"] sets the path type associated with the ingress
+## @param ingress.hostname [string, default: "broker.local"] define the host associated with this ingress - add Broker_client_url here
+## @param ingress.extraHosts [array] An array with additional hostname(s) to be covered with the ingress record
+## @param ingress.extraPaths [array] Any additional arbitrary paths that may need to be added to the ingress under the main host
+## @param ingress.extraTls [array] Any additional tls entries to add to the ingress
+## @param ingress.extraRules [array] Any additional rules to add to the ingress
+## @param ingress.secrets [array] A list of TLS secrets to create, each with `name`, `key` and `certificate`
+## @param ingress.tls.enabled [default: false] Set to true to enable TLS on the in-built ingress
+## @param ingress.tls.existingSecret [string] Specify an existing TLS secret to use with this ingress
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    ## E.g.
+    ## kubernetes.io/ingress.class: nginx
+    ## kubernetes.io/tls-acme: "true"
+  path: /
+  pathType: ImplementationSpecific
+  hostname: "broker.local"
+  extraHosts: []
+  extraPaths: []
+  extraTls: []
+  extraRules: []
+  secrets: []
+  tls:
+    enabled: false
+    existingSecret: ""
+
+## @section Metadata
+
+## @param commonLabels Labels to add to all deployed objects
 commonLabels: {}
-## @param commonAnnotations Annotations to add to all deployed objects (sub-charts are not considered)
-##
+
+## @param commonAnnotations Annotations to add to all deployed objects
 commonAnnotations: {}
 
-## @param podLabels Pod labels
+## @param podLabels Labels to add to the Broker Pod
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-##
 podLabels: {}
 
-##### Liveness and Readiness Probes #####
+## @param affinity Any affinities/anti-affinities to apply to Broker
+affinity: {}
+
+## @param nodeSelector Any node labels to match when scheduling Broker
+nodeSelector: {}
+
+## @param tolerations Any taints to tolerate when scheduling Broker
+tolerations: []
+
+## @section Runtime
+
+## @param preflightChecks.enabled Preflight checks are present in the Broker to assert connectivity and configuration correctness. Set to false to disable.
+preflightChecks:
+  enabled: true
+
+## @param runtimeClassName Optionally specify a runtimeClassName for Broker to target
+runtimeClassName: ""
+
+## @param priorityClassName Optionally specify a priorityClassName for Broker to target
+priorityClassName: ""
+
+resources: 
+## @param resources.requests.cpu Set CPU requests
+## @param resources.requests.memory Set memory requests
+  requests:
+    cpu: 1
+    memory: 512Mi
+## @param resources.limits.cpu Set CPU limits
+## @param resources.limits.memory Set memory limits
+  limits:
+    cpu: 2
+    memory: 1024Mi
+
+## @param highAvailabilityMode.enabled snyk broker HA mode
+## @param highAvailabilityMode.replicaCount Number of Broker pods when running in HA mode (min 2, max 4)
+
+highAvailabilityMode:
+  enabled: false
+  replicaCount: 2
+
+## @section Probes
 ## Configure Broker containers' options for liveness probe
 ## @param livenessProbe.enabled Enable livenessProbe
 ## @param livenessProbe.path Path for the livenessProbe
@@ -94,29 +202,24 @@ readinessProbe:
     timeoutSeconds: 1
     failureThreshold: 3
 
-## HA MODE #####
-## @param highAvailabilityMode.enabled snyk broker HA mode
-## @param replicaCount number for snyk broker when running in HA mode (min 2, max 4)
-
-highAvailabilityMode:
-  enabled: false
-replicaCount: 1
-
-## Logging #####
+## @section Logging
 ## @param logLevel defines Log Level for broker client pod. Can be set to "debug" for more information
-## @param logEnableBody adds additional logging by setting to true
+## @param logEnableBody adds additional logging by setting to true. Will vastly increase log output - enable for diagnostics only
 
 logLevel: "info"
-logEnableBody: "false"
+logEnableBody: false
 
-## Enable HTTPS #####
-## @param enableBrokerLocalWebserverOverHttps enables Broker client to run a HTTPS server instead of the default HTTP server
-## @param httpsCert provides HTTPS cert
-## @param httpsKey provides HTTPS cert key
-
-enableBrokerLocalWebserverOverHttps: false
-httpsCert: ""
-httpsKey: ""
+## @section Serving over HTTPS and Certificate Trust
+## @param localWebServer.https [default: false] enables Broker client to run a HTTPS server instead of the default HTTP server
+## @param localWebServer.certificate [string] Provide HTTPS cert
+## @param localWebServer.key [string] Provides HTTPS cert key
+localWebServer:
+  https: false
+  certificate: ""
+  key: ""
+## @param localWebServerSecret.name the name of the secret to create or (if cert and key are empty) the existing TLS secret to use.
+localWebServerSecret:
+  name: ""
 
 ##### HTTPS Inspection #####
 
@@ -136,24 +239,41 @@ httpsKey: ""
 ## caCert: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
 caCert: ""
 
-## @param disableCaCertTrust Set to `true` to disable trust validation when providing your own CA certificate.
-disableCaCertTrust: true
+## @param caCertMount.path [string, default:"/home/node/cacert"] the path to mount a certificate bundle to
+## @param caCertMount.name [string, default:"cacert"] the filename to write a certificate bundle to
+caCertMount:
+  path: /home/node/cacert
+  name: cacert
 
-## @param tlsRejectUnauthorized Set to "0" to disable trust validation when using self signed certificates.
-tlsRejectUnauthorized: ""
+## @param caCertSecret.name [string] set to read a CA cert from an external secret
+## @param caCertSecret.caCertKey [default: ca.pem] set to read the ca cert from a different key
+caCertSecret:
+  name: ""
+  caCertKey: ca.pem
 
-##### Use behind proxy #####
+## @param disableAllCertificateTrust [default: false] Set to `true` to disable trust of **all** certificates, including any provided CAs
+disableAllCertificateTrust: false
 
-## @param httpProxy Do not change unless advised by your Snyk Representative. You probably need to use HTTPS proxy setting and leave this blank. - HTTP Proxy URL
-## @param httpsProxy HTTPS Proxy URL - This will apply to both Snyk Broker 
-## @param noProxy provide URl here which doesn't need to go through a proxy(do not include protocol)  
+## @section Proxy Configuration
+## @param httpProxy Set to proxy any http-only traffic. You probably need to use HTTPS proxy setting and leave this blank.
+## @param httpsProxy HTTPS Proxy URL. Optionally provide user/password auth in the url.
+## @param noProxy A comma-separated list of hostnames that must not transit a proxy. Do not include protocol or port numbers.
+## @param proxySecret.name The name of a pre-existing secret containing up to three entries. If set, supersedes .Values.httpProxy, .Values.httpsProxy and .Values.noProxy.
+## @param proxySecret.httpProxyKey Specify the key within the pre-existing secret containing the value for HTTP_PROXY. If left empty, no value is set.
+## @param proxySecret.httpsProxyKey Specify the key within the pre-existing secret containing the value for HTTPS_PROXY. If left empty, no value is set.
+## @param proxySecret.noProxyKey Specify the key within the pre-existing secret containing the value for NO_PROXY. If left empty, no value is set.
 httpProxy: ""
 httpsProxy: ""
 noProxy: ""
+proxySecret:
+  name: ""
+  httpProxyKey: ""
+  httpsProxyKey: ""
+  noProxyKey: "" 
 
-##### Broker Image Parameters #####
-## @param image.registry [default: REGISTRY_NAME] Broker image registry
-## @param image.repository [default: REPOSITORY_NAME/broker] Broker image repository
+## @section Container Registry
+## @param image.registry [default: docker.io] Broker image registry
+## @param image.repository [default: snyk/broker] Broker image repository
 ## @skip image.tag Broker image tag (immutable tags are recommended)
 ## @param image.pullPolicy Broker image pull policy
 ## @param image.pullSecrets Broker image pull secrets
@@ -166,19 +286,20 @@ image:
   pullSecrets: []
   # - name: registrySecretName
 
-##### Service Account Values. Nothing to change here #####
 
+## @section Service Account
 serviceaccount:
-  ## @param serviceaccount.create Enable creation of serviceaccount for Broker pod
+  ## @param serviceaccount.create Enable creation of a ServiceAccount
   create: true
-  ## @param serviceaccount.existingName Optionally provide an existing service account name
+  ## @param serviceaccount.existingName Optionally provide an existing ServiceAccount name
   existingName: ""
-  ## @param serviceaccount.annotations Additional custom annotations for the serviceaccount
+  ## @param serviceaccount.annotations Additional custom annotations for the ServiceAccount
   annotations: {}
-  ## @param serviceaccount.name The name of the serviceaccount to use.
+  ## @param serviceaccount.name The name of the ServiceAccount to create.
   ## If not set and create is true, a name is generated using the common.names.fullname template
   name: ""
 
+## @section Security Contexts
 ## Pod security context
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
 ## @param podSecurityContext.enabled Enable security context for Broker Pods
@@ -221,58 +342,29 @@ containerSecurityContext:
     type: "RuntimeDefault"
   readOnlyRootFilesystem: true
 
-##### Service Types #####
-# If you prefer to adjust how communication to the cluster occurs, these values can be adjusted
-## @param service.type Broker svc type
-## @param service.ports.http Broker svc port
-## @param service.tls is running Broker with https
-## @param service.extraPorts Extra ports to expose
-service:
-  type: ClusterIP
-  ports: 
-    http: 8000
-  extraPorts: []
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+## @section Additional Objects
+## @param sidecars Any sidecars to attach to Broker
+## e.g:
+## sidecars:
+##   - name: your-image-name
+##     image: your-image
+##     imagePullPolicy: Always
+##     ports:
+##       - name: portname
+##         containerPort: 1234
+##
+sidecars: []
 
-
-##### Optionally Deploy a Broker Ingress Resource #####
-## @param ingress.enabled Set to true to create an Ingress
-## @param ingress.ingressClassName Optionally define the Ingress Class for this ingress - otherwise leave blank
-## @param ingress.hostname define the host associated with this ingress - add Broker_client_url here
-## @param ingress.extraHosts An array with additional hostname(s) to be covered with the ingress record
-## @param ingress.tls.enabled Set to true to enable TLS on the in-built ingress
-## @param ingress.tls.secret.key [string] The TLS key for TLS encryption, in PEM format
-## @param ingress.tls.secret.cert [string] The TLS certificate for TLS encryption, in PEM format
-## @param ingress.annotations Additional annotations for the Ingress resource.
-## @param ingress.path Path for the default host
-## @param ingress.pathType Ingress path type
-## @param ingress.extraPaths Any additional arbitrary paths that may need to be added to the ingress under the main host.
-## @param ingress.existingSecret It is you own the certificate as secret.
-ingress:
-  enabled: true
-  ingressClassName: ""
-  annotations: {}
-    ## E.g.
-    ## kubernetes.io/ingress.class: nginx
-    ## kubernetes.io/tls-acme: "true"
-  path: /
-  pathType: Prefix
-  hostname: broker.local # Must match the Broker client url
-  extraHosts: []
-  ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
-  extraPaths: []
-  existingSecret: ""
-  tls:
-    enabled: false
-    secret:
-      key: |
-        # Should start with -----BEGIN PRIVATE KEY-----
-
-      cert: |
-        # Should start with -----BEGIN CERTIFICATE-----
+## @param initContainers Any initContainers to run before Broker
+## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+## e.g:
+## initContainers:
+##  - name: your-image-name
+##    image: your-image
+##    imagePullPolicy: Always
+##    command: ['sh', '-c', 'echo "hello world"']
+##
+initContainers: []
 
 ## @param extraVolumes Optionally specify extra list of additional volumes for Broker container
 extraVolumes: []
@@ -282,3 +374,15 @@ extraVolumeMounts: []
 
 ## @param extraEnvVars Optionally specify extra list of additional environment variables for Broker container
 extraEnvVars: []
+
+## @param extraEnvVarsCM Optionally specify one or more external configmaps containing additional environment variables for Broker
+extraEnvVarsCM: []
+
+## @param extraEnvVarsSecret Optionally specify one or more external secrets containing additional environment variables for Broker
+extraEnvVarsSecret: []
+
+## @param global.compatibility.openshift.adaptSecurityContext Set to false to disable security context adaptations for OpenShift
+global:
+  compatibility:
+    openshift:
+      adaptSecurityContext: auto
