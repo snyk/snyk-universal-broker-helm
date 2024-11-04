@@ -93,7 +93,7 @@ jobs:
             wget https://github.com/yannh/kubeconform/releases/download/v0.5.0/kubeconform-linux-amd64.tar.gz 
             sudo tar -xvf kubeconform-linux-amd64.tar.gz --directory=/usr/local/bin
       - run:
-          name: Template and Dry run
+          name: Template to file
           command: |
             helm dep up
             helm template \
@@ -114,8 +114,10 @@ jobs:
           command: |
             k3d cluster create
             helm install \
+              --debug \
               --wait \
               -f values.yaml \
+              --set region=dev \
               --set deploymentId=${<<parameters.deployment-id>>} \
               --set clientId=${<<parameters.client-id>>} \
               --set clientSecret=${<<parameters.client-secret>>} \

@@ -356,7 +356,7 @@
       },
       "additionalProperties": false
     },
-    "serviceaccount": {
+    "serviceAccount": {
       "type": "object",
       "properties": {
         "create": {

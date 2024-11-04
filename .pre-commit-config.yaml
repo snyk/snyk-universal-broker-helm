@@ -29,6 +29,5 @@ repos:
       name: Helm Unittest
       entry: helm unittest snyk-universal-broker
       language: system
-      files: ^helm
       pass_filenames: false
       stages: [pre-commit]

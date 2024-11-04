@@ -39,7 +39,7 @@ spec:
       {{- if .Values.priorityClassName -}}
       priorityClassName: {{ .Values.priorityClassName }}
       {{- end }}
-      serviceaccountName: {{ .Values.serviceaccount.existingName | default (include "snyk-broker.serviceaccountName" .) }}
+      serviceAccountName: {{ .Values.serviceAccount.existingName | default (include "snyk-broker.serviceAccountName" .) }}
       {{- if .Values.podSecurityContext.enabled }}
       securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) | nindent 8 }}
       {{- end }}

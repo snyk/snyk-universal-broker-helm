@@ -150,10 +150,10 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 | Name                          | Description                                                                                  | Value  |
 | ----------------------------- | -------------------------------------------------------------------------------------------- | ------ |
-| `serviceaccount.create`       | Enable creation of a ServiceAccount                                                          | `true` |
-| `serviceaccount.existingName` | Optionally provide an existing ServiceAccount name                                           | `""`   |
-| `serviceaccount.annotations`  | Additional custom annotations for the ServiceAccount                                         | `{}`   |
-| `serviceaccount.name`         | The name of the ServiceAccount to create. If not set and create is true, a name is generated | `""`   |
+| `serviceAccount.create`       | Enable creation of a serviceAccount                                                          | `true` |
+| `serviceAccount.existingName` | Optionally provide an existing serviceAccount name                                           | `""`   |
+| `serviceAccount.annotations`  | Additional custom annotations for the serviceAccount                                         | `{}`   |
+| `serviceAccount.name`         | The name of the serviceAccount to create. If not set and create is true, a name is generated | `""`   |
 
 ### Security Contexts
 

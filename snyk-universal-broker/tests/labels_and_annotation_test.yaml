@@ -76,7 +76,7 @@ tests:
           value:
             description: "My application"
 
-  - it: should apply commonLabels to serviceaccount metadata
+  - it: should apply commonLabels to serviceAccount metadata
     asserts:
       - equal:
           path: "metadata.labels"
@@ -88,7 +88,7 @@ tests:
             app.kubernetes.io/name: "snyk-universal-broker"
             helm.sh/chart: "snyk-universal-broker-0.0.1"
 
-  - it: should apply commonAnnotations to serviceaccount metadata
+  - it: should apply commonAnnotations to serviceAccount metadata
     asserts:
       - equal:
           path: "metadata.annotations"

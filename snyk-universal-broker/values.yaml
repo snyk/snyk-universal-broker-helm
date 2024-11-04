@@ -284,14 +284,14 @@ image:
 
 
 ## @section Service Account
-serviceaccount:
-  ## @param serviceaccount.create [default: true] Enable creation of a ServiceAccount
+serviceAccount:
+  ## @param serviceAccount.create [default: true] Enable creation of a serviceAccount
   create: true
-  ## @param serviceaccount.existingName [string] Optionally provide an existing ServiceAccount name
+  ## @param serviceAccount.existingName [string] Optionally provide an existing serviceAccount name
   existingName: ""
-  ## @param serviceaccount.annotations [object] Additional custom annotations for the ServiceAccount
+  ## @param serviceAccount.annotations [object] Additional custom annotations for the serviceAccount
   annotations: {}
-  ## @param serviceaccount.name [string] The name of the ServiceAccount to create. If not set and create is true, a name is generated
+  ## @param serviceAccount.name [string] The name of the serviceAccount to create. If not set and create is true, a name is generated
   name: ""
 
 ## @section Security Contexts
