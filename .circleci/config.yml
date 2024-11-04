@@ -3,6 +3,28 @@ version: 2.1
 orbs:
   prodsec: snyk/prodsec-orb@1
 
+parameters:
+  kubectl-version:
+    type: string
+    default: "1.28"
+
+commands:
+  install_helm:
+    description: "Install Helm CLI"
+    steps:
+      - run:
+          name: "Install Helm"
+          command: |
+            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+            chmod 700 get_helm.sh
+            ./get_helm.sh --version v3.8.1
+
+  install_helm_unittest:
+    steps:
+      - run:
+          name: "Install Helm Unittest"
+          command: "helm plugin install https://github.com/helm-unittest/helm-unittest"
+
 jobs:
   validate_charts:
     docker:
@@ -39,6 +61,69 @@ jobs:
               exit 1
             fi
 
+  deploy_and_test:
+    machine: 
+      image: ubuntu-2204:current
+    resource_class: medium
+    parameters:
+      deployment-id:
+        type: env_var_name
+        default: DEPLOYMENT_ID
+      client-id:
+        type: env_var_name
+        default: CLIENT_ID
+      client-secret:
+        type: env_var_name
+        default: CLIENT_SECRET
+      my-ghe-token:
+        type: env_var_name
+        default: MY_GHE_TOKEN
+    steps:
+      - checkout
+      - install_helm
+      - install_helm_unittest
+      - run:
+          name: Install Pre-reqs
+          command: |
+            curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+            curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+            echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v<<pipeline.parameters.kubectl-version>>/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+            sudo apt-get update
+            sudo apt-get install -y kubectl
+            wget https://github.com/yannh/kubeconform/releases/download/v0.5.0/kubeconform-linux-amd64.tar.gz 
+            sudo tar -xvf kubeconform-linux-amd64.tar.gz --directory=/usr/local/bin
+      - run:
+          name: Template and Dry run
+          command: |
+            helm dep up
+            helm template \
+              -f values.yaml \
+              --set deploymentId=${<<parameters.deployment-id>>} \
+              --set clientId=${<<parameters.client-id>>} \
+              --set clientSecret=${<<parameters.client-secret>>} \
+              --set credentialReferences.MY_GHE_TOKEN=${<<parameters.my-ghe-token>>} \
+              . > template.yaml
+          working_directory: snyk-universal-broker
+      - run:
+          name: Kubeconform
+          command: |
+            kubeconform -ignore-missing-schemas template.yaml
+          working_directory: snyk-universal-broker
+      - run:
+          name: Deploy Universal Broker
+          command: |
+            k3d cluster create
+            helm install \
+              --wait \
+              -f values.yaml \
+              --set deploymentId=${<<parameters.deployment-id>>} \
+              --set clientId=${<<parameters.client-id>>} \
+              --set clientSecret=${<<parameters.client-secret>>} \
+              --set credentialReferences.MY_GHE_TOKEN=${<<parameters.my-ghe-token>>} \
+              snyk-universal-broker \
+              .
+          working_directory: snyk-universal-broker
+
   publish:
     docker:
       - image: cimg/node:22.9 
@@ -48,10 +133,7 @@ jobs:
       - run:
           name: Install npm dependencies
           command: npm ci
-      - run:
-          name: Install Helm
-          command: |
-            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      - install_helm
       - run:
           name: Docker Login for OCI Push
           command: |
@@ -71,6 +153,9 @@ workflows:
           trusted-branch: main
       - validate_charts
       - validate_documentation
+      - deploy_and_test:
+          context:
+            - snyk-universal-broker-helm-chart
       - publish:
           context:
             - team-broker-docker-hub

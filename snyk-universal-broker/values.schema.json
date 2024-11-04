@@ -106,15 +106,7 @@
       ]
     },
     "clientSecret": {
-      "type": "string",
-      "oneOf":[
-        {
-          "format":"uuid"
-        },
-        {
-          "maxLength":0
-        }
-      ]
+      "type": "string"
     },
     "platformAuthSecret":{
       "type":"object",
