@@ -139,12 +139,13 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 ### Container Registry
 
-| Name                | Description               | Value          |
-| ------------------- | ------------------------- | -------------- |
-| `image.registry`    | Broker image registry     | `docker.io`    |
-| `image.repository`  | Broker image repository   | `snyk/broker`  |
-| `image.pullPolicy`  | Broker image pull policy  | `IfNotPresent` |
-| `image.pullSecrets` | Broker image pull secrets | `[]`           |
+| Name                | Description                                       | Value          |
+| ------------------- | ------------------------------------------------- | -------------- |
+| `image.registry`    | Broker image registry                             | `docker.io`    |
+| `image.repository`  | Broker image repository                           | `snyk/broker`  |
+| `image.tag`         | Broker image tag (immutable tags are recommended) | `universal`    |
+| `image.pullPolicy`  | Broker image pull policy                          | `IfNotPresent` |
+| `image.pullSecrets` | Broker image pull secrets                         | `[]`           |
 
 ### Service Account
 

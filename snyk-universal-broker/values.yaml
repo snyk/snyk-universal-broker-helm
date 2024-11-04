@@ -270,15 +270,15 @@ proxySecret:
 ## @section Container Registry
 ## @param image.registry [default: docker.io] Broker image registry
 ## @param image.repository [default: snyk/broker] Broker image repository
-## @skip image.tag Broker image tag (immutable tags are recommended)
+## @param image.tag [default: universal] Broker image tag (immutable tags are recommended)
 ## @param image.pullPolicy Broker image pull policy
 ## @param image.pullSecrets Broker image pull secrets
 image:
   registry: docker.io
   repository: snyk/broker
   pullPolicy: IfNotPresent
-  # Overrides the image tag. If left empty the latest version is used
-  tag: ""
+  # Overrides the image tag
+  tag: "universal"
   pullSecrets: []
   # - name: registrySecretName
 
