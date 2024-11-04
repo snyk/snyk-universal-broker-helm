@@ -312,16 +312,16 @@ podSecurityContext:
 
 ## Container security context
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
-## @param containerSecurityContext.enabled Enabled Broker containers' Security Context
-## @param containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in container
-## @param containerSecurityContext.runAsUser Set Broker  containers' Security Context runAsUser
-## @param containerSecurityContext.runAsGroup Set Broker containers' Security Context runAsGroup
-## @param containerSecurityContext.allowPrivilegeEscalation Set Broker containers' Security Context allowPrivilegeEscalation
-## @param containerSecurityContext.capabilities.drop Set containers' repo server Security Context capabilities to be dropped
-## @param containerSecurityContext.readOnlyRootFilesystem Set containers' repo server Security Context readOnlyRootFilesystem
-## @param containerSecurityContext.runAsNonRoot Set Broker containers' Security Context runAsNonRoot
-## @param containerSecurityContext.privileged Set container's Security Context privileged
-## @param containerSecurityContext.seccompProfile.type Set container's Security Context seccompProfile
+## @param containerSecurityContext.enabled [default:true] Enable Broker container security context
+## @param containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options for Broker container
+## @param containerSecurityContext.runAsUser [default: 1000]
+## @param containerSecurityContext.runAsGroup [default: 1000]
+## @param containerSecurityContext.allowPrivilegeEscalation [default:false] Allow the Broker container to escalate privileges
+## @param containerSecurityContext.capabilities.drop [default: ["ALL"]] Linux capabilities to drop
+## @param containerSecurityContext.readOnlyRootFilesystem [default:false] Set Broker container file system to read only
+## @param containerSecurityContext.runAsNonRoot [default:true] Run Broker as non-root
+## @param containerSecurityContext.privileged [default: false] Run Broker as a privileged container
+## @param containerSecurityContext.seccompProfile.type [default:"RunTimeDefault"] Set the seccomProfile for Broker
 
 containerSecurityContext:
   enabled: true
@@ -335,7 +335,7 @@ containerSecurityContext:
     drop: ["ALL"]
   seccompProfile:
     type: "RuntimeDefault"
-  readOnlyRootFilesystem: true
+  readOnlyRootFilesystem: false
 
 ## @section Additional Objects
 ## @param sidecars Any sidecars to attach to Broker
