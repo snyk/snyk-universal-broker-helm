@@ -12,9 +12,8 @@ This is a Helm Chart to deploy the [Snyk Universal Broker](https://docs.snyk.io/
 Refer to documentation via [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/initial-configuration-of-the-universal-broker) to obtain `deploymentId`, `clientId`, `clientSecret` values.
 
 Credential References should contain one or more key/value pairs where each key matches the `environment_variable_name` of a `deployment_credential`, and the value provides the secret. For example:
-```yaml
-credentialReferences:
-MY_GITHUB_TOKEN: <gh-pat>
+```bash
+helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 ```
 
 | Name                              | Description                                                                                                    | Value |
@@ -178,13 +177,12 @@ MY_GITHUB_TOKEN: <gh-pat>
 
 ### Additional Objects
 
-| Name                                                  | Description                                                                                               | Value  |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------ |
-| `sidecars`                                            | Any sidecars to attach to Broker                                                                          | `[]`   |
-| `initContainers`                                      | Any initContainers to run before Broker                                                                   | `[]`   |
-| `extraVolumes`                                        | Optionally specify extra list of additional volumes for Broker container                                  | `[]`   |
-| `extraVolumeMounts`                                   | Optionally specify extra list of additional volumeMounts for Broker container                             | `[]`   |
-| `extraEnvVars`                                        | Optionally specify extra list of additional environment variables for Broker container                    | `[]`   |
-| `extraEnvVarsCM`                                      | Optionally specify one or more external configmaps containing additional environment variables for Broker | `[]`   |
-| `extraEnvVarsSecret`                                  | Optionally specify one or more external secrets containing additional environment variables for Broker    | `[]`   |
-| `global.compatibility.openshift.adaptSecurityContext` | Set to false to disable security context adaptations for OpenShift                                        | `auto` |
+| Name                 | Description                                                                                               | Value |
+| -------------------- | --------------------------------------------------------------------------------------------------------- | ----- |
+| `sidecars`           | Any sidecars to attach to Broker                                                                          | `[]`  |
+| `initContainers`     | Any initContainers to run before Broker                                                                   | `[]`  |
+| `extraVolumes`       | Optionally specify extra list of additional volumes for Broker container                                  | `[]`  |
+| `extraVolumeMounts`  | Optionally specify extra list of additional volumeMounts for Broker container                             | `[]`  |
+| `extraEnvVars`       | Optionally specify extra list of additional environment variables for Broker container                    | `[]`  |
+| `extraEnvVarsCM`     | Optionally specify one or more external configmaps containing additional environment variables for Broker | `[]`  |
+| `extraEnvVarsSecret` | Optionally specify one or more external secrets containing additional environment variables for Broker    | `[]`  |

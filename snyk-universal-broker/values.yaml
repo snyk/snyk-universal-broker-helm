@@ -12,9 +12,8 @@ region: ""
 ## Refer to documentation via [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/initial-configuration-of-the-universal-broker) to obtain `deploymentId`, `clientId`, `clientSecret` values.
 ##
 ## Credential References should contain one or more key/value pairs where each key matches the `environment_variable_name` of a `deployment_credential`, and the value provides the secret. For example:
-## ```yaml
-## credentialReferences:
-##     MY_GITHUB_TOKEN: <gh-pat>
+## ```bash
+## helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 ## ```
 ## @descriptionEnd
 
@@ -381,7 +380,7 @@ extraEnvVarsCM: []
 ## @param extraEnvVarsSecret Optionally specify one or more external secrets containing additional environment variables for Broker
 extraEnvVarsSecret: []
 
-## @param global.compatibility.openshift.adaptSecurityContext Set to false to disable security context adaptations for OpenShift
+## @skip global.compatibility.openshift.adaptSecurityContext Set to false to disable security context adaptations for OpenShift
 global:
   compatibility:
     openshift:
