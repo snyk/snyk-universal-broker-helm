@@ -78,6 +78,9 @@ jobs:
       my-ghe-token:
         type: env_var_name
         default: MY_GHE_TOKEN
+      snyk-token:
+        type: env_var_name
+        default: "SNYK_API_TOKEN"
     steps:
       - checkout
       - install_helm
@@ -125,6 +128,18 @@ jobs:
               snyk-universal-broker \
               .
           working_directory: snyk-universal-broker
+      - run:
+          name: Test Import
+          command: |
+            LOG_LEVEL="debug" \
+            SNYK_TOKEN=${<<parameters.snyk-token>>} \
+            npx \
+            --yes \
+            tsx \
+            .circleci/scripts/testImport/testImport.ts \
+            ".circleci/snyk-import/snyk-import-ghe.json" \
+            "https://api.dev.snyk.io"
+
 
   publish:
     docker:
