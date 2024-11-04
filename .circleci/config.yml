@@ -1,10 +1,13 @@
 version: 2.1
 
+orbs:
+  prodsec: snyk/prodsec-orb@1
+
 jobs:
   validate_charts:
     docker:
       - image: alpine/k8s:1.28.14
-    resource_class: medium
+    resource_class: small
     steps:
       - checkout
       - run:
@@ -30,11 +33,6 @@ jobs:
           command: npm ci
 
       - run:
-          name: Set up Git
-          command: |
-            git remote set-url origin git@github.com/snyk/snyk-universal-broker-helmchart.git
-            
-      - run:
           name: Install Helm
           command: |
             curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -44,7 +42,6 @@ jobs:
           command: |
            echo "$DOCKER_PASSWORD" | helm registry login -u snykdocker --password-stdin registry-1.docker.io
 
-          
       - run:
           name: Run semantic-release
           command: npx semantic-release
@@ -77,7 +74,13 @@ jobs:
 workflows:
   validate_and_publish:
     jobs:
-      - validate_charts  
+      - prodsec/secrets-scan:
+          name: Scan repository for secrets
+          context:
+            - snyk-bot-slack
+          channel: hybrid-alerts
+          trusted-branch: main
+      - validate_charts
       - publish:
           requires:
             - validate_charts
