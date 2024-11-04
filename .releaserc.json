@@ -15,13 +15,17 @@
       {
         "prepareCmd": "helm dep up && helm package --version ${nextRelease.version} .",
         "execCwd": "snyk-universal-broker"
+      },
+      {
+        "publishCmd": "helm push snyk-universal-broker-*.tgz oci://registry-1.docker.io/snyk",
+        "execCwd": "snyk-universal-broker"
       }
     ],
     [
     "@semantic-release/github",
     {
       "assets": [
-        { "path" : "snyk-universal-broker/snyk-universal-broker-${nextRelease.version}.tgz" }
+        { "path" : "snyk-universal-broker/snyk-universal-broker-*.tgz" }
       ],
       "successCommentCondition": false,
       "failCommentCondition": false

@@ -15,12 +15,29 @@ jobs:
           command: helm dep up
           working_directory: 
             snyk-universal-broker
-
       - run:
           name: Run helm unittest
           command: helm unittest .
           working_directory: 
             snyk-universal-broker
+
+  validate_documentation:
+    docker:
+      - image: cimg/node:20.18.0
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Run the readme generator
+          command: 
+            npx @bitnami/readme-generator-for-helm -v snyk-universal-broker/values.yaml -r README.md
+      - run:
+          name: Check if files in CI have changed
+          command: |
+            if [[ -n $(git diff --name-only README.md) ]]; then
+              echo "README content not synchronised with values.yaml"
+              exit 1
+            fi
 
   publish:
     docker:
@@ -31,45 +48,17 @@ jobs:
       - run:
           name: Install npm dependencies
           command: npm ci
-
       - run:
           name: Install Helm
           command: |
             curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
       - run:
           name: Docker Login for OCI Push
           command: |
            echo "$DOCKER_PASSWORD" | helm registry login -u snykdocker --password-stdin registry-1.docker.io
-
       - run:
           name: Run semantic-release
           command: npx semantic-release
-          environment:
-            DOCKER_USERNAME: $DOCKER_USERNAME
-            DOCKER_PASSWORD: $DOCKER_PASSWORD
-            
-      - run:
-          name: Update Chart Version
-          command: |
-            CHART_DIR="snyk-universal-broker"
-            NEW_VERSION=$(git describe --tags --abbrev=0)
-            echo "Updating Chart.yaml to version $NEW_VERSION"
-            sed -i "s/^version: .*/version: $NEW_VERSION/" $CHART_DIR/Chart.yaml
-
-      - run:
-          name: Package Helm Chart
-          command: |
-            helm dep up snyk-universal-broker
-            helm package snyk-universal-broker
-  
-      - run:
-          name: Push Helm Chart to OCI Registry
-          command: |
-            helm push snyk-universal-broker-*.tgz oci://registry-1.docker.io/snyk
-          environment:
-            DOCKER_USERNAME: $DOCKER_USERNAME
-            DOCKER_PASSWORD: $DOCKER_PASSWORD
 
 workflows:
   validate_and_publish:
@@ -81,9 +70,13 @@ workflows:
           channel: hybrid-alerts
           trusted-branch: main
       - validate_charts
+      - validate_documentation
       - publish:
+          context:
+            - team-broker-docker-hub
           requires:
             - validate_charts
+            - validate_documentation
           filters:
             branches:
               only:
