@@ -1,5 +1,5 @@
 ## @section Snyk Broker Configuration
-## @param brokerClientUrl is the resolvable address of the Broker. This is likely the address of the Ingress pointing to Broker.
+## @param brokerClientUrl [string] The resolvable address of the Broker. This is likely the address of the Ingress (if enabled)
 brokerClientUrl: ""
 
 ## @param region [string] Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io
@@ -17,9 +17,9 @@ region: ""
 ## ```
 ## @descriptionEnd
 
-## @param deploymentId obtained by installing the Broker App
-## @param clientId obtained by installing the Broker App
-## @param clientSecret obtained by installing the Broker App
+## @param deploymentId [string] obtained by installing the Broker App
+## @param clientId [string] obtained by installing the Broker App
+## @param clientSecret [string] obtained by installing the Broker App
 
 deploymentId: ""
 clientId: ""
@@ -31,38 +31,35 @@ platformAuthSecret:
 
 ## See https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/set-up-a-github-connection-using-the-api for an example GitHub connection
 ## See https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/restart-your-broker-with-the-required-environment-variable-and-connect for an example of passing tokens required for the above GitHub connection to the Broker
-## @param credentialReferences Credential References to pass to Broker.
+## @param credentialReferences [object] Credential References to pass to Broker.
 ## Each entry should be of form <ENV_VALUE_NAME>:<SECRET_VALUE>, which should match a configured Credential Reference.
 ## e.g:
 ## credentialReferences:
 ##   MY_GITHUB_TOKEN: <github-pat>
 ##   MY_OTHER_GITHUB_TOKEN: <another-github-pat>
-##
-##
 credentialReferences: {}
 
-## @param credentialReferencesSecret.name Optionally provide a pre-existing secret with SCM credential reference data
+## @param credentialReferencesSecret.name [string] Optionally provide a pre-existing secret with SCM credential reference data
 ## This secret should contain one or more key/value pairs, where the key matches the `environment_variable_name` of a `deployment_credential`
-
 credentialReferencesSecret:
   name: "" # Name of an existing secret if it exists
 
 ## @section Networking Parameters
 
-## @param containerPort The port the Broker container will expose.
+## @param containerPort [default: 8000] The port the Broker container will expose.
 containerPort: 8000
 
-## @param hostAliases Add extra hosts to the Broker pod if required
+## @param hostAliases [array] Add host aliases to the Broker pod if required
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##
 hostAliases: []
 
-## @param service.type Set the included Service Type
-## @param service.port Set the port the Service will expose
-## @param service.nodePort Optionally specify a nodePort (only takes effect if service.type=NodePort)
-## @param service.clusterIP Optionally specify an IP address (only takes effect if service.type=ClusterIP)
-## @param service.loadBalancerIP Optionally specify an IP address (only takes effect if service.type=LoadBalancer)
-## @param service.loadBalancerSourceRanges Specify an array of CIDR blocks to permit traffic from (only takes effect if service.type=LoadBalancer)
+## @param service.type [default: ClusterIP] Set the included Service type
+## @param service.port [default: 8000] Set the port the Service will expose
+## @param service.nodePort [nullable] Optionally specify a nodePort (only takes effect if service.type=NodePort)
+## @param service.clusterIP [nullable] Optionally specify an IP address (only takes effect if service.type=ClusterIP)
+## @param service.loadBalancerIP [nullable] Optionally specify an IP address (only takes effect if service.type=LoadBalancer)
+## @param service.loadBalancerSourceRanges [array] Specify an array of CIDR blocks to permit traffic from (only takes effect if service.type=LoadBalancer)
 ## @param service.externalTrafficPolicy [string, default: Cluster] Set the externalTrafficPolicy of the service (only takes effect if service.type=LoadBalancer)
 ## @param service.extraPorts [array] Add extra ports to the Service
 ## @param service.tls [array] Enable TLS at the Service level
@@ -116,51 +113,51 @@ ingress:
 
 ## @section Metadata
 
-## @param commonLabels Labels to add to all deployed objects
+## @param commonLabels [object] Labels to add to all deployed objects
 commonLabels: {}
 
-## @param commonAnnotations Annotations to add to all deployed objects
+## @param commonAnnotations [object] Annotations to add to all deployed objects
 commonAnnotations: {}
 
-## @param podLabels Labels to add to the Broker Pod
+## @param podLabels [object] Labels to add to the Broker Pod
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
 
-## @param affinity Any affinities/anti-affinities to apply to Broker
+## @param affinity [object] Any affinities/anti-affinities to apply to Broker
 affinity: {}
 
-## @param nodeSelector Any node labels to match when scheduling Broker
+## @param nodeSelector [object] Any node labels to match when scheduling Broker
 nodeSelector: {}
 
-## @param tolerations Any taints to tolerate when scheduling Broker
+## @param tolerations [object] Any taints to tolerate when scheduling Broker
 tolerations: []
 
 ## @section Runtime
 
-## @param preflightChecks.enabled Preflight checks are present in the Broker to assert connectivity and configuration correctness. Set to false to disable.
+## @param preflightChecks.enabled [default: true] Preflight checks are present in the Broker to assert connectivity and configuration correctness. Set to false to disable.
 preflightChecks:
   enabled: true
 
-## @param runtimeClassName Optionally specify a runtimeClassName for Broker to target
+## @param runtimeClassName [string] Optionally specify a runtimeClassName for Broker to target
 runtimeClassName: ""
 
-## @param priorityClassName Optionally specify a priorityClassName for Broker to target
+## @param priorityClassName [string] Optionally specify a priorityClassName for Broker to target
 priorityClassName: ""
 
 resources: 
-## @param resources.requests.cpu Set CPU requests
-## @param resources.requests.memory Set memory requests
+## @param resources.requests.cpu [default:1] Set CPU requests
+## @param resources.requests.memory [default:512Mi] Set memory requests
   requests:
     cpu: 1
     memory: 512Mi
-## @param resources.limits.cpu Set CPU limits
-## @param resources.limits.memory Set memory limits
+## @param resources.limits.cpu [default: 2] Set CPU limits
+## @param resources.limits.memory [default: 1024Mi] Set memory limits
   limits:
     cpu: 2
     memory: 1024Mi
 
-## @param highAvailabilityMode.enabled snyk broker HA mode
-## @param highAvailabilityMode.replicaCount Number of Broker pods when running in HA mode (min 2, max 4)
+## @param highAvailabilityMode.enabled snyk [default: false] Enable High Availability Mode for Broker
+## @param highAvailabilityMode.replicaCount [default: 2] Number of Broker pods when running in HA mode (min 2, max 4)
 
 highAvailabilityMode:
   enabled: false
@@ -168,12 +165,12 @@ highAvailabilityMode:
 
 ## @section Probes
 ## Configure Broker containers' options for liveness probe
-## @param livenessProbe.enabled Enable livenessProbe
-## @param livenessProbe.path Path for the livenessProbe
-## @param livenessProbe.config.initialDelaySeconds Initial delay seconds for livenessProbe
-## @param livenessProbe.config.periodSeconds Period seconds for livenessProbe
-## @param livenessProbe.config.timeoutSeconds Timeout seconds for livenessProbe
-## @param livenessProbe.config.failureThreshold Failure threshold for livenessProbe
+## @param livenessProbe.enabled [default: true] Enable livenessProbe
+## @param livenessProbe.path [default: "/healthcheck"] Path for the livenessProbe
+## @param livenessProbe.config.initialDelaySeconds [default: 3] Initial delay in seconds
+## @param livenessProbe.config.periodSeconds [default: 10] Seconds between probes
+## @param livenessProbe.config.timeoutSeconds [default: 1] Elapsed second(s) for timeout
+## @param livenessProbe.config.failureThreshold [default: 3] Number of consecutive probe failures to mark as unhealty
 
 livenessProbe:
   enabled: true
@@ -185,12 +182,12 @@ livenessProbe:
     failureThreshold: 3
 
 ## Configure Broker containers' options for readinessProbe probe
-## @param readinessProbe.enabled Enable readinessProbe
+## @param readinessProbe.enabled [default: true] Enable readinessProbe
 ## @param readinessProbe.path Path for the readinessProbe
-## @param readinessProbe.config.initialDelaySeconds Initial delay seconds for readinessProbe
-## @param readinessProbe.config.periodSeconds Period seconds for readinessProbe
-## @param readinessProbe.config.timeoutSeconds Timeout seconds for readinessProbe
-## @param readinessProbe.config.failureThreshold Failure threshold for readinessProbe
+## @param readinessProbe.config.initialDelaySeconds Initial delay in seconds
+## @param readinessProbe.config.periodSeconds Seconds between probes
+## @param readinessProbe.config.timeoutSeconds Elapsed second(s) for timeout
+## @param readinessProbe.config.failureThreshold Number of consecutive probe failures to mark as not ready
 
 readinessProbe:
   enabled: true
@@ -202,7 +199,7 @@ readinessProbe:
     failureThreshold: 3
 
 ## @section Logging
-## @param logLevel defines Log Level for broker client pod. Can be set to "debug" for more information
+## @param logLevel defines Log Level for broker client pod. Can be set to "debug" for more information.
 ## @param logEnableBody adds additional logging by setting to true. Will vastly increase log output - enable for diagnostics only
 
 logLevel: "info"
@@ -288,31 +285,30 @@ image:
 
 ## @section Service Account
 serviceaccount:
-  ## @param serviceaccount.create Enable creation of a ServiceAccount
+  ## @param serviceaccount.create [default: true] Enable creation of a ServiceAccount
   create: true
-  ## @param serviceaccount.existingName Optionally provide an existing ServiceAccount name
+  ## @param serviceaccount.existingName [string] Optionally provide an existing ServiceAccount name
   existingName: ""
-  ## @param serviceaccount.annotations Additional custom annotations for the ServiceAccount
+  ## @param serviceaccount.annotations [object] Additional custom annotations for the ServiceAccount
   annotations: {}
-  ## @param serviceaccount.name The name of the ServiceAccount to create.
-  ## If not set and create is true, a name is generated using the common.names.fullname template
+  ## @param serviceaccount.name [string] The name of the ServiceAccount to create. If not set and create is true, a name is generated
   name: ""
 
 ## @section Security Contexts
 ## Pod security context
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
-## @param podSecurityContext.enabled Enable security context for Broker Pods
-## @param podSecurityContext.fsGroupChangePolicy Set filesystem group change policy
-## @param podSecurityContext.sysctls Set kernel settings using the sysctl interface
-## @param podSecurityContext.supplementalGroups Set filesystem extra groups
-## @param podSecurityContext.fsGroup Group ID for the volumes of the pod
-##
+## @param podSecurityContext.enabled [default:true] Enable Pod Security Context for Broker
+## @param podSecurityContext.fsGroupChangePolicy [default:Always] Set filesystem group change policy
+## @param podSecurityContext.sysctls [array] Set kernel settings using the sysctl interface
+## @param podSecurityContext.fsGroup [default:1000] Group ID for the volumes of the pod
+## @param podSecurityContext.supplementalGroups [array] Set filesystem groups
+
 podSecurityContext:
   enabled: true
   fsGroupChangePolicy: Always
   sysctls: []
-  supplementalGroups: []
   fsGroup: 1000
+  supplementalGroups: []
 
 ## Container security context
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
@@ -325,8 +321,8 @@ podSecurityContext:
 ## @param containerSecurityContext.readOnlyRootFilesystem Set containers' repo server Security Context readOnlyRootFilesystem
 ## @param containerSecurityContext.runAsNonRoot Set Broker containers' Security Context runAsNonRoot
 ## @param containerSecurityContext.privileged Set container's Security Context privileged
-## @param containerSecurityContext.seccompProfile.type Set container's Security Context seccomp profile
-##
+## @param containerSecurityContext.seccompProfile.type Set container's Security Context seccompProfile
+
 containerSecurityContext:
   enabled: true
   seLinuxOptions: {}

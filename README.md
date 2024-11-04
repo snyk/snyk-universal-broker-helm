@@ -1,9 +1,9 @@
 
-[![Snyk logo](https://snyk.io/style/asset/logo/snyk-print.svg)](https://snyk.io) 
+[![Snyk logo](https://snyk.io/style/asset/logo/snyk-print.svg)](https://snyk.io)
 
 # Helm Chart for Universal Broker
 
-This is a Helm Chart to deploy the [Snyk Universal Broker](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker)
+This is a Helm Chart to deploy the [Snyk Universal Broker](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker).
 
 ## Parameters
 
@@ -18,7 +18,7 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 | Name                              | Description                                                                                                    | Value |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----- |
-| `brokerClientUrl`                 | is the resolvable address of the Broker. This is likely the address of the Ingress pointing to Broker.         | `""`  |
+| `brokerClientUrl`                 | The resolvable address of the Broker. This is likely the address of the Ingress (if enabled)                   | `""`  |
 | `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io           | `""`  |
 | `deploymentId`                    | obtained by installing the Broker App                                                                          | `""`  |
 | `clientId`                        | obtained by installing the Broker App                                                                          | `""`  |
@@ -32,8 +32,8 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | Name                               | Description                                                                                             | Value       |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------- |
 | `containerPort`                    | The port the Broker container will expose.                                                              | `8000`      |
-| `hostAliases`                      | Add extra hosts to the Broker pod if required                                                           | `[]`        |
-| `service.type`                     | Set the included Service Type                                                                           | `ClusterIP` |
+| `hostAliases`                      | Add host aliases to the Broker pod if required                                                          | `[]`        |
+| `service.type`                     | Set the included Service type                                                                           | `ClusterIP` |
 | `service.port`                     | Set the port the Service will expose                                                                    | `8000`      |
 | `service.nodePort`                 | Optionally specify a nodePort (only takes effect if service.type=NodePort)                              | `nil`       |
 | `service.clusterIP`                | Optionally specify an IP address (only takes effect if service.type=ClusterIP)                          | `nil`       |
@@ -70,7 +70,7 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `podLabels`         | Labels to add to the Broker Pod                   | `{}`  |
 | `affinity`          | Any affinities/anti-affinities to apply to Broker | `{}`  |
 | `nodeSelector`      | Any node labels to match when scheduling Broker   | `{}`  |
-| `tolerations`       | Any taints to tolerate when scheduling Broker     | `[]`  |
+| `tolerations`       | Any taints to tolerate when scheduling Broker     | `{}`  |
 
 ### Runtime
 
@@ -83,31 +83,31 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `resources.requests.memory`         | Set memory requests                                                                                                       | `512Mi`  |
 | `resources.limits.cpu`              | Set CPU limits                                                                                                            | `2`      |
 | `resources.limits.memory`           | Set memory limits                                                                                                         | `1024Mi` |
-| `highAvailabilityMode.enabled`      | snyk broker HA mode                                                                                                       | `false`  |
+| `highAvailabilityMode.enabled`      | snyk [default: false] Enable High Availability Mode for Broker                                                            | `false`  |
 | `highAvailabilityMode.replicaCount` | Number of Broker pods when running in HA mode (min 2, max 4)                                                              | `2`      |
 
 ### Probes
 
-| Name                                        | Description                              | Value          |
-| ------------------------------------------- | ---------------------------------------- | -------------- |
-| `livenessProbe.enabled`                     | Enable livenessProbe                     | `true`         |
-| `livenessProbe.path`                        | Path for the livenessProbe               | `/healthcheck` |
-| `livenessProbe.config.initialDelaySeconds`  | Initial delay seconds for livenessProbe  | `3`            |
-| `livenessProbe.config.periodSeconds`        | Period seconds for livenessProbe         | `10`           |
-| `livenessProbe.config.timeoutSeconds`       | Timeout seconds for livenessProbe        | `1`            |
-| `livenessProbe.config.failureThreshold`     | Failure threshold for livenessProbe      | `3`            |
-| `readinessProbe.enabled`                    | Enable readinessProbe                    | `true`         |
-| `readinessProbe.path`                       | Path for the readinessProbe              | `/healthcheck` |
-| `readinessProbe.config.initialDelaySeconds` | Initial delay seconds for readinessProbe | `3`            |
-| `readinessProbe.config.periodSeconds`       | Period seconds for readinessProbe        | `10`           |
-| `readinessProbe.config.timeoutSeconds`      | Timeout seconds for readinessProbe       | `1`            |
-| `readinessProbe.config.failureThreshold`    | Failure threshold for readinessProbe     | `3`            |
+| Name                                        | Description                                               | Value            |
+| ------------------------------------------- | --------------------------------------------------------- | ---------------- |
+| `livenessProbe.enabled`                     | Enable livenessProbe                                      | `true`           |
+| `livenessProbe.path`                        | Path for the livenessProbe                                | `"/healthcheck"` |
+| `livenessProbe.config.initialDelaySeconds`  | Initial delay in seconds                                  | `3`              |
+| `livenessProbe.config.periodSeconds`        | Seconds between probes                                    | `10`             |
+| `livenessProbe.config.timeoutSeconds`       | Elapsed second(s) for timeout                             | `1`              |
+| `livenessProbe.config.failureThreshold`     | Number of consecutive probe failures to mark as unhealty  | `3`              |
+| `readinessProbe.enabled`                    | Enable readinessProbe                                     | `true`           |
+| `readinessProbe.path`                       | Path for the readinessProbe                               | `/healthcheck`   |
+| `readinessProbe.config.initialDelaySeconds` | Initial delay in seconds                                  | `3`              |
+| `readinessProbe.config.periodSeconds`       | Seconds between probes                                    | `10`             |
+| `readinessProbe.config.timeoutSeconds`      | Elapsed second(s) for timeout                             | `1`              |
+| `readinessProbe.config.failureThreshold`    | Number of consecutive probe failures to mark as not ready | `3`              |
 
 ### Logging
 
 | Name            | Description                                                                                               | Value   |
 | --------------- | --------------------------------------------------------------------------------------------------------- | ------- |
-| `logLevel`      | defines Log Level for broker client pod. Can be set to "debug" for more information                       | `info`  |
+| `logLevel`      | defines Log Level for broker client pod. Can be set to "debug" for more information.                      | `info`  |
 | `logEnableBody` | adds additional logging by setting to true. Will vastly increase log output - enable for diagnostics only | `false` |
 
 ### Serving over HTTPS and Certificate Trust
@@ -148,22 +148,22 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 ### Service Account
 
-| Name                          | Description                                          | Value  |
-| ----------------------------- | ---------------------------------------------------- | ------ |
-| `serviceaccount.create`       | Enable creation of a ServiceAccount                  | `true` |
-| `serviceaccount.existingName` | Optionally provide an existing ServiceAccount name   | `""`   |
-| `serviceaccount.annotations`  | Additional custom annotations for the ServiceAccount | `{}`   |
-| `serviceaccount.name`         | The name of the ServiceAccount to create.            | `""`   |
+| Name                          | Description                                                                                  | Value  |
+| ----------------------------- | -------------------------------------------------------------------------------------------- | ------ |
+| `serviceaccount.create`       | Enable creation of a ServiceAccount                                                          | `true` |
+| `serviceaccount.existingName` | Optionally provide an existing ServiceAccount name                                           | `""`   |
+| `serviceaccount.annotations`  | Additional custom annotations for the ServiceAccount                                         | `{}`   |
+| `serviceaccount.name`         | The name of the ServiceAccount to create. If not set and create is true, a name is generated | `""`   |
 
 ### Security Contexts
 
 | Name                                                | Description                                                             | Value            |
 | --------------------------------------------------- | ----------------------------------------------------------------------- | ---------------- |
-| `podSecurityContext.enabled`                        | Enable security context for Broker Pods                                 | `true`           |
+| `podSecurityContext.enabled`                        | Enable Pod Security Context for Broker                                  | `true`           |
 | `podSecurityContext.fsGroupChangePolicy`            | Set filesystem group change policy                                      | `Always`         |
 | `podSecurityContext.sysctls`                        | Set kernel settings using the sysctl interface                          | `[]`             |
-| `podSecurityContext.supplementalGroups`             | Set filesystem extra groups                                             | `[]`             |
 | `podSecurityContext.fsGroup`                        | Group ID for the volumes of the pod                                     | `1000`           |
+| `podSecurityContext.supplementalGroups`             | Set filesystem groups                                                   | `[]`             |
 | `containerSecurityContext.enabled`                  | Enabled Broker containers' Security Context                             | `true`           |
 | `containerSecurityContext.seLinuxOptions`           | Set SELinux options in container                                        | `{}`             |
 | `containerSecurityContext.runAsUser`                | Set Broker  containers' Security Context runAsUser                      | `1000`           |
@@ -173,7 +173,7 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `containerSecurityContext.readOnlyRootFilesystem`   | Set containers' repo server Security Context readOnlyRootFilesystem     | `true`           |
 | `containerSecurityContext.runAsNonRoot`             | Set Broker containers' Security Context runAsNonRoot                    | `true`           |
 | `containerSecurityContext.privileged`               | Set container's Security Context privileged                             | `false`          |
-| `containerSecurityContext.seccompProfile.type`      | Set container's Security Context seccomp profile                        | `RuntimeDefault` |
+| `containerSecurityContext.seccompProfile.type`      | Set container's Security Context seccompProfile                         | `RuntimeDefault` |
 
 ### Additional Objects
 
