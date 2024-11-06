@@ -7,23 +7,9 @@ values:
 - fixtures/default_values.yaml
 
 tests:
-  - it: deploys one replica by default
-    set: 
-      highAvailabilityMode.enabled: false
-    asserts:
-      - equal:
-          path: spec.replicas
-          value: 1
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: BROKER_HA_MODE_ENABLED
-            value: "false"
-
-  - it: configures multiple replicas
+  - it: configures multiple replicas by default
     set:
       highAvailabilityMode.replicaCount: 2
-      highAvailabilityMode.enabled: true
     asserts:
       - equal:
           path: spec.replicas
@@ -37,13 +23,24 @@ tests:
   - it: does not allow more than 4 replicas
     set:
       highAvailabilityMode.replicaCount: 5
-      highAvailabilityMode.enabled: true
     asserts:
       - failedTemplate: {}
 
   - it: does not allow setting 1 replica in HA mode
     set:
       highAvailabilityMode.replicaCount: 1
-      highAvailabilityMode.enabled: true
     asserts:
       - failedTemplate: {}
+
+  - it: disables HA mode
+    set: 
+      highAvailabilityMode.enabled: false
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_HA_MODE_ENABLED
+            value: "false"

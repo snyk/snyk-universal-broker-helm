@@ -115,6 +115,20 @@
       "type":"boolean"
     },
     "acceptIaC":{
+      "type":"string",
+      "oneOf":[
+        {
+          "maxLength":0
+        },
+        {
+          "pattern":"^[a-z,\\s]+$"
+        }
+      ]
+    },
+    "acceptLargeManifests":{
+      "type":"boolean"
+    },
+    "acceptCustomPrTemplates":{
       "type":"boolean"
     },
     "platformAuthSecret":{

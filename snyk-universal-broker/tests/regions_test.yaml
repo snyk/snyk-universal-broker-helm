@@ -63,3 +63,17 @@ tests:
           content:
             name: BROKER_DISPATCHER_BASE_URL
             value: https://api.gov.snyk.io
+  - it: sets my-snyk
+    set:
+      region: xyz.my
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_SERVER_URL
+            value: https://broker.xyz.my.snyk.io
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_DISPATCHER_BASE_URL
+            value: https://api.xyz.my.snyk.io

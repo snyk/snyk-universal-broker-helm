@@ -133,14 +133,7 @@ spec:
               value: {{ .Values.containerPort | squote }}
             - name: UNIVERSAL_BROKER_ENABLED
               value: "true"
-            - name: ACCEPT_APPRISK
-              value: {{ .Values.acceptAppRisk | quote }}
-            - name: ACCEPT_CODE
-              value: {{ .Values.acceptCode | quote }}
-            {{- if .Values.acceptIaC }}
-            - name: ACCEPT_IAC
-              value: "tf,yaml,yml,json,tpl"
-            {{- end }}
+            {{- include "snyk-broker.accepts" . | indent 12 }}
             - name: BROKER_CLIENT_URL
               value: {{ .Values.brokerClientUrl }}
             - name: BROKER_HA_MODE_ENABLED

@@ -152,3 +152,35 @@ Each credential must be a valid env var, with associated string value
 {{- fail (printf "Key(s) \"%s\" in .Values.credentialReferences are unsupported. All keys must be valid environment variable names." ($failedKeys | sortAlpha | join ", ") ) -}}
 {{- end }}
 {{- end }}
+
+{{/*
+Snyk Broker ACCEPT_ vars
+*/}}
+{{- define "snyk-broker.accepts" -}}
+{{- $accetpableIacExtensions := list "tf" "yaml" "yml" "json" "tpl" -}}
+{{ if .Values.acceptAppRisk }}
+- name: ACCEPT_APPRISK
+  value: "true"
+{{- end }}
+{{- if .Values.acceptCode }}
+- name: ACCEPT_CODE
+  value: "true"
+{{- end }}
+{{- if .Values.acceptLargeManifests }}
+- name: ACCEPT_LARGE_MANIFESTS
+  value: "true"
+{{- end }}
+{{- if .Values.acceptCustomPrTemplates }}
+- name: ACCEPT_CUSTOM_PR_TEMPLATES
+  value: "true"
+{{- end }}
+{{- if .Values.acceptIaC }}
+{{- range ( .Values.acceptIaC | nospace | split "," ) -}}
+{{- if not ( has . $accetpableIacExtensions ) -}}
+{{- fail ( printf "Unrecognised extension for ACCEPT_IAC: %s" . ) -}}
+{{- end }}
+{{- end }}
+- name: ACCEPT_IAC
+  value: {{ printf "%s" .Values.acceptIaC }}
+{{- end }}
+{{- end }}

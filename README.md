@@ -16,19 +16,21 @@ Credential References should contain one or more key/value pairs where each key 
 helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 ```
 
-| Name                              | Description                                                                                                    | Value  |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------ |
-| `brokerClientUrl`                 | The resolvable address of the Broker. This is likely the address of the Ingress (if enabled)                   | `""`   |
-| `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io           | `""`   |
-| `deploymentId`                    | obtained by installing the Broker App                                                                          | `""`   |
-| `clientId`                        | obtained by installing the Broker App                                                                          | `""`   |
-| `clientSecret`                    | obtained by installing the Broker App                                                                          | `""`   |
-| `platformAuthSecret.name`         | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`. | `""`   |
-| `credentialReferences`            | Credential References to pass to Broker.                                                                       | `{}`   |
-| `credentialReferencesSecret.name` | Optionally provide a pre-existing secret with SCM credential reference data                                    | `""`   |
-| `acceptCode`                      | Set to false to block Broker rules relating to Snyk Code analysis                                              | `true` |
-| `acceptAppRisk`                   | Set to false to block Broker rules relating to AppRisk                                                         | `true` |
-| `acceptIaC`                       | Set to false to block Broker rules relating to Snyk IaC analysis                                               | `true` |
+| Name                              | Description                                                                                                                                                                | Value  |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `brokerClientUrl`                 | The resolvable address of the Broker. This is likely the address of the Ingress (if enabled)                                                                               | `""`   |
+| `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                       | `""`   |
+| `deploymentId`                    | obtained by installing the Broker App                                                                                                                                      | `""`   |
+| `clientId`                        | obtained by installing the Broker App                                                                                                                                      | `""`   |
+| `clientSecret`                    | obtained by installing the Broker App                                                                                                                                      | `""`   |
+| `platformAuthSecret.name`         | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`.                                                             | `""`   |
+| `credentialReferences`            | Credential References to pass to Broker.                                                                                                                                   | `{}`   |
+| `credentialReferencesSecret.name` | Optionally provide a pre-existing secret with SCM credential reference data                                                                                                | `""`   |
+| `acceptCode`                      | Set to false to block Broker rules relating to Snyk Code analysis                                                                                                          | `true` |
+| `acceptAppRisk`                   | Set to false to block Broker rules relating to AppRisk                                                                                                                     | `true` |
+| `acceptIaC`                       | Set to "" to block Broker rules relating to Snyk IaC analysis. Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. | `""`   |
+| `acceptCustomPrTemplates`         | Set to false to block Broker rules relating to Snyk Custom PR Templates                                                                                                    | `true` |
+| `acceptLargeManifests`            | Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise                                                                       | `true` |
 
 ### Networking Parameters
 
@@ -86,7 +88,7 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `resources.requests.memory`         | Set memory requests                                                                                                       | `512Mi`  |
 | `resources.limits.cpu`              | Set CPU limits                                                                                                            | `2`      |
 | `resources.limits.memory`           | Set memory limits                                                                                                         | `1024Mi` |
-| `highAvailabilityMode.enabled`      | snyk [default: false] Enable High Availability Mode for Broker                                                            | `false`  |
+| `highAvailabilityMode.enabled`      | snyk [default: true] Set to false to disable High Availability Mode for Broker                                            | `true`   |
 | `highAvailabilityMode.replicaCount` | Number of Broker pods when running in HA mode (min 2, max 4)                                                              | `2`      |
 
 ### Probes
