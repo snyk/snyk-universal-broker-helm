@@ -46,7 +46,7 @@ tests:
   # Test ignoring the proxy's certificate (disable TLS verification)
   - it: should disable certificate validation for proxy
     set:
-      disableCaCertTrust: true
+      disableAllCertificateTrust: true
       caCert: "-----BEGIN CERTIFICATE-----\n.....\n-----END CERTIFICATE-----"
     asserts:
       - equal:
