@@ -25,7 +25,7 @@ clientSecret: ""
 ## @param existingAuthSecret  Name of existing secret with Snyk platform auth and scm credential reference data
 ## @param credentialReferences SCM token credential reference
 existingAuthSecret: "" # Name of an existing secret if it exists
-credentialReferences: []
+credentialReferences: {}
 
 ## @param containerPort Port to open for HTTP in Broker
 containerPort: 8000

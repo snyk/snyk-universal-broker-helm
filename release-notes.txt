@@ -1,7 +1,0 @@
-1. Include deps (Bitnami charts)
-2. Documentation 
-3. Release Notes and changelogs
-4. Semantic Release
-  a. Publish it to github as a release artifact 
-### OPTIONAL ###
-1. Artifact signing(optional right now)
