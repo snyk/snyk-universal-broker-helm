@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: Extras
 templates:
-  - templates/statefulset.yaml
+  - statefulset.yaml
 values:
 - ../values.yaml
 - fixtures/default_values.yaml

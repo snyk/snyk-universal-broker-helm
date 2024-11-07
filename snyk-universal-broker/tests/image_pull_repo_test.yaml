@@ -2,7 +2,7 @@
 
 suite: Image Pull Secrets & Custom Registry/Repositories
 templates:
-  - templates/statefulset.yaml
+  - statefulset.yaml
 values:
   - ../values.yaml
   - fixtures/default_values.yaml

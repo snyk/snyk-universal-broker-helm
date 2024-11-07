@@ -125,11 +125,51 @@
         }
       ]
     },
+    "acceptCustomPrTemplates": {
+      "type": "boolean"
+    },
     "acceptLargeManifests":{
       "type":"boolean"
     },
-    "acceptCustomPrTemplates":{
+    "insecureDownstream":{
       "type":"boolean"
+    },
+    "commitSigning":{
+      "type":"object",
+      "properties":{
+        "enabled":{
+          "type": "boolean"
+        },
+        "name":{
+          "type":"string"
+        },
+        "email":{
+          "type":"string",
+          "oneOf":[
+            {
+              "maxLength":0
+            },
+            {
+              "format":"email"
+            }
+          ]
+        },
+        "gpgPrivateKey":{
+          "type":"string",
+          "regex": "^$|^\\s*-----BEGIN PGP PRIVATE KEY BLOCK-----(?:.|\\s)*-----END PGP PRIVATE KEY BLOCK-----\\s*$"
+        },
+        "passphrase":{
+          "type":"string"
+        }
+      }
+    },
+    "commitSigningSecret": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
     },
     "platformAuthSecret":{
       "type":"object",
@@ -256,6 +296,10 @@
     "logEnableBody": {
       "type": "boolean",
       "default": false
+    },
+    "logVerbose":{
+      "type":"boolean",
+      "default":"false"
     },
     "localWebServer": {
       "type": "object",
@@ -689,10 +733,12 @@
       }
     },
     "global": {
-      "type": "object"
+      "type": "object",
+      "additionalProperties":true
     },
     "common":{
-      "type":"object"
+      "type":"object",
+      "additionalProperties": true
     }
   },
   "additionalProperties": false

@@ -3,7 +3,7 @@ suite: Ingress
 templates:
   - ingress.yaml
   - statefulset.yaml
-  - tls-secret.yaml
+  - ingress-secret.yaml
 values:
   - ../values.yaml
   - fixtures/default_values.yaml
@@ -165,14 +165,14 @@ tests:
         template: ingress.yaml
       - isKind:
           of: Secret
-        template: tls-secret.yaml     
+        template: ingress-secret.yaml     
       - hasDocuments:
          count: 1
-        template: tls-secret.yaml
+        template: ingress-secret.yaml
       - equal:
           path: metadata.name
           value: my-new-secret
-        template: tls-secret.yaml
+        template: ingress-secret.yaml
 
   - it: Creates many secrets across many hosts
     set:

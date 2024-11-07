@@ -104,6 +104,10 @@ spec:
             - secretRef:
                 name: {{ include "snyk-broker.credentialReferencesSecretName" . }}
           {{- end }}
+          {{- if .Values.commitSigning.enabled }}
+            - secretRef:
+                name: {{ include "snyk-broker.commitSigningSecretName" . }}
+          {{- end }}
         {{- range .Values.extraEnvVarsCM }}
             - configMapRef:
                 name: {{ include "common.tplvalues.render" ( dict "value" . "context" $ ) }}
@@ -141,8 +145,14 @@ spec:
          # Logging
             - name: LOG_LEVEL
               value: {{ .Values.logLevel }}
+            {{- if and .Values.logVerbose (eq .Values.logLevel "info") }}
+            - name: LOG_INFO_VERBOSE
+              value: "true"
+            {{- end }}
+            {{- if .Values.logEnableBody }}
             - name: LOG_ENABLE_BODY
-              value: {{ .Values.logEnableBody | squote }}
+              value: "true"
+            {{- end }}
           {{- if or .Values.caCert .Values.caCertSecret.name }}
           # HTTPS Inspection
             - name: CA_CERT
@@ -166,6 +176,10 @@ spec:
             - name: NODE_TLS_REJECT_UNAUTHORIZED
               value: "0"
           {{- end }}
+          {{- if .Values.insecureDownstream }}
+            - name: INSECURE_DOWNSTREAM
+              value: "true"
+          {{- end }}
           {{- include "snyk-broker.proxyConfig" . | nindent 12 }}
           # Broker Configuration
           {{- if not .Values.preflightChecks.enabled }}
@@ -184,10 +198,15 @@ spec:
         {{- end }}
       # Mount Accept.json and Certs
       volumes:
-      {{- if .Values.caCert }}
+      {{- if or .Values.caCert .Values.caCertSecret.name }}
       - name: {{ .Release.Name }}-cacert-volume
         secret:
           secretName: {{ include "snyk-broker.caCertSecretName" . }}
+      {{- if .Values.caCertSecret.name }}
+          items:
+          - key: {{ .Values.caCertSecret.caCertKey }}
+            path: {{ .Values.caCertMount.name }}
+      {{- end }}
       {{- end }}
       {{- if or .Values.localWebServerSecret.name ( and (.Values.localWebServer.certificate) (.Values.localWebServer.key) ) }}
       - name: {{ .Release.Name }}-tls-secret-volume

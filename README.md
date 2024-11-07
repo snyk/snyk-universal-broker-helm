@@ -5,6 +5,364 @@
 
 This is a Helm Chart to deploy the [Snyk Universal Broker](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker).
 
+## Introduction
+
+## Requirements
+
+- Kubernetes `1.24+`
+- Helm `3.8.0` and above
+- Kubernetes Nodes with an `x86` architecture
+- (Optional, but recommended) The [snyk-broker-config](https://github.com/snyk/snyk-broker-config) CLI
+
+Follow steps to configure Universal Broker for your Snyk Org(s) as described at [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker).
+
+### Networking
+
+#### Outbound
+
+Universal Broker requires outbound communication via TLS to the following domains (or your regional equivalent):
+
+- `https://api.snyk.io`
+- `https://app.snyk.io`
+- `https://broker.snyk.io`
+
+If a proxy, firewall, or other network appliance sits between Broker and the public internet, ensure:
+- the above domains are whitelisted, _and_
+- the proxy, firewall or other network appliance supports the websockets protocol
+
+See [Configure an Outbound Proxy](#configure-an-outbound-proxy) for further configuration.
+
+#### Inbound
+
+Universal Broker must be able to receive traffic from the integration (SCM, Package Registry, etc.) at `http(s)://<brokerClientUrl>:<service.port>`. This is typically not over the public internet.
+
+## Installing the Chart
+
+```bash
+helm repo add snyk-universal-broker https://snyk.github.io/snyk-universal-broker-helm/
+helm install <my-release-name> 
+```
+
+## Basic Configuration
+
+### Credential References
+
+Any Credential References (refer to the example provided on [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/set-up-a-github-connection-using-the-api#id-3-create-your-credentials-references)) must be provided to the Universal Broker. This can be achieved directly through Helm, or via an external Kubernetes Secret.
+
+For the following example, assume three credential references are created of the following `deployment_credential` types:
+- `github`
+- `gitlab`
+- `azure-repos`
+
+An example data object is shown for the `github` type.
+```json
+{
+  ...
+  "data":{
+    "id": "uuidv4",
+    "type": "deployment_credential",
+    "attributes": {
+      "comment": "",
+      "deployment_id": "uuidv4",
+      "environment_variable_name": "MY_GITHUB_TOKEN",
+      "type": "github"
+    }
+  }
+}
+```
+The number of credential references will depend on the `type` of the `deployment_credential`; `github` holds just one (the GitHub PAT), whilst `azure-repos` holds three (the Azure Repos Org, Username and Password)
+
+#### Via Helm
+
+Provide the environment variable used when creating the credential reference, and the actual value of your credential.
+
+For example, providing the Universal Broker with a GitHub, GitLab and Azure Repos credential:
+
+```yaml
+credentialReferences:
+  MY_GITHUB_TOKEN: <your-github-token>
+  MY_GITLAB_TOKEN: <your-gitlab-token>
+  AZURE_REPOS_PRODSEC_ORG: prodsec
+  AZURE_REPOS_PRODSEC_USERNAME: <your-azure-repos-username>
+  AZURE_REPOS_PRODSEC_PASSWORD: <your-azure-repos-password>
+```
+
+The Universal Broker Helm Chart creates this secret for you.
+
+#### Via External Secret
+
+First create or otherwise ensure the secret exists:
+
+```yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: my-universal-broker-secrets
+data:
+  MY_GITHUB_TOKEN: <your-github-token>
+  ...
+```
+
+Then set values within `.Values.credentialReferencesSecret` that match your external Secret:
+
+```yaml
+credentialReferencesSecret:
+  name: my-universal-broker-secrets
+```
+
+### Service
+
+By default, Universal Broker provides a `ClusterIP` Service. This can be adjusted to a `LoadBalancer`, `NodePort` as best fits the deployment environment.
+
+### Ingress
+
+Universal Broker provides an Ingress template, compatible with any Kubernetes Ingress controller.
+
+It may be [extended with additional hosts, paths, annotations as required](#broker-ingress).
+
+### Metadata
+
+Any additional labels, annotations may be set as follows:
+
+```yaml
+commonLabels:
+  myLabel: myValue #applied to all resources within this Helm Chart
+commonAnnotations:
+  myAnnotation: myValue #applied to all resources within this Helm Chart
+podLabels:
+  myPodLabel: myValue #applied to the Universal Broker Pod only
+podAnnotations:
+  myPodAnnotation: myValue #applied to the Universal Broker Pod only
+ingress:
+  annotations:
+    myIngressAnnotation: myValue #applied to the ingress only
+```
+
+## Troubleshooting
+
+### Preflight Checks
+
+Review documentation on [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/preflight-checks-for-snyk-broker) for a list of checks executed by the Universal Broker at startup.
+
+If any of these checks are failing, it may indicate a misconfiguration.
+
+### Logging
+
+The Universal Broker log level is set to `"INFO"` by default. All responses, regardless of HTTP status code, are logged by the Universal Broker.
+
+Additional logging is available:
+
+- For verbose request logging (including headers), set `logVerbose: true`. This provides additional information without enabling DEBUG logs.
+- For debug-level logging, set `logLevel: "debug"`.
+- To log response bodies, set `logEnableBody: true`.
+
+_Note:_ `logEnableBody: true` can cause logs to vastly increase in size, especially if combined with one or more SCM integrations. This should not be left enabled for long periods of time, and can cause instability.
+
+_Note:_ Some logs may capture sensitive information like credentials. If using increased logging to provide Universal Broker logs to Snyk, check for credentials and redact before transmission.
+
+#### Common Issues identified in Logs
+
+- `401` or `403` error codes indicate credentials are not valid for the integration.
+- References to `SSL` or `leaf certificate` indicate a self-signed certificate is not trusted by Broker. Refer to steps in [Certificate Trust](#certificate-trust).
+
+## Advanced Configuration
+
+### Certificate Trust
+
+Certificate Authority material may be provided directly to Universal Broker in the Helm Chart, or referenced to an external secret.
+
+#### Via Helm
+
+If providing directly to Helm, set `.Values.caCert` to the full trust chain necessary (this may be multiple certificates) for your Certificate Authority in PEM format as a string.
+
+```yaml
+caCert: |-
+  -----BEGIN CERTIFICATE-----
+  ...
+  -----END CERTIFICATE-----
+```
+
+The Universal Broker Helm Chart creates this secret for you.
+
+#### Via External Secret
+
+First create or otherwise ensure the secret exists:
+
+```yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: ca-certificate
+data:
+  ca.pem: -----BEGIN CERTIFICATE-----.....
+```
+
+Then set values within `.Values.caCertSecret` that match your external Secret:
+```yaml
+caCertSecret:
+  name: ca-certificate
+  caCertKey: ca.pem
+```
+
+#### Disable All Trust
+
+Set `.Values.disableAllCertificateTrust` to `true`. Broker will no longer validate any certificates, **including those issued by public Certificate Authorities**.
+
+### Commit Signing
+
+Snyk Broker commit signing is in [Early Access](https://docs.snyk.io/getting-started/snyk-release-process#open-beta). If you would like to use this feature, contact your Snyk representative or team.
+
+This feature requires a GitHub Account that has a GPG key configured for commit signing.
+
+#### Via Helm
+
+Provide the GPG key (exported as an ASCII armored version), the passphrase, and associated email/user:
+
+```yaml
+commitSigning:
+  name: "Account Name"
+  email: "email@company.tld"
+  passphrase: "passphrase"
+  gpgPrivateKey: -----BEGIN PGP PRIVATE KEY BLOCK-----\n....\n-----END PGP PRIVATE KEY BLOCK-----
+```
+
+The Universal Broker Helm Chart creates this secret for you.
+
+#### Via External Secret
+
+First create or otherwise ensure the secret exists:
+
+```yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: gpg-signing-key
+data:
+  GPG_PRIVATE_KEY: "-----BEGIN PRIVATE KEY BLOCK-----..."
+  GPG_PASSPRHASE: "passphrase"
+  GIT_COMMITTER_EMAIL: "user@comapny.io"
+  GIT_COMMITTER_NAME: "User Name"
+```
+
+The keys **must** match the example above.
+
+Then set values within `.Values.commitSigningSecret` to reference this external Secret:
+```yaml
+commitSigning:
+  enabled: true
+commitSigningSecret:
+  name: gpg-signing-key
+```
+
+Commit signing is enabled if the following entry appears in Universal Broker logs at startup:
+
+```
+loading commit signing rules (enabled=true, rulesCount=5)
+```
+
+### Broker with TLS
+
+Optionally provide a certificate and key to run Broker behind TLS. This may be useful if an Ingress is not used.
+
+#### Via Helm
+
+```yaml
+localWebServer:
+  https: true
+  certificate: "-----BEGIN CERTIFICATE-----\nYOUR CERTIFICATE HERE\n-----END CERTIFICATE-----"
+  key: "-----BEGIN PRIVATE KEY-----\nYOUR KEY HERE\n-----END PRIVATE KEY-----"
+```
+
+The Universal Broker Helm Chart creates this secret for you.
+
+#### Via External Secret
+
+First create or otherwise ensure the secret exists:
+
+```yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: broker-tls
+type: kubernetes.io/tls
+data:
+  tls.crt: "-----BEGIN PRIVATE CERTIFICATE-----\nYOUR CERTIFICATE HERE\n-----END CERTIFICATE-----"
+  tls.key: "-----BEGIN PRIVATE KEY-----\nYOUR KEY HERE\n-----END PRIVATE KEY-----"
+```
+
+_Note:_ This is of type `kubernetes.io/tls`. If using another format, the keys **must** match the example above.
+
+THen set values within `localWebServerSecret` to reference this external Secret:
+
+```yaml
+localWebServerSecret:
+  name: broker-tls
+```
+
+### Insecure Downstream
+
+Universal Broker will communicate with any downstream systems via HTTPS by default.
+
+In some situations `http` only traffic is required. This mode is not recommended as credentials/data will be transmitted to downstream systems unencrypted.
+
+**Snyk will not be held responsible for any credential leaks that may occur as a result of the use of insecure downstream mode.**
+
+### Configure an Outbound Proxy
+
+To use Universal Broker behind a proxy, set:
+
+- `.Values.httpsProxy` to the Proxy URL - this may contain username/password authentication if required
+- `.Values.noProxy` to any URLs that should _not_ transit the Proxy - this may include internal registries, SCMs, or other systems Broker may interact with.
+
+Other authentication methods are not supported.
+
+### Use a Custom Image Registry
+
+The Universal Broker Helm Chart will pull directly from DockerHub by default. Using the pull command for your private container registry as reference, set `image.registry` to the domain of your registry, and `image.repository` to the internal repository the Broker image will be available from.
+
+For example, this might be:
+
+```yaml
+image:
+  registry: containers.company
+  repository: docker/broker
+```
+
+#### Image Pull Secrets
+
+Set `.Values.image.pullSecrets` if the custom image registry requires authentication. The Universal Broker Helm Chart will reference a pre-existing secret; it will not create one. Multiple secrets may be specified.
+
+```yaml
+image:
+  registry: containers.company
+  repository: docker/broker
+  imagePullSecrets:
+    - name: containers-company-secret
+```
+
+### Extending the Helm Chart
+
+#### Arbitrary Kubernetes Objects
+
+Use the [Additional Objects](#additional-objects) values to add ConfigMaps, Secrets, Sidecars, initContainers, Volumes and VolumeMounts to the Universal Broker.
+
+#### Additional Environment Variables
+
+Use `extraEnvVars` to add arbitrary environment variables directly in Helm:
+
+```yaml
+extraEnvVars:
+  - MY_ENV_VAR: myvalue
+```
+
+_Note:_ Check for duplicate environment variables.
+
+#### Reading Secrets from the Filesystem
+
+Optionally mount a `.env` file that contains any/all secrets you might require, in the form ENV_VAR_NAME=<value>, to `/home/node`. This can be used in conjunction with other secret mechanisms. 
+
+If a variable is set within a `.env` file _and_ as an environment variable, the environment variable takes precedence.
+
 ## Parameters
 
 ### Snyk Broker Configuration
@@ -16,27 +374,34 @@ Credential References should contain one or more key/value pairs where each key 
 helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 ```
 
-| Name                              | Description                                                                                                                                                                | Value  |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| `brokerClientUrl`                 | The resolvable address of the Broker. This is likely the address of the Ingress (if enabled)                                                                               | `""`   |
-| `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                       | `""`   |
-| `deploymentId`                    | obtained by installing the Broker App                                                                                                                                      | `""`   |
-| `clientId`                        | obtained by installing the Broker App                                                                                                                                      | `""`   |
-| `clientSecret`                    | obtained by installing the Broker App                                                                                                                                      | `""`   |
-| `platformAuthSecret.name`         | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`.                                                             | `""`   |
-| `credentialReferences`            | Credential References to pass to Broker.                                                                                                                                   | `{}`   |
-| `credentialReferencesSecret.name` | Optionally provide a pre-existing secret with SCM credential reference data                                                                                                | `""`   |
-| `acceptCode`                      | Set to false to block Broker rules relating to Snyk Code analysis                                                                                                          | `true` |
-| `acceptAppRisk`                   | Set to false to block Broker rules relating to AppRisk                                                                                                                     | `true` |
-| `acceptIaC`                       | Set to "" to block Broker rules relating to Snyk IaC analysis. Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. | `""`   |
-| `acceptCustomPrTemplates`         | Set to false to block Broker rules relating to Snyk Custom PR Templates                                                                                                    | `true` |
-| `acceptLargeManifests`            | Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise                                                                       | `true` |
+| Name                              | Description                                                                                                                                                               | Value   |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `brokerClientUrl`                 | The resolvable address of the Broker. This is likely the address of the Kubernetes Ingress (if enabled). Required for PR checks to function                               | `""`    |
+| `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                      | `""`    |
+| `deploymentId`                    | Obtained by installing the Broker App                                                                                                                                     | `""`    |
+| `clientId`                        | Obtained by installing the Broker App                                                                                                                                     | `""`    |
+| `clientSecret`                    | Obtained by installing the Broker App                                                                                                                                     | `""`    |
+| `platformAuthSecret.name`         | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`                                                             | `""`    |
+| `credentialReferences`            | Credential References to pass to Broker                                                                                                                                   | `{}`    |
+| `credentialReferencesSecret.name` | Optionally provide a pre-existing secret with SCM credential reference data                                                                                               | `""`    |
+| `acceptCode`                      | Set to false to block Broker rules relating to Snyk Code analysis                                                                                                         | `true`  |
+| `acceptAppRisk`                   | Set to false to block Broker rules relating to AppRisk                                                                                                                    | `true`  |
+| `acceptIaC`                       | Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. Set to "" to block Broker rules relating to Snyk IaC analysis | `""`    |
+| `acceptCustomPrTemplates`         | Set to false to block Broker rules relating to Snyk Custom PR Templates                                                                                                   | `true`  |
+| `acceptLargeManifests`            | Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise                                                                      | `true`  |
+| `insecureDownstream`              | Set to true to communicate with _all_ downstream integrations via http. Not recommended, as traffic will no longer be encrypted                                           | `false` |
+| `commitSigning.enabled`           | Set to true to sign any commits made to GitHub or GitHub Enterprise. Requires `name`, `email`, `passphrase`, `privateKey` _or_ `commitSigningSecret`                      | `false` |
+| `commitSigning.name`              | The name to associate with any signed commits                                                                                                                             | `""`    |
+| `commitSigning.email`             | The email to associate with any signed commits                                                                                                                            | `""`    |
+| `commitSigning.gpgPrivateKey`     | The GPG private key to sign commits with (ASCII armored version)                                                                                                          | `""`    |
+| `commitSigning.passphrase`        | The passpharse for the GPG key                                                                                                                                            | `""`    |
+| `commitSigningSecret`             | An external secret containing `GIT_COMMITTER_NAME`, `GIT_COMMITTER_EMAIL`, `GPG_PASSPHRASE` and `GPG_PRIVATE_KEY`                                                         | `""`    |
 
 ### Networking Parameters
 
 | Name                               | Description                                                                                             | Value       |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------- |
-| `containerPort`                    | The port the Broker container will expose.                                                              | `8000`      |
+| `containerPort`                    | The port the Broker container will expose                                                               | `8000`      |
 | `hostAliases`                      | Add host aliases to the Broker pod if required                                                          | `[]`        |
 | `service.type`                     | Set the included Service type                                                                           | `ClusterIP` |
 | `service.port`                     | Set the port the Service will expose                                                                    | `8000`      |
@@ -54,7 +419,7 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | ---------------------------- | ------------------------------------------------------------------------------------------- | -------------------------- |
 | `ingress.enabled`            | Set to true to create an Ingress                                                            | `false`                    |
 | `ingress.className`          | Optionally define an Ingress Class                                                          | `""`                       |
-| `ingress.annotations`        | Additional annotations for the Ingress resource.                                            | `{}`                       |
+| `ingress.annotations`        | Additional annotations for the Ingress resource                                             | `{}`                       |
 | `ingress.path`               | sets the path associated with the ingress                                                   | `"/"`                      |
 | `ingress.pathType`           | sets the path type associated with the ingress                                              | `"ImplementationSpecific"` |
 | `ingress.hostname`           | define the host associated with this ingress - add Broker_client_url here                   | `"broker.local"`           |
@@ -79,17 +444,17 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 ### Runtime
 
-| Name                                | Description                                                                                                               | Value    |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `preflightChecks.enabled`           | Preflight checks are present in the Broker to assert connectivity and configuration correctness. Set to false to disable. | `true`   |
-| `runtimeClassName`                  | Optionally specify a runtimeClassName for Broker to target                                                                | `""`     |
-| `priorityClassName`                 | Optionally specify a priorityClassName for Broker to target                                                               | `""`     |
-| `resources.requests.cpu`            | Set CPU requests                                                                                                          | `1`      |
-| `resources.requests.memory`         | Set memory requests                                                                                                       | `512Mi`  |
-| `resources.limits.cpu`              | Set CPU limits                                                                                                            | `2`      |
-| `resources.limits.memory`           | Set memory limits                                                                                                         | `1024Mi` |
-| `highAvailabilityMode.enabled`      | snyk [default: true] Set to false to disable High Availability Mode for Broker                                            | `true`   |
-| `highAvailabilityMode.replicaCount` | Number of Broker pods when running in HA mode (min 2, max 4)                                                              | `2`      |
+| Name                                | Description                                                                                                              | Value    |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
+| `preflightChecks.enabled`           | Preflight checks are present in the Broker to assert connectivity and configuration correctness. Set to false to disable | `true`   |
+| `runtimeClassName`                  | Optionally specify a runtimeClassName for Broker to target                                                               | `""`     |
+| `priorityClassName`                 | Optionally specify a priorityClassName for Broker to target                                                              | `""`     |
+| `resources.requests.cpu`            | Set CPU requests                                                                                                         | `1`      |
+| `resources.requests.memory`         | Set memory requests                                                                                                      | `512Mi`  |
+| `resources.limits.cpu`              | Set CPU limits                                                                                                           | `2`      |
+| `resources.limits.memory`           | Set memory limits                                                                                                        | `1024Mi` |
+| `highAvailabilityMode.enabled`      | snyk [default: true] Set to false to disable High Availability Mode for Broker                                           | `true`   |
+| `highAvailabilityMode.replicaCount` | Number of Broker pods when running in HA mode (min 2, max 4)                                                             | `2`      |
 
 ### Probes
 
@@ -112,45 +477,46 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 | Name            | Description                                                                                               | Value   |
 | --------------- | --------------------------------------------------------------------------------------------------------- | ------- |
-| `logLevel`      | defines Log Level for broker client pod. Can be set to "debug" for more information.                      | `info`  |
+| `logLevel`      | defines Log Level for broker client pod. Can be set to "debug" for more information                       | `info`  |
+| `logVerbose`    | Enable to log request headers. Takes effect if log level is "info"                                        | `false` |
 | `logEnableBody` | adds additional logging by setting to true. Will vastly increase log output - enable for diagnostics only | `false` |
 
 ### Serving over HTTPS and Certificate Trust
 
-| Name                         | Description                                                                                     | Value                 |
-| ---------------------------- | ----------------------------------------------------------------------------------------------- | --------------------- |
-| `localWebServer.https`       | enables Broker client to run a HTTPS server instead of the default HTTP server                  | `false`               |
-| `localWebServer.certificate` | Provide HTTPS cert                                                                              | `""`                  |
-| `localWebServer.key`         | Provides HTTPS cert key                                                                         | `""`                  |
-| `localWebServerSecret.name`  | the name of the secret to create or (if cert and key are empty) the existing TLS secret to use. | `""`                  |
-| `caCert`                     | Set caCert to read certificate content from the values.yaml file as a multiline string:         | `""`                  |
-| `caCertMount.path`           | the path to mount a certificate bundle to                                                       | `"/home/node/cacert"` |
-| `caCertMount.name`           | the filename to write a certificate bundle to                                                   | `"cacert"`            |
-| `caCertSecret.name`          | set to read a CA cert from an external secret                                                   | `""`                  |
-| `caCertSecret.caCertKey`     | set to read the ca cert from a different key                                                    | `ca.pem`              |
-| `disableAllCertificateTrust` | Set to `true` to disable trust of **all** certificates, including any provided CAs              | `false`               |
+| Name                         | Description                                                                                    | Value                 |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- | --------------------- |
+| `localWebServer.https`       | enables Broker client to run a HTTPS server instead of the default HTTP server                 | `false`               |
+| `localWebServer.certificate` | Provide HTTPS cert                                                                             | `""`                  |
+| `localWebServer.key`         | Provides HTTPS cert key                                                                        | `""`                  |
+| `localWebServerSecret.name`  | the name of the secret to create or (if cert and key are empty) the existing TLS secret to use | `""`                  |
+| `caCert`                     | Set caCert to read certificate content from the values.yaml file as a multiline string:        | `""`                  |
+| `caCertMount.path`           | the path to mount a certificate bundle to                                                      | `"/home/node/cacert"` |
+| `caCertMount.name`           | the filename to write a certificate bundle to                                                  | `"cacert"`            |
+| `caCertSecret.name`          | set to read a CA cert from an external secret                                                  | `""`                  |
+| `caCertSecret.caCertKey`     | set to read the ca cert from a different key                                                   | `ca.pem`              |
+| `disableAllCertificateTrust` | Set to `true` to disable trust of **all** certificates, including any provided CAs             | `false`               |
 
 ### Proxy Configuration
 
-| Name                        | Description                                                                                                                                     | Value |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
-| `httpProxy`                 | Set to proxy any http-only traffic. You probably need to use HTTPS proxy setting and leave this blank.                                          | `""`  |
-| `httpsProxy`                | HTTPS Proxy URL. Optionally provide user/password auth in the url.                                                                              | `""`  |
-| `noProxy`                   | A comma-separated list of hostnames that must not transit a proxy. Do not include protocol or port numbers.                                     | `""`  |
-| `proxySecret.name`          | The name of a pre-existing secret containing up to three entries. If set, supersedes .Values.httpProxy, .Values.httpsProxy and .Values.noProxy. | `""`  |
-| `proxySecret.httpProxyKey`  | Specify the key within the pre-existing secret containing the value for HTTP_PROXY. If left empty, no value is set.                             | `""`  |
-| `proxySecret.httpsProxyKey` | Specify the key within the pre-existing secret containing the value for HTTPS_PROXY. If left empty, no value is set.                            | `""`  |
-| `proxySecret.noProxyKey`    | Specify the key within the pre-existing secret containing the value for NO_PROXY. If left empty, no value is set.                               | `""`  |
+| Name                        | Description                                                                                                                                                        | Value |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- |
+| `httpProxy`                 | Set to proxy any http-only traffic. You probably need to use HTTPS proxy setting and leave this blank                                                              | `""`  |
+| `httpsProxy`                | HTTPS Proxy URL. Optionally provide user/password auth in the url (http(s)://[username]:[password]@my.proxy:[port]). No other authentication schemes are supported | `""`  |
+| `noProxy`                   | A comma-separated list of hostnames that must not transit a proxy. Do not include protocol or port numbers                                                         | `""`  |
+| `proxySecret.name`          | The name of a pre-existing secret containing up to three entries. If set, supersedes `.Values.httpProxy`, `.Values.httpsProxy` and `.Values.noProxy`               | `""`  |
+| `proxySecret.httpProxyKey`  | Specify the key within the pre-existing secret containing the value for HTTP_PROXY. If left empty, no value is set                                                 | `""`  |
+| `proxySecret.httpsProxyKey` | Specify the key within the pre-existing secret containing the value for HTTPS_PROXY. If left empty, no value is set                                                | `""`  |
+| `proxySecret.noProxyKey`    | Specify the key within the pre-existing secret containing the value for NO_PROXY. If left empty, no value is set                                                   | `""`  |
 
-### Container Registry
+### Image Registry
 
-| Name                | Description                                       | Value          |
-| ------------------- | ------------------------------------------------- | -------------- |
-| `image.registry`    | Broker image registry                             | `docker.io`    |
-| `image.repository`  | Broker image repository                           | `snyk/broker`  |
-| `image.tag`         | Broker image tag (immutable tags are recommended) | `universal`    |
-| `image.pullPolicy`  | Broker image pull policy                          | `IfNotPresent` |
-| `image.pullSecrets` | Broker image pull secrets                         | `[]`           |
+| Name                | Description                                        | Value          |
+| ------------------- | -------------------------------------------------- | -------------- |
+| `image.registry`    | Broker image registry                              | `docker.io`    |
+| `image.repository`  | Broker image repository                            | `snyk/broker`  |
+| `image.tag`         | Broker image tag                                   | `universal`    |
+| `image.pullPolicy`  | Broker image pull policy                           | `IfNotPresent` |
+| `image.pullSecrets` | Optionally provide any existing image pull secrets | `[]`           |
 
 ### Service Account
 
@@ -163,23 +529,23 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 ### Security Contexts
 
-| Name                                                | Description                                       | Value              |
-| --------------------------------------------------- | ------------------------------------------------- | ------------------ |
-| `podSecurityContext.enabled`                        | Enable Pod Security Context for Broker            | `true`             |
-| `podSecurityContext.fsGroupChangePolicy`            | Set filesystem group change policy                | `Always`           |
-| `podSecurityContext.sysctls`                        | Set kernel settings using the sysctl interface    | `[]`               |
-| `podSecurityContext.fsGroup`                        | Group ID for the volumes of the pod               | `1000`             |
-| `podSecurityContext.supplementalGroups`             | Set filesystem groups                             | `[]`               |
-| `containerSecurityContext.enabled`                  | Enable Broker container security context          | `true`             |
-| `containerSecurityContext.seLinuxOptions`           | Set SELinux options for Broker container          | `{}`               |
-| `containerSecurityContext.runAsUser`                |                                                   | `1000`             |
-| `containerSecurityContext.runAsGroup`               |                                                   | `1000`             |
-| `containerSecurityContext.allowPrivilegeEscalation` | Allow the Broker container to escalate privileges | `false`            |
-| `containerSecurityContext.capabilities.drop`        | ] Linux capabilities to drop                      | `""`               |
-| `containerSecurityContext.readOnlyRootFilesystem`   | Set Broker container file system to read only     | `false`            |
-| `containerSecurityContext.runAsNonRoot`             | Run Broker as non-root                            | `true`             |
-| `containerSecurityContext.privileged`               | Run Broker as a privileged container              | `false`            |
-| `containerSecurityContext.seccompProfile.type`      | Set the seccomProfile for Broker                  | `"RunTimeDefault"` |
+| Name                                                | Description                                                                      | Value              |
+| --------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------ |
+| `podSecurityContext.enabled`                        | Enable Pod Security Context for Broker                                           | `true`             |
+| `podSecurityContext.fsGroupChangePolicy`            | Set filesystem group change policy                                               | `Always`           |
+| `podSecurityContext.sysctls`                        | Set kernel settings using the sysctl interface                                   | `[]`               |
+| `podSecurityContext.fsGroup`                        | Group ID for the volumes of the pod                                              | `1000`             |
+| `podSecurityContext.supplementalGroups`             | Set filesystem groups                                                            | `[]`               |
+| `containerSecurityContext.enabled`                  | Enable Broker container security context                                         | `true`             |
+| `containerSecurityContext.seLinuxOptions`           | Set SELinux options for Broker container                                         | `{}`               |
+| `containerSecurityContext.runAsUser`                |                                                                                  | `1000`             |
+| `containerSecurityContext.runAsGroup`               |                                                                                  | `1000`             |
+| `containerSecurityContext.allowPrivilegeEscalation` | Allow the Broker container to escalate privileges                                | `false`            |
+| `containerSecurityContext.capabilities.drop`        | ] Linux capabilities to drop                                                     | `""`               |
+| `containerSecurityContext.readOnlyRootFilesystem`   | Must be set to false; Broker will write configuration to filesystem upon startup | `false`            |
+| `containerSecurityContext.runAsNonRoot`             | Run Broker as non-root                                                           | `true`             |
+| `containerSecurityContext.privileged`               | Run Broker as a privileged container                                             | `false`            |
+| `containerSecurityContext.seccompProfile.type`      | Set the `seccomProfile` for Broker                                               | `"RunTimeDefault"` |
 
 ### Additional Objects
 

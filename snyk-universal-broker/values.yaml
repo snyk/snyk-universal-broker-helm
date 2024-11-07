@@ -1,5 +1,5 @@
 ## @section Snyk Broker Configuration
-## @param brokerClientUrl [string] The resolvable address of the Broker. This is likely the address of the Ingress (if enabled)
+## @param brokerClientUrl [string] The resolvable address of the Broker. This is likely the address of the Kubernetes Ingress (if enabled). Required for PR checks to function
 brokerClientUrl: ""
 
 ## @param region [string] Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io
@@ -17,21 +17,21 @@ region: ""
 ## ```
 ## @descriptionEnd
 
-## @param deploymentId [string] obtained by installing the Broker App
-## @param clientId [string] obtained by installing the Broker App
-## @param clientSecret [string] obtained by installing the Broker App
+## @param deploymentId [string] Obtained by installing the Broker App
+## @param clientId [string] Obtained by installing the Broker App
+## @param clientSecret [string] Obtained by installing the Broker App
 
 deploymentId: ""
 clientId: ""
 clientSecret: ""
 
-## @param platformAuthSecret.name [string] Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`.
+## @param platformAuthSecret.name [string] Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`
 platformAuthSecret:
   name: ""
 
 ## See https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/set-up-a-github-connection-using-the-api for an example GitHub connection
 ## See https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/restart-your-broker-with-the-required-environment-variable-and-connect for an example of passing tokens required for the above GitHub connection to the Broker
-## @param credentialReferences [object] Credential References to pass to Broker.
+## @param credentialReferences [object] Credential References to pass to Broker
 ## Each entry should be of form <ENV_VALUE_NAME>:<SECRET_VALUE>, which should match a configured Credential Reference.
 ## e.g:
 ## credentialReferences:
@@ -46,7 +46,7 @@ credentialReferencesSecret:
 
 ## @param acceptCode [default: true] Set to false to block Broker rules relating to Snyk Code analysis
 ## @param acceptAppRisk [default: true] Set to false to block Broker rules relating to AppRisk
-## @param acceptIaC [string] Set to "" to block Broker rules relating to Snyk IaC analysis. Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated.
+## @param acceptIaC [string] Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. Set to "" to block Broker rules relating to Snyk IaC analysis
 ## @param acceptCustomPrTemplates [default: true] Set to false to block Broker rules relating to Snyk Custom PR Templates
 ## @param acceptLargeManifests [default: true] Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise
 acceptCode: true
@@ -54,9 +54,28 @@ acceptAppRisk: true
 acceptIaC: "tf,yaml,yml,json,tpl"
 acceptCustomPrTemplates: true
 acceptLargeManifests: true
+
+## @param insecureDownstream [default: false] Set to true to communicate with _all_ downstream integrations via http. Not recommended, as traffic will no longer be encrypted
+insecureDownstream: false
+
+## @param commitSigning.enabled [default: false] Set to true to sign any commits made to GitHub or GitHub Enterprise. Requires `name`, `email`, `passphrase`, `privateKey` _or_ `commitSigningSecret`
+## @param commitSigning.name [string] The name to associate with any signed commits
+## @param commitSigning.email [string] The email to associate with any signed commits
+## @param commitSigning.gpgPrivateKey [string] The GPG private key to sign commits with (ASCII armored version)
+## @param commitSigning.passphrase [string] The passpharse for the GPG key
+## @param commitSigningSecret [string] An external secret containing `GIT_COMMITTER_NAME`, `GIT_COMMITTER_EMAIL`, `GPG_PASSPHRASE` and `GPG_PRIVATE_KEY`
+commitSigning:
+  enabled: false
+  name: ""
+  email: ""
+  gpgPrivateKey: ""
+  passphrase: ""
+
+commitSigningSecret:
+  name: ""
 ## @section Networking Parameters
 
-## @param containerPort [default: 8000] The port the Broker container will expose.
+## @param containerPort [default: 8000] The port the Broker container will expose
 containerPort: 8000
 
 ## @param hostAliases [array] Add host aliases to the Broker pod if required
@@ -91,7 +110,7 @@ service:
 
 ## @param ingress.enabled [default: false] Set to true to create an Ingress
 ## @param ingress.className [string] Optionally define an Ingress Class
-## @param ingress.annotations [object] Additional annotations for the Ingress resource.
+## @param ingress.annotations [object] Additional annotations for the Ingress resource
 ## @param ingress.path [string, default: "/"] sets the path associated with the ingress
 ## @param ingress.pathType [string, default: "ImplementationSpecific"] sets the path type associated with the ingress
 ## @param ingress.hostname [string, default: "broker.local"] define the host associated with this ingress - add Broker_client_url here
@@ -144,7 +163,7 @@ tolerations: []
 
 ## @section Runtime
 
-## @param preflightChecks.enabled [default: true] Preflight checks are present in the Broker to assert connectivity and configuration correctness. Set to false to disable.
+## @param preflightChecks.enabled [default: true] Preflight checks are present in the Broker to assert connectivity and configuration correctness. Set to false to disable
 preflightChecks:
   enabled: true
 
@@ -209,10 +228,12 @@ readinessProbe:
     failureThreshold: 3
 
 ## @section Logging
-## @param logLevel defines Log Level for broker client pod. Can be set to "debug" for more information.
-## @param logEnableBody adds additional logging by setting to true. Will vastly increase log output - enable for diagnostics only
+## @param logLevel defines Log Level for broker client pod. Can be set to "debug" for more information
+## @param logVerbose [default: false] Enable to log request headers. Takes effect if log level is "info"
+## @param logEnableBody [default: false] adds additional logging by setting to true. Will vastly increase log output - enable for diagnostics only
 
 logLevel: "info"
+logVerbose: false
 logEnableBody: false
 
 ## @section Serving over HTTPS and Certificate Trust
@@ -223,7 +244,7 @@ localWebServer:
   https: false
   certificate: ""
   key: ""
-## @param localWebServerSecret.name the name of the secret to create or (if cert and key are empty) the existing TLS secret to use.
+## @param localWebServerSecret.name the name of the secret to create or (if cert and key are empty) the existing TLS secret to use
 localWebServerSecret:
   name: ""
 
@@ -261,13 +282,13 @@ caCertSecret:
 disableAllCertificateTrust: false
 
 ## @section Proxy Configuration
-## @param httpProxy Set to proxy any http-only traffic. You probably need to use HTTPS proxy setting and leave this blank.
-## @param httpsProxy HTTPS Proxy URL. Optionally provide user/password auth in the url.
-## @param noProxy A comma-separated list of hostnames that must not transit a proxy. Do not include protocol or port numbers.
-## @param proxySecret.name The name of a pre-existing secret containing up to three entries. If set, supersedes .Values.httpProxy, .Values.httpsProxy and .Values.noProxy.
-## @param proxySecret.httpProxyKey Specify the key within the pre-existing secret containing the value for HTTP_PROXY. If left empty, no value is set.
-## @param proxySecret.httpsProxyKey Specify the key within the pre-existing secret containing the value for HTTPS_PROXY. If left empty, no value is set.
-## @param proxySecret.noProxyKey Specify the key within the pre-existing secret containing the value for NO_PROXY. If left empty, no value is set.
+## @param httpProxy Set to proxy any http-only traffic. You probably need to use HTTPS proxy setting and leave this blank
+## @param httpsProxy HTTPS Proxy URL. Optionally provide user/password auth in the url (http(s)://[username]:[password]@my.proxy:[port]). No other authentication schemes are supported
+## @param noProxy A comma-separated list of hostnames that must not transit a proxy. Do not include protocol or port numbers
+## @param proxySecret.name The name of a pre-existing secret containing up to three entries. If set, supersedes `.Values.httpProxy`, `.Values.httpsProxy` and `.Values.noProxy`
+## @param proxySecret.httpProxyKey Specify the key within the pre-existing secret containing the value for HTTP_PROXY. If left empty, no value is set
+## @param proxySecret.httpsProxyKey Specify the key within the pre-existing secret containing the value for HTTPS_PROXY. If left empty, no value is set
+## @param proxySecret.noProxyKey Specify the key within the pre-existing secret containing the value for NO_PROXY. If left empty, no value is set
 httpProxy: ""
 httpsProxy: ""
 noProxy: ""
@@ -277,12 +298,12 @@ proxySecret:
   httpsProxyKey: ""
   noProxyKey: "" 
 
-## @section Container Registry
+## @section Image Registry
 ## @param image.registry [default: docker.io] Broker image registry
 ## @param image.repository [default: snyk/broker] Broker image repository
-## @param image.tag [default: universal] Broker image tag (immutable tags are recommended)
-## @param image.pullPolicy Broker image pull policy
-## @param image.pullSecrets Broker image pull secrets
+## @param image.tag [default: universal] Broker image tag
+## @param image.pullPolicy [default: IfNotPresent] Broker image pull policy
+## @param image.pullSecrets [array] Optionally provide any existing image pull secrets
 image:
   registry: docker.io
   repository: snyk/broker
@@ -328,10 +349,10 @@ podSecurityContext:
 ## @param containerSecurityContext.runAsGroup [default: 1000]
 ## @param containerSecurityContext.allowPrivilegeEscalation [default:false] Allow the Broker container to escalate privileges
 ## @param containerSecurityContext.capabilities.drop [default: ["ALL"]] Linux capabilities to drop
-## @param containerSecurityContext.readOnlyRootFilesystem [default:false] Set Broker container file system to read only
+## @param containerSecurityContext.readOnlyRootFilesystem [default:false] Must be set to false; Broker will write configuration to filesystem upon startup
 ## @param containerSecurityContext.runAsNonRoot [default:true] Run Broker as non-root
 ## @param containerSecurityContext.privileged [default: false] Run Broker as a privileged container
-## @param containerSecurityContext.seccompProfile.type [default:"RunTimeDefault"] Set the seccomProfile for Broker
+## @param containerSecurityContext.seccompProfile.type [default:"RunTimeDefault"] Set the `seccomProfile` for Broker
 
 containerSecurityContext:
   enabled: true
@@ -386,7 +407,7 @@ extraEnvVarsCM: []
 ## @param extraEnvVarsSecret Optionally specify one or more external secrets containing additional environment variables for Broker
 extraEnvVarsSecret: []
 
-## @skip global.compatibility.openshift.adaptSecurityContext Set to false to disable security context adaptations for OpenShift
+## @skip global.compatibility.openshift.adaptSecurityContext [default: auto] Set to false to disable security context adaptations for OpenShift. If left in "auto", will remove default user/group values that will violate an OpenShift Security Context
 global:
   compatibility:
     openshift:

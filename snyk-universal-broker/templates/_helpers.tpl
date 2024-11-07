@@ -123,7 +123,7 @@ include "snyk-broker.genericSecretName" (dict "Context" $ "secretName" "secret-n
 {{- end }}
 
 {{- define "snyk-broker.caCertSecretName" -}}
-{{- .Values.caCertSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "ca-secret" ) ) -}}
+{{- .Values.caCertSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "cacert-secret" ) ) -}}
 {{- end }}
 
 {{- define "snyk-broker.credentialReferencesSecretName" -}}
@@ -132,6 +132,10 @@ include "snyk-broker.genericSecretName" (dict "Context" $ "secretName" "secret-n
 
 {{- define "snyk-broker.snykPlatformSecretName" -}}
 {{- .Values.platformAuthSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "platform-secret" ) ) -}}
+{{- end }}
+
+{{- define "snyk-broker.commitSigningSecretName" -}}
+{{- .Values.commitSigningSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "commit-signing-secret" ) ) -}}
 {{- end }}
 
 {{/*

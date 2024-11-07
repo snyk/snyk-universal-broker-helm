@@ -4,7 +4,7 @@ values:
   - ../values.yaml
   - fixtures/default_values.yaml
 templates:
-  - templates/statefulset.yaml
+  - statefulset.yaml
 
 tests:
   - it: sets snyk-us-02

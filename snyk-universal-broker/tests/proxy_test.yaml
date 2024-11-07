@@ -1,7 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: Proxy configuration tests
 templates:
-  - templates/statefulset.yaml
+  - statefulset.yaml
+  - ca-secret.yaml
 values:
   - ../values.yaml
   - fixtures/default_values.yaml
@@ -17,17 +18,21 @@ tests:
           content:
             name: HTTP_PROXY
             value: "http://my-external-proxy:8080"
+        template: statefulset.yaml
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: HTTPS_PROXY
             value: "http://my-external-proxy:8080"
+        template: statefulset.yaml
+
 
   - it: rejects proxy without protocol
     set:
       httpsProxy: no.protocol.proxy:8080
     asserts:
       - failedTemplate: {}
+    template: statefulset.yaml
 
   - it: should allow specifying proxy credentials from a secret
     set:
@@ -42,6 +47,7 @@ tests:
               secretKeyRef:
                 name: proxy-credentials-secret
                 key: corp_https_proxy
+        template: statefulset.yaml
 
   - it: should allow specifying URLs that bypass the proxy
     set:
@@ -52,12 +58,14 @@ tests:
           content:
             name: NO_PROXY
             value: "localhost,127.0.0.1,my-internal-domain.com"
+        template: statefulset.yaml
 
   - it: should reject NO_PROXY URLs that include a protocol
     set:
       noProxy: "https://my-internal-domain.com"
     asserts:
       - failedTemplate: {}
+    template: statefulset.yaml
 
   - it: should trust the proxy's certificate
     set:
@@ -68,6 +76,7 @@ tests:
           content:
             name: NODE_EXTRA_CA_CERTS
             value: "/home/node/cacert/cacert"
+        template: statefulset.yaml
 
   - it: should disable certificate validation for proxy
     set:
@@ -79,11 +88,13 @@ tests:
           content:
             name: NODE_TLS_REJECT_UNAUTHORIZED
             value: "0"
+        template: statefulset.yaml
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: NODE_EXTRA_CA_CERTS
             value: "/home/node/cacert/cacert"
+        template: statefulset.yaml
 
   - it: should allow specifying proxy credentials from a secret and in values.yaml
     set:
@@ -100,8 +111,10 @@ tests:
               secretKeyRef:
                 name: proxy-credentials-secret
                 key: corp_https_proxy
+        template: statefulset.yaml
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: NO_PROXY
             value: my.scm.io
+        template: statefulset.yaml

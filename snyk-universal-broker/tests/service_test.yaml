@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
 suite: Service Tests
 templates:
-  - templates/service.yaml
-  - templates/statefulset.yaml
+  - service.yaml
+  - statefulset.yaml
 values:
   - ../values.yaml
   - fixtures/default_values.yaml
@@ -15,11 +15,11 @@ tests:
     asserts:
       - isKind:
           of: Service
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.clusterIP
           value: 10.96.0.1
-        template: templates/service.yaml
+        template: service.yaml
 
   - it: supports a NodePort service
     set:
@@ -28,11 +28,11 @@ tests:
     asserts:
       - isKind:
           of: Service
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.type
           value: NodePort
-        template: templates/service.yaml
+        template: service.yaml
 
   - it: supports a NodePort service with optional nodePort specification
     set:
@@ -42,18 +42,18 @@ tests:
     asserts:
       - isKind:
           of: Service
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.type
           value: NodePort
-        template: templates/service.yaml
+        template: service.yaml
       - contains:
           path: spec.ports
           content:
             port: 8000
             targetPort: 8000
             nodePort: 30007
-        template: templates/service.yaml
+        template: service.yaml
 
   - it: supports a LoadBalancer service
     set:
@@ -62,11 +62,11 @@ tests:
     asserts:
       - isKind:
           of: Service
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.type
           value: LoadBalancer
-        template: templates/service.yaml
+        template: service.yaml
 
   - it: supports a LoadBalancer service with optional traffic policy
     set:
@@ -76,15 +76,15 @@ tests:
     asserts:
       - isKind:
           of: Service
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.type
           value: LoadBalancer
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.externalTrafficPolicy
           value: Local
-        template: templates/service.yaml
+        template: service.yaml
 
   - it: supports a LoadBalancer service with optional source ranges
     set:
@@ -95,16 +95,16 @@ tests:
     asserts:
       - isKind:
           of: Service
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.type
           value: LoadBalancer
-        template: templates/service.yaml
+        template: service.yaml
       - contains:
           path: spec.loadBalancerSourceRanges
           content:
             "0.0.0.0/0"
-        template: templates/service.yaml
+        template: service.yaml
 
   - it: supports a LoadBalancer service with an optional loadbalancer IP
     set:
@@ -114,15 +114,15 @@ tests:
     asserts:
       - isKind:
           of: Service
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.type
           value: LoadBalancer
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.loadBalancerIP
           value: "1.2.3.4"
-        template: templates/service.yaml
+        template: service.yaml
 
   - it: set the service port and targetPort
     set:
@@ -132,29 +132,29 @@ tests:
     asserts:
       - isKind:
           of: Service
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.ports[0].port
           value: 80
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.ports[0].targetPort
           value: 8080
-        template: templates/service.yaml
+        template: service.yaml
       - contains:
           path: spec.template.spec.containers[0].ports
           content:
             name: http
             containerPort: 8080
-        template: templates/statefulset.yaml
+        template: statefulset.yaml
       - equal:
           path: spec.template.spec.containers[0].livenessProbe.httpGet.port
           value: 8080
-        template: templates/statefulset.yaml
+        template: statefulset.yaml
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.port
           value: 8080
-        template: templates/statefulset.yaml
+        template: statefulset.yaml
 
   - it: Add extraPorts
     set:
@@ -166,12 +166,12 @@ tests:
     asserts:
       - isKind:
           of: Service
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.ports[1].port
           value: 443
-        template: templates/service.yaml
+        template: service.yaml
       - equal:
           path: spec.ports[1].targetPort
           value: 8443
-        template: templates/service.yaml
+        template: service.yaml
