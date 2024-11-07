@@ -84,9 +84,9 @@ spec:
             - secretRef:
                 name: {{ ternary .Values.existingAuthSecret (printf "%s-platform-auth" (include "common.names.fullname" .)) (not (empty .Values.existingAuthSecret)) }}
           volumeMounts:
-              {{- if .Values.caCert }}
-              - name: {{ include "common.names.fullname" . }}-cacert-volume
-                mountPath: /home/node/cacert
+              {{- if or .Values.caCert .Values.caCertSecret.name }}
+              - name: {{ .Release.Name }}-cacert-volume
+                mountPath: {{ printf "%s/%s" .Values.caCertMount.path .Values.caCertMount.name }}
                 readOnly: true
               {{- end }}
               {{- if and (.Values.httpsCert) (.Values.httpsKey) }}
@@ -111,13 +111,12 @@ spec:
               value: {{ .Values.logLevel }}
             - name: LOG_ENABLE_BODY
               value: {{ .Values.logEnableBody | squote }}
-         {{- if .Values.caCert }}
-          # HTTPS Inspection
+          {{- if or .Values.caCert .Values.caCertSecret.name }}
             - name: CA_CERT
-              value: /home/node/cacert/cacert
+              value: {{ printf "%s/%s" .Values.caCertMount.path .Values.caCertMount.name }}
             - name: NODE_EXTRA_CA_CERTS
-              value: /home/node/cacert/cacert
-         {{- end }}
+              value: {{ printf "%s/%s" .Values.caCertMount.path .Values.caCertMount.name }}
+          {{- end }}
          {{- if .Values.httpsCert }}
          # HTTPS Config
             - name: HTTPS_CERT
@@ -164,10 +163,15 @@ spec:
               value: {{ include "snyk-broker.brokerDispatcherUrl" . }}
       # Mount Accept.json and Certs
       volumes:
-      {{- if .Values.caCert }}
-      - name: {{ include "common.names.fullname" . }}-cacert-volume
+      {{- if or .Values.caCert .Values.caCertSecret.name }}
+      - name: {{ .Release.Name }}-cacert-volume
         secret:
-          secretName: {{- printf "%s-cacerts" (include "common.names.fullname" .) }}
+          secretName: {{ include "snyk-broker.caCertSecretName" . }}
+      {{- if .Values.caCertSecret.name }}
+          items:
+          - key: {{ .Values.caCertSecret.caCertKey }}
+            path: {{ .Values.caCertMount.name }}
+      {{- end }}
       {{- end }}
       {{- if and (.Values.httpsCert) (.Values.httpsKey) }}
       - name: {{ include "common.names.fullname" . }}-tls-secret-volume

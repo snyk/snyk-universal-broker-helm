@@ -52,3 +52,19 @@ Return the correct broker dispatcher URL based on the tenant value.
     {{- fail (printf "Invalid imagePullPolicy: %s. Allowed values are: IfNotPresent, Always, Never." $policy) -}}
   {{- end -}}
 {{- end -}}
+
+{{/*
+Create a secret name.
+Pass a dict of Context ($) and secretName:
+include "snyk-broker.genericSecretName" (dict "Context" $ "secretName" "secret-name")
+*/}}
+{{- define "snyk-broker.genericSecretName" -}}
+{{ printf "%s-%s" .Context.Release.Name .secretName | trunc 63 | trimSuffix "-" }}
+{{- end -}}
+
+{{/*
+Create a name for the CA Cert secret, using a provided override if present
+*/}}
+{{- define "snyk-broker.caCertSecretName" -}}
+{{- .Values.caCertSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "cacert-secret" ) ) -}}
+{{- end }}

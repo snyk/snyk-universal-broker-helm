@@ -4,7 +4,7 @@ suite: Resources and Limits
 templates:
   - statefulset.yaml
 values:
-  - fixtures/universal_broker_default_values.yaml
+  - fixtures/default_values.yaml
 
 tests:
   - it: Defines requests and limits by default

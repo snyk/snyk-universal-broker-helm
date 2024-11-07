@@ -136,11 +136,20 @@ httpsKey: ""
 ## caCert: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
 caCert: ""
 
-## @param disableCaCertTrust Set to `true` to disable trust validation when providing your own CA certificate.
-disableCaCertTrust: true
+## @param caCertMount.path [string, default:"/home/node/cacert"] the path to mount a certificate bundle to
+## @param caCertMount.name [string, default:"cacert"] the filename to write a certificate bundle to
+caCertMount:
+  path: /home/node/cacert
+  name: cacert
 
-## @param tlsRejectUnauthorized Set to "0" to disable trust validation when using self signed certificates.
-tlsRejectUnauthorized: ""
+## @param caCertSecret.name [string] set to read a CA cert from an external secret
+## @param caCertSecret.caCertKey [default: ca.pem] set to read the ca cert from a different key
+caCertSecret:
+  name: ""
+  caCertKey: ca.pem
+
+## @param disableAllCertificateTrust [default: false] Set to `true` to disable trust of **all** certificates, including any provided CAs
+disableAllCertificateTrust: false
 
 ##### Use behind proxy #####
 
