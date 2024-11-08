@@ -12,20 +12,42 @@ region: ""
 preflightChecks:
   enabled: true
 
-## Snyk Platform Server Auth #####
-## @param deploymentId is obtained by installing the Broker App at the Organization level
-## @param clientId is obtained by installing the Broker App at the Organization level
-## @param clientSecret is obtained by installing the Broker App at the Organization level
-## see https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/initial-configuration-of-the-universal-broker
+##### Snyk Platform Auth #####
+## @descriptionStart
+## Refer to documentation via [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/initial-configuration-of-the-universal-broker) to obtain `deploymentId`, `clientId`, `clientSecret` values.
+##
+## Credential References should contain one or more key/value pairs where each key matches the `environment_variable_name` of a `deployment_credential`, and the value provides the secret. For example:
+## ```bash
+## helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
+## ```
+## @descriptionEnd
+
+## @param deploymentId [string] Obtained by installing the Broker App
+## @param clientId [string] Obtained by installing the Broker App
+## @param clientSecret [string] Obtained by installing the Broker App
 
 deploymentId: ""
 clientId: ""
 clientSecret: ""
 
-## @param existingAuthSecret  Name of existing secret with Snyk platform auth and scm credential reference data
-## @param credentialReferences SCM token credential reference
-existingAuthSecret: "" # Name of an existing secret if it exists
+## @param platformAuthSecret.name [string] Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`
+platformAuthSecret:
+  name: ""
+
+## See https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/set-up-a-github-connection-using-the-api for an example GitHub connection
+## See https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/restart-your-broker-with-the-required-environment-variable-and-connect for an example of passing tokens required for the above GitHub connection to the Broker
+## @param credentialReferences [object] Credential References to pass to Broker
+## Each entry should be of form <ENV_VALUE_NAME>:<SECRET_VALUE>, which should match a configured Credential Reference.
+## e.g:
+## credentialReferences:
+##   MY_GITHUB_TOKEN: <github-pat>
+##   MY_OTHER_GITHUB_TOKEN: <another-github-pat>
 credentialReferences: {}
+
+## @param credentialReferencesSecret.name [string] Optionally provide a pre-existing secret with SCM credential reference data
+## This secret should contain one or more key/value pairs, where the key matches the `environment_variable_name` of a `deployment_credential`
+credentialReferencesSecret:
+  name: "" # Name of an existing secret if it exists
 
 ## @param acceptCode [default: true] Set to false to block Broker rules relating to Snyk Code analysis
 ## @param acceptAppRisk [default: true] Set to false to block Broker rules relating to AppRisk

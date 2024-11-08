@@ -82,8 +82,15 @@ spec:
             {{- toYaml .Values.readinessProbe.config | nindent 12 }}
           {{- end }}
           envFrom:
+          {{- if eq (include "snyk-broker.snykPlatformSecretName" . ) (include "snyk-broker.credentialReferencesSecretName" . ) }}
             - secretRef:
-                name: {{ ternary .Values.existingAuthSecret (printf "%s-platform-auth" (include "common.names.fullname" .)) (not (empty .Values.existingAuthSecret)) }}
+                name: {{ include "snyk-broker.snykPlatformSecretName" . }}
+          {{- else }}
+            - secretRef:
+                name: {{ include "snyk-broker.snykPlatformSecretName" . }}
+            - secretRef:
+                name: {{ include "snyk-broker.credentialReferencesSecretName" . }}
+          {{- end }}
           volumeMounts:
               {{- if or .Values.caCert .Values.caCertSecret.name }}
               - name: {{ .Release.Name }}-cacert-volume
