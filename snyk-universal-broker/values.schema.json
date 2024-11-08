@@ -33,6 +33,29 @@
     "disableAllCertificateTrust": {
       "type": "boolean",
       "default": false
+    },
+    "acceptAppRisk": {
+      "type": "boolean"
+    },
+    "acceptCode": {
+      "type": "boolean"
+    },
+    "acceptIaC": {
+      "type": "string",
+      "oneOf": [
+        {
+          "maxLength": 0
+        },
+        {
+          "pattern": "^[a-z,\\s]+$"
+        }
+      ]
+    },
+    "acceptCustomPrTemplates": {
+      "type": "boolean"
+    },
+    "acceptLargeManifests": {
+      "type": "boolean"
     }
   },
   "additionalProperties": true

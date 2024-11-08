@@ -27,6 +27,17 @@ clientSecret: ""
 existingAuthSecret: "" # Name of an existing secret if it exists
 credentialReferences: {}
 
+## @param acceptCode [default: true] Set to false to block Broker rules relating to Snyk Code analysis
+## @param acceptAppRisk [default: true] Set to false to block Broker rules relating to AppRisk
+## @param acceptIaC [string] Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. Set to "" to block Broker rules relating to Snyk IaC analysis
+## @param acceptCustomPrTemplates [default: true] Set to false to block Broker rules relating to Snyk Custom PR Templates
+## @param acceptLargeManifests [default: true] Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise
+acceptCode: true
+acceptAppRisk: true
+acceptIaC: "tf,yaml,yml,json,tpl"
+acceptCustomPrTemplates: true
+acceptLargeManifests: true
+
 ## @param containerPort Port to open for HTTP in Broker
 containerPort: 8000
 
@@ -39,7 +50,7 @@ hostAliases: []
 ## @param resources.requests.memory Set memory requests
 ## @param resources.limits.cpu Set CPU limits
 ## @param resources.limits.memory Set memory limits
-resources: 
+resources:
   requests:
     cpu: 2
     memory: 512Mi
@@ -154,8 +165,8 @@ disableAllCertificateTrust: false
 ##### Use behind proxy #####
 
 ## @param httpProxy Do not change unless advised by your Snyk Representative. You probably need to use HTTPS proxy setting and leave this blank. - HTTP Proxy URL
-## @param httpsProxy HTTPS Proxy URL - This will apply to both Snyk Broker 
-## @param noProxy provide URl here which doesn't need to go through a proxy(do not include protocol)  
+## @param httpsProxy HTTPS Proxy URL - This will apply to both Snyk Broker
+## @param noProxy provide URl here which doesn't need to go through a proxy(do not include protocol)
 httpProxy: ""
 httpsProxy: ""
 noProxy: ""
@@ -238,7 +249,7 @@ containerSecurityContext:
 ## @param service.extraPorts Extra ports to expose
 service:
   type: ClusterIP
-  ports: 
+  ports:
     http: 8000
   extraPorts: []
   tls: []
