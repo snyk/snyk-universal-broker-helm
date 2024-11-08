@@ -133,11 +133,18 @@ ingress:
 ## @param resources.limits.memory Set memory limits
 resources:
   requests:
-    cpu: 2
+    cpu: 1
     memory: 512Mi
   limits:
-    cpu: 3
+    cpu: 2
     memory: 1024Mi
+
+## @param highAvailabilityMode.enabled snyk [default: true] Set to false to disable High Availability Mode for Broker
+## @param highAvailabilityMode.replicaCount [default: 2] Number of Broker pods when running in HA mode (min 2, max 4)
+
+highAvailabilityMode:
+  enabled: true
+  replicaCount: 2
 
 ## @param commonLabels Labels to add to all deployed objects (sub-charts are not considered)
 ##
@@ -185,14 +192,6 @@ readinessProbe:
     periodSeconds: 10
     timeoutSeconds: 1
     failureThreshold: 3
-
-## HA MODE #####
-## @param highAvailabilityMode.enabled snyk broker HA mode
-## @param replicaCount number for snyk broker when running in HA mode (min 2, max 4)
-
-highAvailabilityMode:
-  enabled: false
-replicaCount: 1
 
 ## Logging #####
 ## @param logLevel defines Log Level for broker client pod. Can be set to "debug" for more information
