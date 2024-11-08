@@ -65,7 +65,7 @@ spec:
             httpGet:
               port: {{ .Values.containerPort }}
               path: {{ .Values.livenessProbe.path }}
-              {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) ( .Values.ingress.enabled )}}
+              {{- if or ( and (.Values.localWebServer.certificate) (.Values.localWebServer.key) ) ( .Values.localWebServer.https ) }}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
@@ -77,7 +77,7 @@ spec:
             httpGet:
               port: {{ .Values.containerPort }}
               path: {{ .Values.readinessProbe.path }}
-              {{- if or ( and (.Values.httpsCert) (.Values.httpsKey) ) ( .Values.enableBrokerLocalWebserverOverHttps ) (.Values.ingress.enabled) }}
+              {{- if or ( and (.Values.localWebServer.certificate) (.Values.localWebServer.key) ) ( .Values.localWebServer.https ) }}
               scheme: HTTPS
               {{- else }}
               scheme: HTTP
@@ -104,8 +104,8 @@ spec:
                 mountPath: {{ printf "%s/%s" .Values.caCertMount.path .Values.caCertMount.name }}
                 readOnly: true
               {{- end }}
-              {{- if and (.Values.httpsCert) (.Values.httpsKey) }}
-              - name: {{ include "common.names.fullname" .}}-tls-secret-volume
+              {{- if or .Values.localWebServerSecret.name ( and (.Values.localWebServer.certificate) (.Values.localWebServer.key) ) }}
+              - name: {{ .Release.Name }}-tls-secret-volume
                 mountPath: /home/node/tls-cert/
                 readOnly: true
               {{- end }}
@@ -135,15 +135,17 @@ spec:
             - name: NODE_EXTRA_CA_CERTS
               value: {{ printf "%s/%s" .Values.caCertMount.path .Values.caCertMount.name }}
           {{- end }}
-         {{- if .Values.httpsCert }}
-         # HTTPS Config
+          {{- if .Values.localWebServer.https }}
+          {{- if or .Values.localWebServerSecret.name .Values.localWebServer.certificate }}
+          # HTTPS Config
             - name: HTTPS_CERT
               value: /home/node/tls-cert/tls.crt
-         {{- end }}
-         {{- if .Values.httpsKey }}
+          {{- end }}
+          {{- if or .Values.localWebServerSecret.name .Values.localWebServer.key }}
             - name: HTTPS_KEY
               value: /home/node/tls-cert/tls.key
-         {{- end }}
+          {{- end }}
+          {{- end }}
         {{- if or (and .Values.tlsRejectUnauthorized (not .Values.caCert)) (and .Values.caCert .Values.disableAllCertificateTrust) }}
          # Troubleshooting - Set to 0 for SSL inspection testing
             - name: NODE_TLS_REJECT_UNAUTHORIZED
@@ -189,8 +191,8 @@ spec:
             path: {{ .Values.caCertMount.name }}
       {{- end }}
       {{- end }}
-      {{- if and (.Values.httpsCert) (.Values.httpsKey) }}
-      - name: {{ include "common.names.fullname" . }}-tls-secret-volume
+      {{- if or .Values.localWebServerSecret.name ( and (.Values.localWebServer.certificate) (.Values.localWebServer.key) ) }}
+      - name: {{ .Release.Name }}-tls-secret-volume
         secret:
           secretName: {{ include "snyk-broker.tlsSecretName" . }}
       {{- end }}
