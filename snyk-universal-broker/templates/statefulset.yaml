@@ -131,6 +131,8 @@ spec:
               value: {{ include "snyk-broker.brokerDispatcherUrl" . }}
             - name: PORT
               value: {{ .Values.containerPort | squote }}
+            - name: UNIVERSAL_BROKER_ENABLED
+              value: "true"
             {{- include "snyk-broker.accepts" . | indent 12 }}
             - name: BROKER_CLIENT_URL
               value: {{ .Values.brokerClientUrl }}
