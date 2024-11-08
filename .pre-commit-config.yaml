@@ -1,14 +1,33 @@
 repos:
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.17.0
+    rev: v8.21.2
     hooks:
       - id: gitleaks
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.30.0
+    hooks:
+      - id: commitizen
   - repo: https://github.com/bitnami/readme-generator-for-helm
-    rev: "main"
+    rev: "2.6.1"
     hooks:
     - id: helm-readme-generator
-      # in order to run helm-readme-generator only once
       pass_filenames: false
       always_run: true
-      # default args are [--readme=chart/README.md, --values=chart/values.yaml]
       args: [--readme=README.md, --values=snyk-universal-broker/values.yaml]
+  - repo: local
+    hooks:
+    - id: prettier
+      name: Prettier
+      entry: npx prettier
+      pass_filenames: true
+      args: [--ignore-unknown]
+      language: system
+      types:
+        - json
+        - markdown
+    - id: helm-unittest
+      name: Helm Unittest
+      entry: helm unittest snyk-universal-broker
+      language: system
+      pass_filenames: false
+      stages: [pre-commit]

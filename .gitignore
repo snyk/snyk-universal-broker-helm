@@ -45,3 +45,7 @@ bitbucket.crt
 
 # Packaged Helm Charts
 *.tgz
+Chart.lock
+
+# Release
+node_modules
