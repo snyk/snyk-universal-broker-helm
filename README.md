@@ -96,6 +96,16 @@ credentialReferencesSecret:
   name: my-universal-broker-secrets
 ```
 
+### Service
+
+By default, Universal Broker provides a `ClusterIP` Service. This can be adjusted to a `LoadBalancer`, `NodePort` as best fits the deployment environment.
+
+### Ingress
+
+Universal Broker provides an Ingress template, compatible with any Kubernetes Ingress controller.
+
+It may be [extended with additional hosts, paths, annotations as required](#broker-ingress).
+
 ## Advanced Configuration
 
 ### Certificate Trust
