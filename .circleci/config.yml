@@ -1,87 +1,164 @@
 version: 2.1
 
+orbs:
+  prodsec: snyk/prodsec-orb@1
+  helm: circleci/helm@3
+
+parameters:
+  kubectl-version:
+    type: string
+    default: "1.28"
+
 jobs:
   validate_charts:
     docker:
       - image: alpine/k8s:1.28.14
-    resource_class: medium
+    resource_class: small
     steps:
       - checkout
       - run:
           name: Helm dependencies
           command: helm dep up
-          working_directory: 
-            snyk-universal-broker
-
+          working_directory: snyk-universal-broker
       - run:
           name: Run helm unittest
           command: helm unittest .
-          working_directory: 
-            snyk-universal-broker
+          working_directory: snyk-universal-broker
+
+  validate_documentation:
+    docker:
+      - image: cimg/node:20.18.0
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Run the readme generator
+          command: npx @bitnami/readme-generator-for-helm -v snyk-universal-broker/values.yaml -r README.md
+      - run:
+          name: Check if files in CI have changed
+          command: |
+            if [[ -n $(git diff --name-only README.md) ]]; then
+              echo "README content not synchronised with values.yaml"
+              exit 1
+            fi
+
+  deploy_and_test:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: medium
+    parameters:
+      deployment-id:
+        type: env_var_name
+        default: DEPLOYMENT_ID
+      client-id:
+        type: env_var_name
+        default: CLIENT_ID
+      client-secret:
+        type: env_var_name
+        default: CLIENT_SECRET
+      my-ghe-token:
+        type: env_var_name
+        default: MY_GHE_TOKEN
+      snyk-token:
+        type: env_var_name
+        default: "SNYK_API_TOKEN"
+    steps:
+      - checkout
+      - helm/install_helm_client
+      - helm/install_helm_plugin:
+          helm_plugin_url: https://github.com/helm-unittest/helm-unittest
+      - run:
+          name: Install Pre-reqs
+          command: |
+            curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+            curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+            echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v<<pipeline.parameters.kubectl-version>>/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+            sudo apt-get update
+            sudo apt-get install -y kubectl
+            wget https://github.com/yannh/kubeconform/releases/download/v0.5.0/kubeconform-linux-amd64.tar.gz 
+            sudo tar -xvf kubeconform-linux-amd64.tar.gz --directory=/usr/local/bin
+      - run:
+          name: Template to file
+          command: |
+            helm dep up
+            helm template \
+              -f values.yaml \
+              --set deploymentId=${<<parameters.deployment-id>>} \
+              --set clientId=${<<parameters.client-id>>} \
+              --set clientSecret=${<<parameters.client-secret>>} \
+              --set credentialReferences.MY_GHE_TOKEN=${<<parameters.my-ghe-token>>} \
+              . > template.yaml
+          working_directory: snyk-universal-broker
+      - run:
+          name: Kubeconform
+          command: |
+            kubeconform -ignore-missing-schemas template.yaml
+          working_directory: snyk-universal-broker
+      - run:
+          name: Create k3d cluster
+          command: |
+            k3d cluster create
+            helm dep up
+            helm template \
+              -f values.yaml \
+              --set deploymentId=${<<parameters.deployment-id>>} \
+              --set clientId=${<<parameters.client-id>>} \
+              --set clientSecret=${<<parameters.client-secret>>} \
+              --set credentialReferences.MY_GHE_TOKEN=${<<parameters.my-ghe-token>>} \
+              . > template.yaml
+          working_directory: snyk-universal-broker
+      - run:
+          name: Test Import
+          command: |
+            LOG_LEVEL="debug" \
+              SNYK_TOKEN=${<<parameters.snyk-token>>} \
+              npx \
+              --yes \
+              tsx \
+              .circleci/scripts/testImport/testImport.ts \
+              ".circleci/snyk-import/snyk-import-ghe.json" \
+              "https://api.dev.snyk.io"
 
   publish:
     docker:
-      - image: cimg/node:22.9 
+      - image: cimg/node:22.9
     resource_class: small
     steps:
       - checkout
       - run:
           name: Install npm dependencies
           command: npm ci
-
-      - run:
-          name: Set up Git
-          command: |
-            git remote set-url origin git@github.com/snyk/snyk-universal-broker-helmchart.git
-            
-      - run:
-          name: Install Helm
-          command: |
-            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
+      - helm/install_helm_client
       - run:
           name: Docker Login for OCI Push
           command: |
-           echo "$DOCKER_PASSWORD" | helm registry login -u snykdocker --password-stdin registry-1.docker.io
-
-          
+            echo "$DOCKER_PASSWORD" | helm registry login -u snykdocker --password-stdin registry-1.docker.io
       - run:
           name: Run semantic-release
           command: npx semantic-release
-          environment:
-            DOCKER_USERNAME: $DOCKER_USERNAME
-            DOCKER_PASSWORD: $DOCKER_PASSWORD
-            
-      - run:
-          name: Update Chart Version
-          command: |
-            CHART_DIR="snyk-universal-broker"
-            NEW_VERSION=$(git describe --tags --abbrev=0)
-            echo "Updating Chart.yaml to version $NEW_VERSION"
-            sed -i "s/^version: .*/version: $NEW_VERSION/" $CHART_DIR/Chart.yaml
-
-      - run:
-          name: Package Helm Chart
-          command: |
-            helm dep up snyk-universal-broker
-            helm package snyk-universal-broker
-  
-      - run:
-          name: Push Helm Chart to OCI Registry
-          command: |
-            helm push snyk-universal-broker-*.tgz oci://registry-1.docker.io/snyk
-          environment:
-            DOCKER_USERNAME: $DOCKER_USERNAME
-            DOCKER_PASSWORD: $DOCKER_PASSWORD
 
 workflows:
   validate_and_publish:
     jobs:
-      - validate_charts  
+      - prodsec/secrets-scan:
+          name: Scan repository for secrets
+          context:
+            - snyk-bot-slack
+          channel: hybrid-alerts
+          trusted-branch: main
+      - validate_charts
+      - validate_documentation
+      # - deploy_and_test:
+      #     context:
+      #       - snyk-universal-broker-helm-chart
       - publish:
+          context:
+            - team-broker-docker-hub
           requires:
             - validate_charts
+            - validate_documentation
           filters:
             branches:
               only:
                 - main
+                - rc
