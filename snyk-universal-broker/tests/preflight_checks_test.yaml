@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Preflight Checks
+templates:
+  - statefulset.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: enables preflight checks by default
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env 
+          content:
+            name: PREFLIGHT_CHECKS_ENABLED
+
+  - it: disables preflight checks
+    set:
+      preflightChecks.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env 
+          content:
+            name: PREFLIGHT_CHECKS_ENABLED
+            value: "false"

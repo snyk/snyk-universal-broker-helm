@@ -113,6 +113,12 @@ Universal Broker will run with [High Availability Mode](https://docs.snyk.io/ent
 High Availability Mode may be disabled by setting `highAvailabilityMode.enabled: false`.
 ## Troubleshooting
 
+### Preflight Checks
+
+Review documentation on [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/preflight-checks-for-snyk-broker) for a list of checks executed by the Universal Broker at startup.
+
+If any of these checks are failing, it may indicate a misconfiguration.
+
 ### Logging
 
 The Universal Broker log level is set to `"INFO"` by default. All responses, regardless of HTTP status code, are logged by the Universal Broker.
