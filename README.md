@@ -288,28 +288,28 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 ### Service Account
 
-| Name                                                | Description                                                                                  | Value            |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------- |
-| `serviceAccount.create`                             | Enable creation of a serviceAccount                                                          | `true`           |
-| `serviceAccount.existingName`                       | Optionally provide an existing serviceAccount name                                           | `""`             |
-| `serviceAccount.annotations`                        | Additional custom annotations for the serviceAccount                                         | `{}`             |
-| `serviceAccount.name`                               | The name of the serviceAccount to create. If not set and create is true, a name is generated | `""`             |
-| `podSecurityContext.enabled`                        | Enable security context for Broker Pods                                                      | `true`           |
-| `podSecurityContext.fsGroupChangePolicy`            | Set filesystem group change policy                                                           | `Always`         |
-| `podSecurityContext.sysctls`                        | Set kernel settings using the sysctl interface                                               | `[]`             |
-| `podSecurityContext.supplementalGroups`             | Set filesystem extra groups                                                                  | `[]`             |
-| `podSecurityContext.fsGroup`                        | Group ID for the volumes of the pod                                                          | `1000`           |
-| `containerSecurityContext.enabled`                  | Enabled Broker containers' Security Context                                                  | `true`           |
-| `containerSecurityContext.seLinuxOptions`           | Set SELinux options in container                                                             | `{}`             |
-| `containerSecurityContext.runAsUser`                | Set Broker  containers' Security Context runAsUser                                           | `1000`           |
-| `containerSecurityContext.runAsGroup`               | Set Broker containers' Security Context runAsGroup                                           | `1000`           |
-| `containerSecurityContext.allowPrivilegeEscalation` | Set Broker containers' Security Context allowPrivilegeEscalation                             | `false`          |
-| `containerSecurityContext.capabilities.drop`        | Set containers' repo server Security Context capabilities to be dropped                      | `["ALL"]`        |
-| `containerSecurityContext.readOnlyRootFilesystem`   | Set containers' repo server Security Context readOnlyRootFilesystem                          | `true`           |
-| `containerSecurityContext.runAsNonRoot`             | Set Broker containers' Security Context runAsNonRoot                                         | `true`           |
-| `containerSecurityContext.privileged`               | Set container's Security Context privileged                                                  | `false`          |
-| `containerSecurityContext.seccompProfile.type`      | Set container's Security Context seccomp profile                                             | `RuntimeDefault` |
-| `extraVolumes`                                      | Optionally specify extra list of additional volumes for Broker container                     | `[]`             |
-| `extraVolumeMounts`                                 | Optionally specify extra list of additional volumeMounts for Broker container                | `[]`             |
-| `extraEnvVars`                                      | Optionally specify extra list of additional environment variables for Broker container       | `[]`             |
+| Name                                                | Description                                                                                  | Value              |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------ |
+| `serviceAccount.create`                             | Enable creation of a serviceAccount                                                          | `true`             |
+| `serviceAccount.existingName`                       | Optionally provide an existing serviceAccount name                                           | `""`               |
+| `serviceAccount.annotations`                        | Additional custom annotations for the serviceAccount                                         | `{}`               |
+| `serviceAccount.name`                               | The name of the serviceAccount to create. If not set and create is true, a name is generated | `""`               |
+| `podSecurityContext.enabled`                        | Enable security context for Broker Pods                                                      | `true`             |
+| `podSecurityContext.fsGroupChangePolicy`            | Set filesystem group change policy                                                           | `Always`           |
+| `podSecurityContext.sysctls`                        | Set kernel settings using the sysctl interface                                               | `[]`               |
+| `podSecurityContext.supplementalGroups`             | Set filesystem extra groups                                                                  | `[]`               |
+| `podSecurityContext.fsGroup`                        | Group ID for the volumes of the pod                                                          | `1000`             |
+| `containerSecurityContext.enabled`                  | Enable Broker container security context                                                     | `true`             |
+| `containerSecurityContext.seLinuxOptions`           | Set SELinux options for Broker container                                                     | `{}`               |
+| `containerSecurityContext.runAsUser`                |                                                                                              | `1000`             |
+| `containerSecurityContext.runAsGroup`               |                                                                                              | `1000`             |
+| `containerSecurityContext.allowPrivilegeEscalation` | Allow the Broker container to escalate privileges                                            | `false`            |
+| `containerSecurityContext.capabilities.drop`        | ] Linux capabilities to drop                                                                 | `""`               |
+| `containerSecurityContext.readOnlyRootFilesystem`   | Must be set to false; Broker will write configuration to filesystem upon startup             | `false`            |
+| `containerSecurityContext.runAsNonRoot`             | Run Broker as non-root                                                                       | `true`             |
+| `containerSecurityContext.privileged`               | Run Broker as a privileged container                                                         | `false`            |
+| `containerSecurityContext.seccompProfile.type`      | Set the `seccomProfile` for Broker                                                           | `"RunTimeDefault"` |
+| `extraVolumes`                                      | Optionally specify extra list of additional volumes for Broker container                     | `[]`               |
+| `extraVolumeMounts`                                 | Optionally specify extra list of additional volumeMounts for Broker container                | `[]`               |
+| `extraEnvVars`                                      | Optionally specify extra list of additional environment variables for Broker container       | `[]`               |
 

@@ -7,50 +7,27 @@ templates:
   - statefulset.yaml
 
 tests:
-  - it: should set pod security context when enabled
-    set:
-      podSecurityContext.enabled: true
-      podSecurityContext.fsGroup: 1001
-      podSecurityContext.fsGroupChangePolicy: "Always"
-      podSecurityContext.supplementalGroups: [2000]
-      podSecurityContext.sysctls:
-        - name: "net.core.somaxconn"
-          value: "1024"
+  - it: should set pod security context by default
     asserts:
       - equal:
           path: spec.template.spec.securityContext.fsGroup
-          value: 1001
-      - equal:
-          path: spec.template.spec.securityContext.fsGroupChangePolicy
-          value: "Always"
-      - equal:
-          path: spec.template.spec.securityContext.supplementalGroups[0]
-          value: 2000
-      - equal:
-          path: spec.template.spec.securityContext.sysctls[0].name
-          value: "net.core.somaxconn"
-      - equal:
-          path: spec.template.spec.securityContext.sysctls[0].value
-          value: "1024"
+          value: 1000
 
-  - it: should set container security context when enabled
+  - it: disables pod security context
     set:
-      containerSecurityContext.enabled: true
-      containerSecurityContext.runAsUser: 1001
-      containerSecurityContext.runAsGroup: 1001
-      containerSecurityContext.runAsNonRoot: true
-      containerSecurityContext.allowPrivilegeEscalation: false
-      containerSecurityContext.capabilities.drop: ["ALL"]
-      containerSecurityContext.seccompProfile.type: "RuntimeDefault"
-      containerSecurityContext.privileged: false
-      containerSecurityContext.readOnlyRootFilesystem: true
+      podSecurityContext.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.securityContext
+
+  - it: should set container security context by default
     asserts:
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsUser
-          value: 1001
+          value: 1000
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsGroup
-          value: 1001
+          value: 1000
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsNonRoot
           value: true
@@ -68,7 +45,60 @@ tests:
           value: false
       - equal:
           path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
-          value: true
+          value: false
+
+  - it: disables container security context
+    set:
+      containerSecurityContext.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext
+
+  - it: sets extra pod security context options
+    set:
+      podSecurityContext.fsGroup: 1001
+      podSecurityContext.fsGroupChangePolicy: "OnRootMismatch"
+      podSecurityContext.supplementalGroups: [2000]
+      podSecurityContext.sysctls:
+        - name: "net.core.somaxconn"
+          value: "1024"
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001
+      - equal:
+          path: spec.template.spec.securityContext.fsGroupChangePolicy
+          value: "OnRootMismatch"
+      - contains:
+          path: spec.template.spec.securityContext.supplementalGroups
+          content:
+            2000
+      - contains:
+          path: spec.template.spec.securityContext.sysctls
+          content:
+            name: "net.core.somaxconn"
+            value: "1024"
+
+  - it: sets extra container security context options
+    set:
+      containerSecurityContext.seLinuxOptions:
+        level: "s0:c123,c456"
+      containerSecurityContext.capabilities.add:
+        - "NET_ADMIN"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.seLinuxOptions.level
+          value: "s0:c123,c456"
+      - contains:
+          path: spec.template.spec.containers[0].securityContext.capabilities.add
+          content:
+            "NET_ADMIN"
+
+  - it: fails if readOnlyRootFilesystem is `true`
+    set:
+      containerSecurityContext.readOnlyRootFilesystem: true
+    asserts:
+      - failedTemplate: {}
 
   - it: can add tolerations
     set:
