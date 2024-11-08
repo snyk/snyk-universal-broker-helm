@@ -9,7 +9,8 @@ metadata:
   {{- end }}
 spec:
   {{ include "snyk-broker.validateImagePullPolicy" . }}
-  replicas: {{ include "snyk-broker.replicas" .}}
+  replicas: {{ include "snyk-broker.replicas" . }}
+  serviceName: {{ include "common.names.fullname" . }}
   updateStrategy:
     type: "RollingUpdate"
     rollingUpdate:
