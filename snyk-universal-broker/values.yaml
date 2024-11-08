@@ -3,10 +3,10 @@
 ## brokerClientUrl:http://kubernetes-ingress.domain.com:8000
 brokerClientUrl: ""
 
-## See https://docs.snyk.io/working-with-snyk/regional-hosting-and-data-residency#broker-urls for regional endpoints
-## Default endpoints are for the Snyk US tenant.
-## @param tenant Optionally specify a Snyk Region - defaults to "US".
-tenant: "default"  # Options: "EU", "AU", "default", or any custom domain
+## @param region [string] Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io
+## Default endpoints are for the Snyk-US-01 region.
+## See https://docs.snyk.io/working-with-snyk/regional-hosting-and-data-residency#regional-urls for options.
+region: ""
 
 ## @param preflightChecks.enabled broker client preflight checks
 preflightChecks:

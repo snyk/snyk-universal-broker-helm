@@ -10,26 +10,24 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Return the correct broker server URL based on the tenant value.
+Return the correct broker server URL based on the region value.
 */}}
 {{- define "snyk-broker.brokerServerUrl" }}
-  {{- $tenant := .Values.tenant | default "default" -}}
-  {{- if eq $tenant "default" -}}
+  {{- if not .Values.region -}}
     https://broker.snyk.io
   {{- else -}}
-    {{- printf "https://broker.%s.snyk.io" $tenant -}}
+    {{- printf "https://broker.%s.snyk.io" .Values.region -}}
   {{- end -}}
 {{- end }}
 
 {{/*
-Return the correct broker dispatcher URL based on the tenant value.
+Return the correct broker dispatcher URL based on the region value.
 */}}
 {{- define "snyk-broker.brokerDispatcherUrl" }}
-  {{- $tenant := .Values.tenant | default "default" -}}
-  {{- if eq $tenant "default" -}}
+  {{- if not .Values.region -}}
     https://api.snyk.io
   {{- else -}}
-    {{- printf "https://api.%s.snyk.io" $tenant -}}
+    {{- printf "https://api.%s.snyk.io" .Values.region -}}
   {{- end -}}
 {{- end }}
 

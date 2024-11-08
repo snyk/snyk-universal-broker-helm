@@ -101,6 +101,8 @@ spec:
           env:
             - name: BROKER_SERVER_URL
               value: {{ include "snyk-broker.brokerServerUrl" . }}
+            - name: BROKER_DISPATCHER_BASE_URL
+              value: {{ include "snyk-broker.brokerDispatcherUrl" . }}
             - name: PORT
               value: {{ .Values.containerPort | squote }}
             {{- include "snyk-broker.accepts" . | indent 12 }}
@@ -161,8 +163,6 @@ spec:
             - name: {{ .name }}
               value: {{ .value | squote }}
         {{- end }}
-            - name: BROKER_DISPATCHER_BASE_URL
-              value: {{ include "snyk-broker.brokerDispatcherUrl" . }}
       # Mount Accept.json and Certs
       volumes:
       {{- if or .Values.caCert .Values.caCertSecret.name }}
