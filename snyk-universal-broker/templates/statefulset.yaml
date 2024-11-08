@@ -94,6 +94,10 @@ spec:
             - secretRef:
                 name: {{ include "snyk-broker.credentialReferencesSecretName" . }}
           {{- end }}
+          {{- if .Values.commitSigning.enabled }}
+            - secretRef:
+                name: {{ include "snyk-broker.commitSigningSecretName" . }}
+          {{- end }}
           volumeMounts:
               {{- if or .Values.caCert .Values.caCertSecret.name }}
               - name: {{ .Release.Name }}-cacert-volume

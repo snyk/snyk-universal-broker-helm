@@ -294,6 +294,43 @@
         }
       }
     },
+    "commitSigning": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "oneOf": [
+            {
+              "maxLength": 0
+            },
+            {
+              "format": "email"
+            }
+          ]
+        },
+        "gpgPrivateKey": {
+          "type": "string",
+          "regex": "^$|^\\s*-----BEGIN PGP PRIVATE KEY BLOCK-----(?:.|\\s)*-----END PGP PRIVATE KEY BLOCK-----\\s*$"
+        },
+        "passphrase": {
+          "type": "string"
+        }
+      }
+    },
+    "commitSigningSecret": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "global": {
       "type": "object",
       "additionalProperties": true

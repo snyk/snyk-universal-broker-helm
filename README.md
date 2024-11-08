@@ -179,6 +179,58 @@ image:
     - name: containers-company-secret
 ```
 
+### Commit Signing
+
+Snyk Broker commit signing is in [Early Access](https://docs.snyk.io/getting-started/snyk-release-process#open-beta). If you would like to use this feature, contact your Snyk representative or team.
+
+This feature requires a GitHub Account that has a GPG key configured for commit signing.
+
+#### Via Helm
+
+Provide the GPG key (exported as an ASCII armored version), the passphrase, and associated email/user:
+
+```yaml
+commitSigning:
+  name: "Account Name"
+  email: "email@company.tld"
+  passphrase: "passphrase"
+  gpgPrivateKey: -----BEGIN PGP PRIVATE KEY BLOCK-----\n....\n-----END PGP PRIVATE KEY BLOCK-----
+```
+
+The Universal Broker Helm Chart creates this secret for you.
+
+#### Via External Secret
+
+First create or otherwise ensure the secret exists:
+
+```yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: gpg-signing-key
+data:
+  GPG_PRIVATE_KEY: "-----BEGIN PRIVATE KEY BLOCK-----..."
+  GPG_PASSPRHASE: "passphrase"
+  GIT_COMMITTER_EMAIL: "user@comapny.io"
+  GIT_COMMITTER_NAME: "User Name"
+```
+
+The keys **must** match the example above.
+
+Then set values within `.Values.commitSigningSecret` to reference this external Secret:
+```yaml
+commitSigning:
+  enabled: true
+commitSigningSecret:
+  name: gpg-signing-key
+```
+
+Commit signing is enabled if the following entry appears in Universal Broker logs at startup:
+
+```
+loading commit signing rules (enabled=true, rulesCount=5)
+```
+
 ## Parameters
 
 ### Snyk Broker parameters
@@ -190,22 +242,28 @@ Credential References should contain one or more key/value pairs where each key 
 helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 ```
 
-| Name                              | Description                                                                                                                                                                      | Value  |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| `brokerClientUrl`                 | is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup. | `""`   |
-| `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                             | `""`   |
-| `preflightChecks.enabled`         | broker client preflight checks                                                                                                                                                   | `true` |
-| `deploymentId`                    | Obtained by installing the Broker App                                                                                                                                            | `""`   |
-| `clientId`                        | Obtained by installing the Broker App                                                                                                                                            | `""`   |
-| `clientSecret`                    | Obtained by installing the Broker App                                                                                                                                            | `""`   |
-| `platformAuthSecret.name`         | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`                                                                    | `""`   |
-| `credentialReferences`            | Credential References to pass to Broker                                                                                                                                          | `{}`   |
-| `credentialReferencesSecret.name` | Optionally provide a pre-existing secret with SCM credential reference data                                                                                                      | `""`   |
-| `acceptCode`                      | Set to false to block Broker rules relating to Snyk Code analysis                                                                                                                | `true` |
-| `acceptAppRisk`                   | Set to false to block Broker rules relating to AppRisk                                                                                                                           | `true` |
-| `acceptIaC`                       | Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. Set to "" to block Broker rules relating to Snyk IaC analysis        | `""`   |
-| `acceptCustomPrTemplates`         | Set to false to block Broker rules relating to Snyk Custom PR Templates                                                                                                          | `true` |
-| `acceptLargeManifests`            | Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise                                                                             | `true` |
+| Name                              | Description                                                                                                                                                                      | Value   |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `brokerClientUrl`                 | is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup. | `""`    |
+| `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                             | `""`    |
+| `preflightChecks.enabled`         | broker client preflight checks                                                                                                                                                   | `true`  |
+| `deploymentId`                    | Obtained by installing the Broker App                                                                                                                                            | `""`    |
+| `clientId`                        | Obtained by installing the Broker App                                                                                                                                            | `""`    |
+| `clientSecret`                    | Obtained by installing the Broker App                                                                                                                                            | `""`    |
+| `platformAuthSecret.name`         | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`                                                                    | `""`    |
+| `credentialReferences`            | Credential References to pass to Broker                                                                                                                                          | `{}`    |
+| `credentialReferencesSecret.name` | Optionally provide a pre-existing secret with SCM credential reference data                                                                                                      | `""`    |
+| `acceptCode`                      | Set to false to block Broker rules relating to Snyk Code analysis                                                                                                                | `true`  |
+| `acceptAppRisk`                   | Set to false to block Broker rules relating to AppRisk                                                                                                                           | `true`  |
+| `acceptIaC`                       | Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. Set to "" to block Broker rules relating to Snyk IaC analysis        | `""`    |
+| `acceptCustomPrTemplates`         | Set to false to block Broker rules relating to Snyk Custom PR Templates                                                                                                          | `true`  |
+| `acceptLargeManifests`            | Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise                                                                             | `true`  |
+| `commitSigning.enabled`           | Set to true to sign any commits made to GitHub or GitHub Enterprise. Requires `name`, `email`, `passphrase`, `privateKey` _or_ `commitSigningSecret`                             | `false` |
+| `commitSigning.name`              | The name to associate with any signed commits                                                                                                                                    | `""`    |
+| `commitSigning.email`             | The email to associate with any signed commits                                                                                                                                   | `""`    |
+| `commitSigning.gpgPrivateKey`     | The GPG private key to sign commits with (ASCII armored version)                                                                                                                 | `""`    |
+| `commitSigning.passphrase`        | The passpharse for the GPG key                                                                                                                                                   | `""`    |
+| `commitSigningSecret`             | An external secret containing `GIT_COMMITTER_NAME`, `GIT_COMMITTER_EMAIL`, `GPG_PASSPHRASE` and `GPG_PRIVATE_KEY`                                                                | `""`    |
 
 ### Networking Parameters
 
