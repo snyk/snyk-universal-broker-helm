@@ -1,3 +1,53 @@
+
+[![Snyk logo](https://snyk.io/style/asset/logo/snyk-print.svg)](https://snyk.io)
+
+# Helm Chart for Universal Broker
+
+This is a Helm Chart to deploy the [Snyk Universal Broker](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker).
+
+## Advanced Configuration
+
+### Certificate Trust
+
+Certificate Authority material may be provided directly to Universal Broker in the Helm Chart, or referenced to an external secret.
+
+#### Via Helm
+
+If providing directly to Helm, set `.Values.caCert` to the full trust chain necessary (this may be multiple certificates) for your Certificate Authority in PEM format as a string.
+
+```yaml
+caCert: |-
+  -----BEGIN CERTIFICATE-----
+  ...
+  -----END CERTIFICATE-----
+```
+
+The Universal Broker Helm Chart creates this secret for you.
+
+#### Via External Secret
+
+First create or otherwise ensure the secret exists:
+
+```yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: ca-certificate
+data:
+  ca.pem: -----BEGIN CERTIFICATE-----.....
+```
+
+Then set values within `.Values.caCertSecret` that match your external Secret:
+```yaml
+caCertSecret:
+  name: ca-certificate
+  caCertKey: ca.pem
+```
+
+#### Disable All Trust
+
+Set `.Values.disableAllCertificateTrust` to `true`. Broker will no longer validate any certificates, **including those issued by public Certificate Authorities**.
+
 ## Parameters
 
 ### Snyk Broker parameters
@@ -41,8 +91,11 @@
 | `httpsCert`                                         | provides HTTPS cert                                                                                                                                                              | `""`                     |
 | `httpsKey`                                          | provides HTTPS cert key                                                                                                                                                          | `""`                     |
 | `caCert`                                            | Set caCert to read certificate content from the values.yaml file as a multiline string:                                                                                          | `""`                     |
-| `disableCaCertTrust`                                | Set to `true` to disable trust validation when providing your own CA certificate.                                                                                                | `true`                   |
-| `tlsRejectUnauthorized`                             | Set to "0" to disable trust validation when using self signed certificates.                                                                                                      | `""`                     |
+| `caCertMount.path`                                  | the path to mount a certificate bundle to                                                                                                                                        | `"/home/node/cacert"`    |
+| `caCertMount.name`                                  | the filename to write a certificate bundle to                                                                                                                                    | `"cacert"`               |
+| `caCertSecret.name`                                 | set to read a CA cert from an external secret                                                                                                                                    | `""`                     |
+| `caCertSecret.caCertKey`                            | set to read the ca cert from a different key                                                                                                                                     | `ca.pem`                 |
+| `disableAllCertificateTrust`                        | Set to `true` to disable trust of **all** certificates, including any provided CAs                                                                                               | `false`                  |
 | `httpProxy`                                         | Do not change unless advised by your Snyk Representative. You probably need to use HTTPS proxy setting and leave this blank. - HTTP Proxy URL                                    | `""`                     |
 | `httpsProxy`                                        | HTTPS Proxy URL - This will apply to both Snyk Broker                                                                                                                            | `""`                     |
 | `noProxy`                                           | provide URl here which doesn't need to go through a proxy(do not include protocol)                                                                                               | `""`                     |

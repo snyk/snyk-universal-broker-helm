@@ -37,7 +37,7 @@ tests:
   # Test trusting the proxy's certificate
   - it: should trust the proxy's certificate
     set:
-      caCert: true
+      caCert: "-----BEGIN CERTIFICATE-----\n.....\n-----END CERTIFICATE-----"
     asserts:
       - equal:
           path: spec.template.spec.containers[0].env[?(@.name=="NODE_EXTRA_CA_CERTS")].value
@@ -46,8 +46,8 @@ tests:
   # Test ignoring the proxy's certificate (disable TLS verification)
   - it: should disable certificate validation for proxy
     set:
-      disableCaCertTrust: true
-      caCert: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
+      disableAllCertificateTrust: true
+      caCert: "-----BEGIN CERTIFICATE-----\n.....\n-----END CERTIFICATE-----"
     asserts:
       - equal:
           path: spec.template.spec.containers[0].env[?(@.name=="NODE_TLS_REJECT_UNAUTHORIZED")].value

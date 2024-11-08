@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
+suite: Certificate Trust
+templates:
+  - statefulset.yaml
+  - ca-secret.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: sets CA certificate to trust
+    set:
+      caCert: "-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: 
+            name: CA_CERT
+            value: /home/node/cacert/cacert
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content: 
+            name: RELEASE-NAME-cacert-volume
+            secret: 
+              secretName: RELEASE-NAME-cacert-secret
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content: 
+            name: RELEASE-NAME-cacert-volume
+            mountPath: /home/node/cacert/cacert 
+            readOnly: true
+        template: statefulset.yaml
+      - equal:
+          path: data.caCert
+          value: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCkZBS0UKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ==
+        template: ca-secret.yaml
+
+  - it: accepts multiple CA certificates to trust
+    set:
+      caCert: "-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----\n\n-----BEGIN CERTIFICATE-----\nANOTHER\n-----END CERTIFICATE-----"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: 
+            name: CA_CERT
+            value: /home/node/cacert/cacert
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content: 
+            name: RELEASE-NAME-cacert-volume
+            secret: 
+              secretName: RELEASE-NAME-cacert-secret
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content: 
+            name: RELEASE-NAME-cacert-volume
+            mountPath: /home/node/cacert/cacert 
+            readOnly: true
+        template: statefulset.yaml
+      - equal:
+          path: data.caCert
+          value: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCkZBS0UKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQoKLS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCkFOT1RIRVIKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ==
+        template: ca-secret.yaml
+
+  - it: rejects unexpected formats
+    set:
+      caCert: "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRVIATE KEY-----"
+    asserts:
+      - failedTemplate: {}
+
+  - it: sets CA certificate to trust from an external secret and remaps the provided key to `cacert`
+    set:
+      caCertSecret:
+        name: "corp-ca"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: 
+            name: CA_CERT
+            value: /home/node/cacert/cacert
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content: 
+            name: RELEASE-NAME-cacert-volume
+            secret: 
+              secretName: corp-ca
+              items:
+              - key: ca.pem
+                path: cacert
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content: 
+            name: RELEASE-NAME-cacert-volume
+            mountPath: /home/node/cacert/cacert
+            readOnly: true
+        template: statefulset.yaml

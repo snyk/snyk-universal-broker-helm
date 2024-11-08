@@ -2,7 +2,7 @@ suite: Service Tests
 templates:
   - templates/service.yaml
 values:
-  - fixtures/universal_broker_default_values.yaml
+  - fixtures/default_values.yaml
 
 tests:
   - it: change the serviceType

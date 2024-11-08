@@ -4,7 +4,7 @@ templates:
   - ingress.yaml
   - statefulset.yaml
 values:
-  - fixtures/universal_broker_default_values.yaml
+  - fixtures/default_values.yaml
 set:
   ingress.enabled: true
 
