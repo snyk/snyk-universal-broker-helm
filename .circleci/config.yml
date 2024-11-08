@@ -14,6 +14,22 @@ jobs:
     docker:
       - image: alpine/k8s:1.28.14
     resource_class: small
+    parameters:
+      deployment-id:
+        type: env_var_name
+        default: DEPLOYMENT_ID
+      client-id:
+        type: env_var_name
+        default: CLIENT_ID
+      client-secret:
+        type: env_var_name
+        default: CLIENT_SECRET
+      my-ghe-token:
+        type: env_var_name
+        default: MY_GHE_TOKEN
+      snyk-token:
+        type: env_var_name
+        default: "SNYK_API_TOKEN"
     steps:
       - checkout
       - run:
@@ -23,6 +39,22 @@ jobs:
       - run:
           name: Run helm unittest
           command: helm unittest .
+          working_directory: snyk-universal-broker
+      - run:
+          name: Template to file
+          command: |
+            helm template \
+              -f values.yaml \
+              --set deploymentId=${<<parameters.deployment-id>>} \
+              --set clientId=${<<parameters.client-id>>} \
+              --set clientSecret=${<<parameters.client-secret>>} \
+              --set credentialReferences.MY_GHE_TOKEN=${<<parameters.my-ghe-token>>} \
+              . > template.yaml
+          working_directory: snyk-universal-broker
+      - run:
+          name: Kubeconform
+          command: |
+            kubeconform -ignore-missing-schemas template.yaml
           working_directory: snyk-universal-broker
 
   validate_documentation:
@@ -75,37 +107,21 @@ jobs:
             echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v<<pipeline.parameters.kubectl-version>>/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
             sudo apt-get update
             sudo apt-get install -y kubectl
-            wget https://github.com/yannh/kubeconform/releases/download/v0.5.0/kubeconform-linux-amd64.tar.gz
-            sudo tar -xvf kubeconform-linux-amd64.tar.gz --directory=/usr/local/bin
       - run:
-          name: Template to file
-          command: |
-            helm dep up
-            helm template \
-              -f values.yaml \
-              --set deploymentId=${<<parameters.deployment-id>>} \
-              --set clientId=${<<parameters.client-id>>} \
-              --set clientSecret=${<<parameters.client-secret>>} \
-              --set credentialReferences.MY_GHE_TOKEN=${<<parameters.my-ghe-token>>} \
-              . > template.yaml
-          working_directory: snyk-universal-broker
-      - run:
-          name: Kubeconform
-          command: |
-            kubeconform -ignore-missing-schemas template.yaml
-          working_directory: snyk-universal-broker
-      - run:
-          name: Create k3d cluster
+          name: Deploy Universal Broker
           command: |
             k3d cluster create
-            helm dep up
-            helm template \
+            helm install \
+              --debug \
+              --wait \
               -f values.yaml \
+              --set region=dev \
               --set deploymentId=${<<parameters.deployment-id>>} \
               --set clientId=${<<parameters.client-id>>} \
               --set clientSecret=${<<parameters.client-secret>>} \
               --set credentialReferences.MY_GHE_TOKEN=${<<parameters.my-ghe-token>>} \
-              . > template.yaml
+              snyk-universal-broker \
+              .
           working_directory: snyk-universal-broker
       - run:
           name: Test Import
@@ -150,7 +166,9 @@ workflows:
             - snyk-bot-slack
           channel: hybrid-alerts
           trusted-branch: main
-      - validate_charts
+      - validate_charts:
+          context:
+            - snyk-universal-broker-helm-chart
       - validate_documentation
       # - deploy_and_test:
       #     context:
