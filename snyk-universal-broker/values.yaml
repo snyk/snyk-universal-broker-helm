@@ -261,14 +261,22 @@ caCertSecret:
 ## @param disableAllCertificateTrust [default: false] Set to `true` to disable trust of **all** certificates, including any provided CAs
 disableAllCertificateTrust: false
 
-##### Use behind proxy #####
-
-## @param httpProxy Do not change unless advised by your Snyk Representative. You probably need to use HTTPS proxy setting and leave this blank. - HTTP Proxy URL
-## @param httpsProxy HTTPS Proxy URL - This will apply to both Snyk Broker
-## @param noProxy provide URl here which doesn't need to go through a proxy(do not include protocol)
+## @section Proxy Configuration
+## @param httpProxy Set to proxy any http-only traffic. You probably need to use HTTPS proxy setting and leave this blank
+## @param httpsProxy HTTPS Proxy URL. Optionally provide user/password auth in the url (http(s)://[username]:[password]@my.proxy:[port]). No other authentication schemes are supported
+## @param noProxy A comma-separated list of hostnames that must not transit a proxy. Do not include protocol or port numbers
+## @param proxySecret.name The name of a pre-existing secret containing up to three entries. If set, supersedes `.Values.httpProxy`, `.Values.httpsProxy` and `.Values.noProxy`
+## @param proxySecret.httpProxyKey Specify the key within the pre-existing secret containing the value for HTTP_PROXY. If left empty, no value is set
+## @param proxySecret.httpsProxyKey Specify the key within the pre-existing secret containing the value for HTTPS_PROXY. If left empty, no value is set
+## @param proxySecret.noProxyKey Specify the key within the pre-existing secret containing the value for NO_PROXY. If left empty, no value is set
 httpProxy: ""
 httpsProxy: ""
 noProxy: ""
+proxySecret:
+  name: ""
+  httpProxyKey: ""
+  httpsProxyKey: ""
+  noProxyKey: ""
 
 ## @section Image Registry
 ## @param image.registry [default: docker.io] Broker image registry
