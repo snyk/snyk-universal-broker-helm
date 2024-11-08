@@ -123,6 +123,10 @@ jobs:
     docker:
       - image: cimg/node:22.9
     resource_class: small
+    parameters:
+      dockerhub-password:
+        type: env_var_name
+        default: DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run:
@@ -132,7 +136,7 @@ jobs:
       - run:
           name: Docker Login for OCI Push
           command: |
-            echo "$DOCKER_PASS" | helm registry login -u snykdocker --password-stdin registry-1.docker.io
+            echo <<parameters.dockerhub-password>> | helm registry login -u snykdocker --password-stdin registry-1.docker.io
       - run:
           name: Run semantic-release
           command: npx semantic-release
