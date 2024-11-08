@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
+suite: Insecure Downstream
+templates:
+  - statefulset.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: disables insecure downstream by default
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content: 
+            name: INSECURE_DOWNSTREAM
+            value: "true"
+
+  - it: enables insecure downstream
+    set:
+      insecureDownstream: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: 
+            name: INSECURE_DOWNSTREAM
+            value: "true"
