@@ -209,12 +209,12 @@ readinessProbe:
     timeoutSeconds: 1
     failureThreshold: 3
 
-## Logging #####
+## @section Logging
 ## @param logLevel defines Log Level for broker client pod. Can be set to "debug" for more information
-## @param logEnableBody adds additional logging by setting to true
+## @param logVerbose [default: false] Enable to log request headers. Takes effect if log level is "info"
 
 logLevel: "info"
-logEnableBody: "false"
+logVerbose: false
 
 ## @section Serving over HTTPS and Certificate Trust
 ## @param localWebServer.https [default: false] enables Broker client to run a HTTPS server instead of the default HTTP server

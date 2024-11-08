@@ -111,6 +111,23 @@ It may be [extended with additional hosts, paths, annotations as required](#brok
 Universal Broker will run with [High Availability Mode](https://docs.snyk.io/enterprise-configuration/snyk-broker/high-availability-mode) enabled by default. Optionally increase the number of replicas from 2 up to 4 to suit fault tolerance.
 
 High Availability Mode may be disabled by setting `highAvailabilityMode.enabled: false`.
+## Troubleshooting
+
+### Logging
+
+The Universal Broker log level is set to `"INFO"` by default. All responses, regardless of HTTP status code, are logged by the Universal Broker.
+
+Additional logging is available:
+
+- For verbose request logging (including headers), set `logVerbose: true`. This provides additional information without enabling DEBUG logs.
+- For debug-level logging, set `logLevel: "debug"`.
+
+_Note:_ Some logs may capture sensitive information like credentials. If using increased logging to provide Universal Broker logs to Snyk, check for credentials and redact before transmission.
+
+#### Common Issues identified in Logs
+
+- `401` or `403` error codes indicate credentials are not valid for the integration.
+- References to `SSL` or `leaf certificate` indicate a self-signed certificate is not trusted by Broker. Refer to steps in [Certificate Trust](#certificate-trust).
 
 ## Advanced Configuration
 
@@ -383,8 +400,13 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `readinessProbe.config.periodSeconds`       | Period seconds for readinessProbe                                                           | `10`                       |
 | `readinessProbe.config.timeoutSeconds`      | Timeout seconds for readinessProbe                                                          | `1`                        |
 | `readinessProbe.config.failureThreshold`    | Failure threshold for readinessProbe                                                        | `3`                        |
-| `logLevel`                                  | defines Log Level for broker client pod. Can be set to "debug" for more information         | `info`                     |
-| `logEnableBody`                             | adds additional logging by setting to true                                                  | `false`                    |
+
+### Logging
+
+| Name         | Description                                                                         | Value   |
+| ------------ | ----------------------------------------------------------------------------------- | ------- |
+| `logLevel`   | defines Log Level for broker client pod. Can be set to "debug" for more information | `info`  |
+| `logVerbose` | Enable to log request headers. Takes effect if log level is "info"                  | `false` |
 
 ### Serving over HTTPS and Certificate Trust
 

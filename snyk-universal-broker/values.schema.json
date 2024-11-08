@@ -10,6 +10,34 @@
     "urlWithSchema": {
       "type": "string",
       "pattern": "^$|^http(s?):\/\/.*"
+    },
+    "probe": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        },
+        "config": {
+          "type": "object",
+          "properties": {
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            }
+          }
+        }
+      }
     }
   },
   "type": "object",
@@ -394,6 +422,23 @@
         }
       },
       "additionalProperties": false
+    },
+    "logLevel": {
+      "type": "string",
+      "enum": [
+        "info",
+        "debug"
+      ]
+    },
+    "logVerbose": {
+      "type": "boolean",
+      "default": "false"
+    },
+    "livenessProbe": {
+      "$ref": "#/$defs/probe"
+    },
+    "readinessProbe": {
+      "$ref": "#/$defs/probe"
     },
     "global": {
       "type": "object",
