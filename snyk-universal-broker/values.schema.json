@@ -203,7 +203,101 @@
         }
       }
     },
+    "podSecurityContext": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "fsGroupChangePolicy": {
+          "type": "string",
+          "enum": [
+            "Always",
+            "OnRootMismatch"
+          ]
+        },
+        "sysctls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "supplementalGroups": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "fsGroup": {
+          "type": "integer",
+          "default": 1000
+        }
+      }
+    },
+    "containerSecurityContext": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "seLinuxOptions": {
+          "type": "object"
+        },
+        "runAsUser": {
+          "type": "integer",
+          "default": 1000
+        },
+        "runAsGroup": {
+          "type": "integer",
+          "default": 1000
+        },
+        "runAsNonRoot": {
+          "type": "boolean",
+          "default": true
+        },
+        "privileged": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowPrivilegeEscalation": {
+          "type": "boolean",
+          "default": false
+        },
+        "capabilities": {
+          "type": "object",
+          "properties": {
+            "drop": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "seccompProfile": {
+          "type": "object"
+        },
+        "readOnlyRootFilesystem": {
+          "type": "boolean",
+          "enum": [
+            false
+          ],
+          "default": false
+        }
+      }
+    },
+    "global": {
+      "type": "object",
+      "additionalProperties": true
+    },
     "additionalProperties": false
-  },
-  "additionalProperties": true
+  }
 }

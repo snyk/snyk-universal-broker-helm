@@ -294,17 +294,17 @@ podSecurityContext:
 
 ## Container security context
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
-## @param containerSecurityContext.enabled Enabled Broker containers' Security Context
-## @param containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in container
-## @param containerSecurityContext.runAsUser Set Broker  containers' Security Context runAsUser
-## @param containerSecurityContext.runAsGroup Set Broker containers' Security Context runAsGroup
-## @param containerSecurityContext.allowPrivilegeEscalation Set Broker containers' Security Context allowPrivilegeEscalation
-## @param containerSecurityContext.capabilities.drop Set containers' repo server Security Context capabilities to be dropped
-## @param containerSecurityContext.readOnlyRootFilesystem Set containers' repo server Security Context readOnlyRootFilesystem
-## @param containerSecurityContext.runAsNonRoot Set Broker containers' Security Context runAsNonRoot
-## @param containerSecurityContext.privileged Set container's Security Context privileged
-## @param containerSecurityContext.seccompProfile.type Set container's Security Context seccomp profile
-##
+## @param containerSecurityContext.enabled [default:true] Enable Broker container security context
+## @param containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options for Broker container
+## @param containerSecurityContext.runAsUser [default: 1000]
+## @param containerSecurityContext.runAsGroup [default: 1000]
+## @param containerSecurityContext.allowPrivilegeEscalation [default:false] Allow the Broker container to escalate privileges
+## @param containerSecurityContext.capabilities.drop [default: ["ALL"]] Linux capabilities to drop
+## @param containerSecurityContext.readOnlyRootFilesystem [default:false] Must be set to false; Broker will write configuration to filesystem upon startup
+## @param containerSecurityContext.runAsNonRoot [default:true] Run Broker as non-root
+## @param containerSecurityContext.privileged [default: false] Run Broker as a privileged container
+## @param containerSecurityContext.seccompProfile.type [default:"RunTimeDefault"] Set the `seccomProfile` for Broker
+
 containerSecurityContext:
   enabled: true
   seLinuxOptions: {}
@@ -317,7 +317,7 @@ containerSecurityContext:
     drop: ["ALL"]
   seccompProfile:
     type: "RuntimeDefault"
-  readOnlyRootFilesystem: true
+  readOnlyRootFilesystem: false
 
 ## @param extraVolumes Optionally specify extra list of additional volumes for Broker container
 extraVolumes: []
@@ -327,3 +327,9 @@ extraVolumeMounts: []
 
 ## @param extraEnvVars Optionally specify extra list of additional environment variables for Broker container
 extraEnvVars: []
+
+## @skip global.compatibility.openshift.adaptSecurityContext [default: auto] Set to false to disable security context adaptations for OpenShift. If left in "auto", will remove default user/group values that will violate an OpenShift Security Context
+global:
+  compatibility:
+    openshift:
+      adaptSecurityContext: auto
