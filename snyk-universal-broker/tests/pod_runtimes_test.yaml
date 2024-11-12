@@ -1,8 +1,10 @@
-suite: Pod runtime tests
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Pod Runtime
 values:
   - ../values.yaml
+  - fixtures/default_values.yaml
 templates:
-  - templates/statefulset.yaml
+  - statefulset.yaml
 
 tests:
   - it: should set pod security context when enabled
@@ -67,7 +69,7 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
           value: true
-  
+
   - it: can add tolerations
     set:
       tolerations:

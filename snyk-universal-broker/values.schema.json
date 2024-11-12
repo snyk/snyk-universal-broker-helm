@@ -190,7 +190,20 @@
           }
         }
       }
-    }
+    },
+    "highAvailabilityMode": {
+      "properties":{
+        "enabled": {
+          "type": "boolean"
+        },
+        "replicaCount": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 4
+        }
+      }
+    },
+    "additionalProperties": false
   },
   "additionalProperties": true
 }

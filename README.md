@@ -106,6 +106,12 @@ Universal Broker provides an Ingress template, compatible with any Kubernetes In
 
 It may be [extended with additional hosts, paths, annotations as required](#broker-ingress).
 
+### High Availability Mode
+
+Universal Broker will run with [High Availability Mode](https://docs.snyk.io/enterprise-configuration/snyk-broker/high-availability-mode) enabled by default. Optionally increase the number of replicas from 2 up to 4 to suit fault tolerance.
+
+High Availability Mode may be disabled by setting `highAvailabilityMode.enabled: false`.
+
 ## Advanced Configuration
 
 ### Certificate Trust
@@ -234,10 +240,12 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `ingress.secrets`                           | A list of TLS secrets to create, each with `name`, `key` and `certificate`                                                                    | `[]`                       |
 | `ingress.tls.enabled`                       | Set to true to enable TLS on the in-built ingress                                                                                             | `false`                    |
 | `ingress.tls.existingSecret`                | Specify an existing TLS secret to use with this ingress                                                                                       | `""`                       |
-| `resources.requests.cpu`                    | Set CPU requests                                                                                                                              | `2`                        |
+| `resources.requests.cpu`                    | Set CPU requests                                                                                                                              | `1`                        |
 | `resources.requests.memory`                 | Set memory requests                                                                                                                           | `512Mi`                    |
-| `resources.limits.cpu`                      | Set CPU limits                                                                                                                                | `3`                        |
+| `resources.limits.cpu`                      | Set CPU limits                                                                                                                                | `2`                        |
 | `resources.limits.memory`                   | Set memory limits                                                                                                                             | `1024Mi`                   |
+| `highAvailabilityMode.enabled`              | snyk [default: true] Set to false to disable High Availability Mode for Broker                                                                | `true`                     |
+| `highAvailabilityMode.replicaCount`         | Number of Broker pods when running in HA mode (min 2, max 4)                                                                                  | `2`                        |
 | `commonLabels`                              | Labels to add to all deployed objects (sub-charts are not considered)                                                                         | `{}`                       |
 | `commonAnnotations`                         | Annotations to add to all deployed objects (sub-charts are not considered)                                                                    | `{}`                       |
 | `podLabels`                                 | Pod labels                                                                                                                                    | `{}`                       |
@@ -253,8 +261,6 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `readinessProbe.config.periodSeconds`       | Period seconds for readinessProbe                                                                                                             | `10`                       |
 | `readinessProbe.config.timeoutSeconds`      | Timeout seconds for readinessProbe                                                                                                            | `1`                        |
 | `readinessProbe.config.failureThreshold`    | Failure threshold for readinessProbe                                                                                                          | `3`                        |
-| `highAvailabilityMode.enabled`              | snyk broker HA mode                                                                                                                           | `false`                    |
-| `replicaCount`                              | number for snyk broker when running in HA mode (min 2, max 4)                                                                                 | `1`                        |
 | `logLevel`                                  | defines Log Level for broker client pod. Can be set to "debug" for more information                                                           | `info`                     |
 | `logEnableBody`                             | adds additional logging by setting to true                                                                                                    | `false`                    |
 | `enableBrokerLocalWebserverOverHttps`       | enables Broker client to run a HTTPS server instead of the default HTTP server                                                                | `false`                    |

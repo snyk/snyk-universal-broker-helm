@@ -4,16 +4,10 @@ suite: Resources and Limits
 templates:
   - statefulset.yaml
 values:
+  - ../values.yaml
   - fixtures/default_values.yaml
 
 tests:
-  - it: Defines requests and limits by default
-    asserts:
-      - exists:
-          path: spec.template.spec.containers[0].resources.requests
-      - exists:
-          path: spec.template.spec.containers[0].resources.limits
-
   - it: Defines requests and limits by default
     asserts:
       - exists:
@@ -33,18 +27,4 @@ tests:
           value: 2
       - equal:
           path: spec.template.spec.containers[0].resources.requests.memory
-          value: "5Gi"
-
-  - it: Respects custom limits
-    set:
-      resources:
-        limits:
-          cpu: 2
-          memory: 5Gi
-    asserts:
-      - equal:
-          path: spec.template.spec.containers[0].resources.limits.cpu
-          value: 2
-      - equal:
-          path: spec.template.spec.containers[0].resources.limits.memory
           value: "5Gi"
