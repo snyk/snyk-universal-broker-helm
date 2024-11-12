@@ -34,6 +34,23 @@
       "type": "boolean",
       "default": false
     },
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "existingName": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "acceptAppRisk": {
       "type": "boolean"
     },

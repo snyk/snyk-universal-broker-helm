@@ -186,17 +186,15 @@ image:
   pullSecrets: []
   # - name: registrySecretName
 
-##### Service Account Values. Nothing to change here #####
-
-serviceaccount:
-  ## @param serviceaccount.create Enable creation of serviceaccount for Broker pod
+## @section Service Account
+serviceAccount:
+  ## @param serviceAccount.create [default: true] Enable creation of a serviceAccount
   create: true
-  ## @param serviceaccount.existingName Optionally provide an existing service account name
+  ## @param serviceAccount.existingName [string] Optionally provide an existing serviceAccount name
   existingName: ""
-  ## @param serviceaccount.annotations Additional custom annotations for the serviceaccount
+  ## @param serviceAccount.annotations [object] Additional custom annotations for the serviceAccount
   annotations: {}
-  ## @param serviceaccount.name The name of the serviceaccount to use.
-  ## If not set and create is true, a name is generated using the common.names.fullname template
+  ## @param serviceAccount.name [string] The name of the serviceAccount to create. If not set and create is true, a name is generated
   name: ""
 
 ## Pod security context
