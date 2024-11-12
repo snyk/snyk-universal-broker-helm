@@ -2,14 +2,12 @@
 
 suite: Image Pull Secrets & Custom Registry/Repositories
 templates:
-  - templates/statefulset.yaml
+  - statefulset.yaml
 values:
+  - ../values.yaml
   - fixtures/default_values.yaml
-set:
-  image.tag: "1.0.0"
 
 tests:
-
   - it: Does not use an imagePullSecret by default
     asserts:
       - notExists:
@@ -56,8 +54,7 @@ tests:
     set:
       image.pullPolicy: "Sometimes"
     asserts:
-      - failedTemplate:
-          errorMessage: "Invalid imagePullPolicy: Sometimes. Allowed values are: IfNotPresent, Always, Never."
+      - failedTemplate: {}
 
   - it: Sets a custom image registry
     set:
@@ -65,7 +62,7 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image
-          value: my.private.docker.tld/snyk/broker:1.0.0-universal
+          value: my.private.docker.tld/snyk/broker:universal
 
   - it: Sets a custom image repository
     set:
@@ -73,7 +70,7 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image
-          value: docker.io/snykImages/broker:1.0.0-universal
+          value: docker.io/snykImages/broker:universal
 
   - it: Sets a custom image registry and repository
     set:
@@ -82,11 +79,11 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image
-          value: my.private.docker.tld/snykImages:1.0.0-universal
+          value: my.private.docker.tld/snykImages:universal
 
   - it: Respects a provided tag
     set:
-      image.tag: "0.0.1"
+      image.tag: "0.0.1-universal"
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image

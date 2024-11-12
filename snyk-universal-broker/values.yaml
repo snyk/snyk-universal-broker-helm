@@ -171,18 +171,18 @@ httpProxy: ""
 httpsProxy: ""
 noProxy: ""
 
-##### Broker Image Parameters #####
-## @param image.registry [default: REGISTRY_NAME] Broker image registry
-## @param image.repository [default: REPOSITORY_NAME/broker] Broker image repository
-## @skip image.tag Broker image tag (immutable tags are recommended)
-## @param image.pullPolicy Broker image pull policy
-## @param image.pullSecrets Broker image pull secrets
+## @section Image Registry
+## @param image.registry [default: docker.io] Broker image registry
+## @param image.repository [default: snyk/broker] Broker image repository
+## @param image.tag [default: universal] Broker image tag
+## @param image.pullPolicy [default: IfNotPresent] Broker image pull policy
+## @param image.pullSecrets [array] Optionally provide any existing image pull secrets
 image:
   registry: docker.io
   repository: snyk/broker
   pullPolicy: IfNotPresent
-  # Overrides the image tag. If left empty the latest version is used
-  tag: ""
+  # Overrides the image tag
+  tag: "universal"
   pullSecrets: []
   # - name: registrySecretName
 
