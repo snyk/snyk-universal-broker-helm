@@ -78,7 +78,7 @@ jobs:
   deploy_and_test:
     machine:
       image: ubuntu-2204:current
-    resource_class: medium
+    resource_class: large
     parameters:
       deployment-id:
         type: env_var_name
