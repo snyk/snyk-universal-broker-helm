@@ -43,7 +43,7 @@ tests:
           path: apiVersion
           value: "networking.k8s.io/v1beta1"
     template: ingress.yaml
-  
+
   - it: Modifies the api version accordingly (pre 1.21)
     capabilities:
       majorVersion: 1
@@ -154,7 +154,7 @@ tests:
   - it: Defaults to first secret if no annotation or existing secret is specified
     set:
       ingress.tls.enabled: true
-      ingress.secrets: 
+      ingress.secrets:
         - name: "my-new-secret"
           certificate: "-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----"
           key: "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----"
@@ -165,7 +165,7 @@ tests:
         template: ingress.yaml
       - isKind:
           of: Secret
-        template: ingress-secret.yaml     
+        template: ingress-secret.yaml
       - hasDocuments:
          count: 1
         template: ingress-secret.yaml
@@ -177,7 +177,7 @@ tests:
   - it: Creates many secrets across many hosts
     set:
       ingress.tls.enabled: true
-      ingress.secrets: 
+      ingress.secrets:
         - name: "my-new-secret"
           certificate: "-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----"
           key: "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----"

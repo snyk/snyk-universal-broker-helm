@@ -216,14 +216,17 @@ readinessProbe:
 logLevel: "info"
 logEnableBody: "false"
 
-## Enable HTTPS #####
-## @param enableBrokerLocalWebserverOverHttps enables Broker client to run a HTTPS server instead of the default HTTP server
-## @param httpsCert provides HTTPS cert
-## @param httpsKey provides HTTPS cert key
-
-enableBrokerLocalWebserverOverHttps: false
-httpsCert: ""
-httpsKey: ""
+## @section Serving over HTTPS and Certificate Trust
+## @param localWebServer.https [default: false] enables Broker client to run a HTTPS server instead of the default HTTP server
+## @param localWebServer.certificate [string] Provide HTTPS cert
+## @param localWebServer.key [string] Provides HTTPS cert key
+localWebServer:
+  https: false
+  certificate: ""
+  key: ""
+## @param localWebServerSecret.name the name of the secret to create or (if cert and key are empty) the existing TLS secret to use
+localWebServerSecret:
+  name: ""
 
 ##### HTTPS Inspection #####
 

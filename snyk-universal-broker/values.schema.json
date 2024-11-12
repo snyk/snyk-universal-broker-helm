@@ -331,6 +331,31 @@
         }
       }
     },
+    "localWebServer": {
+      "type": "object",
+      "properties": {
+        "https": {
+          "type": "boolean",
+          "default": false
+        },
+        "certificate": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "localWebServerSecret": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "global": {
       "type": "object",
       "additionalProperties": true

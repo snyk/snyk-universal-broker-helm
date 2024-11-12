@@ -64,6 +64,13 @@ include "snyk-broker.genericSecretName" (dict "Context" $ "secretName" "secret-n
 {{- end -}}
 
 {{/*
+Create a name for the TLS secret, using a provided override if present
+*/}}
+{{- define "snyk-broker.tlsSecretName" -}}
+{{- .Values.localWebServerSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "tls-secret" ) ) -}}
+{{- end }}
+
+{{/*
 Create a name for the CA Cert secret, using a provided override if present
 */}}
 {{- define "snyk-broker.caCertSecretName" -}}
