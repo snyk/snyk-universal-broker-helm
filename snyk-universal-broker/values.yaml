@@ -60,6 +60,8 @@ acceptIaC: "tf,yaml,yml,json,tpl"
 acceptCustomPrTemplates: true
 acceptLargeManifests: true
 
+## @section Networking Parameters
+
 ## @param containerPort Port to open for HTTP in Broker
 containerPort: 8000
 
@@ -67,6 +69,63 @@ containerPort: 8000
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##
 hostAliases: []
+
+## @param service.type [default: ClusterIP] Set the included Service type
+## @param service.port [default: 8000] Set the port the Service will expose
+## @param service.nodePort [nullable] Optionally specify a nodePort (only takes effect if service.type=NodePort)
+## @param service.clusterIP [nullable] Optionally specify an IP address (only takes effect if service.type=ClusterIP)
+## @param service.loadBalancerIP [nullable] Optionally specify an IP address (only takes effect if service.type=LoadBalancer)
+## @param service.loadBalancerSourceRanges [array] Specify an array of CIDR blocks to permit traffic from (only takes effect if service.type=LoadBalancer)
+## @param service.externalTrafficPolicy [string, default: Cluster] Set the externalTrafficPolicy of the service (only takes effect if service.type=LoadBalancer)
+## @param service.extraPorts [array] Add extra ports to the Service
+## @param service.tls [array] Enable TLS at the Service level
+service:
+  type: ClusterIP
+  port: 8000
+  nodePort: null
+  clusterIP: null
+  loadBalancerIP: null
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: Cluster
+  extraPorts: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+## @section Broker Ingress
+
+## @param ingress.enabled [default: false] Set to true to create an Ingress
+## @param ingress.className [string] Optionally define an Ingress Class
+## @param ingress.annotations [object] Additional annotations for the Ingress resource
+## @param ingress.path [string, default: "/"] sets the path associated with the ingress
+## @param ingress.pathType [string, default: "ImplementationSpecific"] sets the path type associated with the ingress
+## @param ingress.hostname [string, default: "broker.local"] define the host associated with this ingress - add Broker_client_url here
+## @param ingress.extraHosts [array] An array with additional hostname(s) to be covered with the ingress record
+## @param ingress.extraPaths [array] Any additional arbitrary paths that may need to be added to the ingress under the main host
+## @param ingress.extraTls [array] Any additional tls entries to add to the ingress
+## @param ingress.extraRules [array] Any additional rules to add to the ingress
+## @param ingress.secrets [array] A list of TLS secrets to create, each with `name`, `key` and `certificate`
+## @param ingress.tls.enabled [default: false] Set to true to enable TLS on the in-built ingress
+## @param ingress.tls.existingSecret [string] Specify an existing TLS secret to use with this ingress
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    ## E.g.
+    ## kubernetes.io/ingress.class: nginx
+    ## kubernetes.io/tls-acme: "true"
+  path: /
+  pathType: ImplementationSpecific
+  hostname: "broker.local"
+  extraHosts: []
+  extraPaths: []
+  extraTls: []
+  extraRules: []
+  secrets: []
+  tls:
+    enabled: false
+    existingSecret: ""
 
 ## @param resources.requests.cpu Set CPU requests
 ## @param resources.requests.memory Set memory requests
@@ -260,59 +319,6 @@ containerSecurityContext:
   seccompProfile:
     type: "RuntimeDefault"
   readOnlyRootFilesystem: true
-
-##### Service Types #####
-# If you prefer to adjust how communication to the cluster occurs, these values can be adjusted
-## @param service.type Broker svc type
-## @param service.ports.http Broker svc port
-## @param service.tls is running Broker with https
-## @param service.extraPorts Extra ports to expose
-service:
-  type: ClusterIP
-  ports:
-    http: 8000
-  extraPorts: []
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-
-
-##### Optionally Deploy a Broker Ingress Resource #####
-## @param ingress.enabled Set to true to create an Ingress
-## @param ingress.ingressClassName Optionally define the Ingress Class for this ingress - otherwise leave blank
-## @param ingress.hostname define the host associated with this ingress - add Broker_client_url here
-## @param ingress.extraHosts An array with additional hostname(s) to be covered with the ingress record
-## @param ingress.tls.enabled Set to true to enable TLS on the in-built ingress
-## @param ingress.tls.secret.key [string] The TLS key for TLS encryption, in PEM format
-## @param ingress.tls.secret.cert [string] The TLS certificate for TLS encryption, in PEM format
-## @param ingress.annotations Additional annotations for the Ingress resource.
-## @param ingress.path Path for the default host
-## @param ingress.pathType Ingress path type
-## @param ingress.extraPaths Any additional arbitrary paths that may need to be added to the ingress under the main host.
-## @param ingress.existingSecret It is you own the certificate as secret.
-ingress:
-  enabled: true
-  ingressClassName: ""
-  annotations: {}
-    ## E.g.
-    ## kubernetes.io/ingress.class: nginx
-    ## kubernetes.io/tls-acme: "true"
-  path: /
-  pathType: Prefix
-  hostname: broker.local # Must match the Broker client url
-  extraHosts: []
-  ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
-  extraPaths: []
-  existingSecret: ""
-  tls:
-    enabled: false
-    secret:
-      key: |
-        # Should start with -----BEGIN PRIVATE KEY-----
-
-      cert: |
-        # Should start with -----BEGIN CERTIFICATE-----
 
 ## @param extraVolumes Optionally specify extra list of additional volumes for Broker container
 extraVolumes: []

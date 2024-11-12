@@ -96,6 +96,16 @@ credentialReferencesSecret:
   name: my-universal-broker-secrets
 ```
 
+### Service
+
+By default, Universal Broker provides a `ClusterIP` Service. This can be adjusted to a `LoadBalancer`, `NodePort` as best fits the deployment environment.
+
+### Ingress
+
+Universal Broker provides an Ingress template, compatible with any Kubernetes Ingress controller.
+
+It may be [extended with additional hosts, paths, annotations as required](#broker-ingress).
+
 ## Advanced Configuration
 
 ### Certificate Trust
@@ -174,59 +184,91 @@ Credential References should contain one or more key/value pairs where each key 
 helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 ```
 
-| Name                                        | Description                                                                                                                                                                      | Value                 |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| `brokerClientUrl`                           | is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup. | `""`                  |
-| `region`                                    | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                             | `""`                  |
-| `preflightChecks.enabled`                   | broker client preflight checks                                                                                                                                                   | `true`                |
-| `deploymentId`                              | Obtained by installing the Broker App                                                                                                                                            | `""`                  |
-| `clientId`                                  | Obtained by installing the Broker App                                                                                                                                            | `""`                  |
-| `clientSecret`                              | Obtained by installing the Broker App                                                                                                                                            | `""`                  |
-| `platformAuthSecret.name`                   | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`                                                                    | `""`                  |
-| `credentialReferences`                      | Credential References to pass to Broker                                                                                                                                          | `{}`                  |
-| `credentialReferencesSecret.name`           | Optionally provide a pre-existing secret with SCM credential reference data                                                                                                      | `""`                  |
-| `acceptCode`                                | Set to false to block Broker rules relating to Snyk Code analysis                                                                                                                | `true`                |
-| `acceptAppRisk`                             | Set to false to block Broker rules relating to AppRisk                                                                                                                           | `true`                |
-| `acceptIaC`                                 | Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. Set to "" to block Broker rules relating to Snyk IaC analysis        | `""`                  |
-| `acceptCustomPrTemplates`                   | Set to false to block Broker rules relating to Snyk Custom PR Templates                                                                                                          | `true`                |
-| `acceptLargeManifests`                      | Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise                                                                             | `true`                |
-| `containerPort`                             | Port to open for HTTP in Broker                                                                                                                                                  | `8000`                |
-| `hostAliases`                               | Broker pod host aliases                                                                                                                                                          | `[]`                  |
-| `resources.requests.cpu`                    | Set CPU requests                                                                                                                                                                 | `2`                   |
-| `resources.requests.memory`                 | Set memory requests                                                                                                                                                              | `512Mi`               |
-| `resources.limits.cpu`                      | Set CPU limits                                                                                                                                                                   | `3`                   |
-| `resources.limits.memory`                   | Set memory limits                                                                                                                                                                | `1024Mi`              |
-| `commonLabels`                              | Labels to add to all deployed objects (sub-charts are not considered)                                                                                                            | `{}`                  |
-| `commonAnnotations`                         | Annotations to add to all deployed objects (sub-charts are not considered)                                                                                                       | `{}`                  |
-| `podLabels`                                 | Pod labels                                                                                                                                                                       | `{}`                  |
-| `livenessProbe.enabled`                     | Enable livenessProbe                                                                                                                                                             | `true`                |
-| `livenessProbe.path`                        | Path for the livenessProbe                                                                                                                                                       | `/healthcheck`        |
-| `livenessProbe.config.initialDelaySeconds`  | Initial delay seconds for livenessProbe                                                                                                                                          | `3`                   |
-| `livenessProbe.config.periodSeconds`        | Period seconds for livenessProbe                                                                                                                                                 | `10`                  |
-| `livenessProbe.config.timeoutSeconds`       | Timeout seconds for livenessProbe                                                                                                                                                | `1`                   |
-| `livenessProbe.config.failureThreshold`     | Failure threshold for livenessProbe                                                                                                                                              | `3`                   |
-| `readinessProbe.enabled`                    | Enable readinessProbe                                                                                                                                                            | `true`                |
-| `readinessProbe.path`                       | Path for the readinessProbe                                                                                                                                                      | `/healthcheck`        |
-| `readinessProbe.config.initialDelaySeconds` | Initial delay seconds for readinessProbe                                                                                                                                         | `3`                   |
-| `readinessProbe.config.periodSeconds`       | Period seconds for readinessProbe                                                                                                                                                | `10`                  |
-| `readinessProbe.config.timeoutSeconds`      | Timeout seconds for readinessProbe                                                                                                                                               | `1`                   |
-| `readinessProbe.config.failureThreshold`    | Failure threshold for readinessProbe                                                                                                                                             | `3`                   |
-| `highAvailabilityMode.enabled`              | snyk broker HA mode                                                                                                                                                              | `false`               |
-| `replicaCount`                              | number for snyk broker when running in HA mode (min 2, max 4)                                                                                                                    | `1`                   |
-| `logLevel`                                  | defines Log Level for broker client pod. Can be set to "debug" for more information                                                                                              | `info`                |
-| `logEnableBody`                             | adds additional logging by setting to true                                                                                                                                       | `false`               |
-| `enableBrokerLocalWebserverOverHttps`       | enables Broker client to run a HTTPS server instead of the default HTTP server                                                                                                   | `false`               |
-| `httpsCert`                                 | provides HTTPS cert                                                                                                                                                              | `""`                  |
-| `httpsKey`                                  | provides HTTPS cert key                                                                                                                                                          | `""`                  |
-| `caCert`                                    | Set caCert to read certificate content from the values.yaml file as a multiline string:                                                                                          | `""`                  |
-| `caCertMount.path`                          | the path to mount a certificate bundle to                                                                                                                                        | `"/home/node/cacert"` |
-| `caCertMount.name`                          | the filename to write a certificate bundle to                                                                                                                                    | `"cacert"`            |
-| `caCertSecret.name`                         | set to read a CA cert from an external secret                                                                                                                                    | `""`                  |
-| `caCertSecret.caCertKey`                    | set to read the ca cert from a different key                                                                                                                                     | `ca.pem`              |
-| `disableAllCertificateTrust`                | Set to `true` to disable trust of **all** certificates, including any provided CAs                                                                                               | `false`               |
-| `httpProxy`                                 | Do not change unless advised by your Snyk Representative. You probably need to use HTTPS proxy setting and leave this blank. - HTTP Proxy URL                                    | `""`                  |
-| `httpsProxy`                                | HTTPS Proxy URL - This will apply to both Snyk Broker                                                                                                                            | `""`                  |
-| `noProxy`                                   | provide URl here which doesn't need to go through a proxy(do not include protocol)                                                                                               | `""`                  |
+| Name                              | Description                                                                                                                                                                      | Value  |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `brokerClientUrl`                 | is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup. | `""`   |
+| `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                             | `""`   |
+| `preflightChecks.enabled`         | broker client preflight checks                                                                                                                                                   | `true` |
+| `deploymentId`                    | Obtained by installing the Broker App                                                                                                                                            | `""`   |
+| `clientId`                        | Obtained by installing the Broker App                                                                                                                                            | `""`   |
+| `clientSecret`                    | Obtained by installing the Broker App                                                                                                                                            | `""`   |
+| `platformAuthSecret.name`         | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`                                                                    | `""`   |
+| `credentialReferences`            | Credential References to pass to Broker                                                                                                                                          | `{}`   |
+| `credentialReferencesSecret.name` | Optionally provide a pre-existing secret with SCM credential reference data                                                                                                      | `""`   |
+| `acceptCode`                      | Set to false to block Broker rules relating to Snyk Code analysis                                                                                                                | `true` |
+| `acceptAppRisk`                   | Set to false to block Broker rules relating to AppRisk                                                                                                                           | `true` |
+| `acceptIaC`                       | Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. Set to "" to block Broker rules relating to Snyk IaC analysis        | `""`   |
+| `acceptCustomPrTemplates`         | Set to false to block Broker rules relating to Snyk Custom PR Templates                                                                                                          | `true` |
+| `acceptLargeManifests`            | Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise                                                                             | `true` |
+
+### Networking Parameters
+
+| Name                               | Description                                                                                             | Value       |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------- |
+| `containerPort`                    | Port to open for HTTP in Broker                                                                         | `8000`      |
+| `hostAliases`                      | Broker pod host aliases                                                                                 | `[]`        |
+| `service.type`                     | Set the included Service type                                                                           | `ClusterIP` |
+| `service.port`                     | Set the port the Service will expose                                                                    | `8000`      |
+| `service.nodePort`                 | Optionally specify a nodePort (only takes effect if service.type=NodePort)                              | `nil`       |
+| `service.clusterIP`                | Optionally specify an IP address (only takes effect if service.type=ClusterIP)                          | `nil`       |
+| `service.loadBalancerIP`           | Optionally specify an IP address (only takes effect if service.type=LoadBalancer)                       | `nil`       |
+| `service.loadBalancerSourceRanges` | Specify an array of CIDR blocks to permit traffic from (only takes effect if service.type=LoadBalancer) | `[]`        |
+| `service.externalTrafficPolicy`    | Set the externalTrafficPolicy of the service (only takes effect if service.type=LoadBalancer)           | `Cluster`   |
+| `service.extraPorts`               | Add extra ports to the Service                                                                          | `[]`        |
+| `service.tls`                      | Enable TLS at the Service level                                                                         | `[]`        |
+
+### Broker Ingress
+
+| Name                                        | Description                                                                                                                                   | Value                      |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| `ingress.enabled`                           | Set to true to create an Ingress                                                                                                              | `false`                    |
+| `ingress.className`                         | Optionally define an Ingress Class                                                                                                            | `""`                       |
+| `ingress.annotations`                       | Additional annotations for the Ingress resource                                                                                               | `{}`                       |
+| `ingress.path`                              | sets the path associated with the ingress                                                                                                     | `"/"`                      |
+| `ingress.pathType`                          | sets the path type associated with the ingress                                                                                                | `"ImplementationSpecific"` |
+| `ingress.hostname`                          | define the host associated with this ingress - add Broker_client_url here                                                                     | `"broker.local"`           |
+| `ingress.extraHosts`                        | An array with additional hostname(s) to be covered with the ingress record                                                                    | `[]`                       |
+| `ingress.extraPaths`                        | Any additional arbitrary paths that may need to be added to the ingress under the main host                                                   | `[]`                       |
+| `ingress.extraTls`                          | Any additional tls entries to add to the ingress                                                                                              | `[]`                       |
+| `ingress.extraRules`                        | Any additional rules to add to the ingress                                                                                                    | `[]`                       |
+| `ingress.secrets`                           | A list of TLS secrets to create, each with `name`, `key` and `certificate`                                                                    | `[]`                       |
+| `ingress.tls.enabled`                       | Set to true to enable TLS on the in-built ingress                                                                                             | `false`                    |
+| `ingress.tls.existingSecret`                | Specify an existing TLS secret to use with this ingress                                                                                       | `""`                       |
+| `resources.requests.cpu`                    | Set CPU requests                                                                                                                              | `2`                        |
+| `resources.requests.memory`                 | Set memory requests                                                                                                                           | `512Mi`                    |
+| `resources.limits.cpu`                      | Set CPU limits                                                                                                                                | `3`                        |
+| `resources.limits.memory`                   | Set memory limits                                                                                                                             | `1024Mi`                   |
+| `commonLabels`                              | Labels to add to all deployed objects (sub-charts are not considered)                                                                         | `{}`                       |
+| `commonAnnotations`                         | Annotations to add to all deployed objects (sub-charts are not considered)                                                                    | `{}`                       |
+| `podLabels`                                 | Pod labels                                                                                                                                    | `{}`                       |
+| `livenessProbe.enabled`                     | Enable livenessProbe                                                                                                                          | `true`                     |
+| `livenessProbe.path`                        | Path for the livenessProbe                                                                                                                    | `/healthcheck`             |
+| `livenessProbe.config.initialDelaySeconds`  | Initial delay seconds for livenessProbe                                                                                                       | `3`                        |
+| `livenessProbe.config.periodSeconds`        | Period seconds for livenessProbe                                                                                                              | `10`                       |
+| `livenessProbe.config.timeoutSeconds`       | Timeout seconds for livenessProbe                                                                                                             | `1`                        |
+| `livenessProbe.config.failureThreshold`     | Failure threshold for livenessProbe                                                                                                           | `3`                        |
+| `readinessProbe.enabled`                    | Enable readinessProbe                                                                                                                         | `true`                     |
+| `readinessProbe.path`                       | Path for the readinessProbe                                                                                                                   | `/healthcheck`             |
+| `readinessProbe.config.initialDelaySeconds` | Initial delay seconds for readinessProbe                                                                                                      | `3`                        |
+| `readinessProbe.config.periodSeconds`       | Period seconds for readinessProbe                                                                                                             | `10`                       |
+| `readinessProbe.config.timeoutSeconds`      | Timeout seconds for readinessProbe                                                                                                            | `1`                        |
+| `readinessProbe.config.failureThreshold`    | Failure threshold for readinessProbe                                                                                                          | `3`                        |
+| `highAvailabilityMode.enabled`              | snyk broker HA mode                                                                                                                           | `false`                    |
+| `replicaCount`                              | number for snyk broker when running in HA mode (min 2, max 4)                                                                                 | `1`                        |
+| `logLevel`                                  | defines Log Level for broker client pod. Can be set to "debug" for more information                                                           | `info`                     |
+| `logEnableBody`                             | adds additional logging by setting to true                                                                                                    | `false`                    |
+| `enableBrokerLocalWebserverOverHttps`       | enables Broker client to run a HTTPS server instead of the default HTTP server                                                                | `false`                    |
+| `httpsCert`                                 | provides HTTPS cert                                                                                                                           | `""`                       |
+| `httpsKey`                                  | provides HTTPS cert key                                                                                                                       | `""`                       |
+| `caCert`                                    | Set caCert to read certificate content from the values.yaml file as a multiline string:                                                       | `""`                       |
+| `caCertMount.path`                          | the path to mount a certificate bundle to                                                                                                     | `"/home/node/cacert"`      |
+| `caCertMount.name`                          | the filename to write a certificate bundle to                                                                                                 | `"cacert"`                 |
+| `caCertSecret.name`                         | set to read a CA cert from an external secret                                                                                                 | `""`                       |
+| `caCertSecret.caCertKey`                    | set to read the ca cert from a different key                                                                                                  | `ca.pem`                   |
+| `disableAllCertificateTrust`                | Set to `true` to disable trust of **all** certificates, including any provided CAs                                                            | `false`                    |
+| `httpProxy`                                 | Do not change unless advised by your Snyk Representative. You probably need to use HTTPS proxy setting and leave this blank. - HTTP Proxy URL | `""`                       |
+| `httpsProxy`                                | HTTPS Proxy URL - This will apply to both Snyk Broker                                                                                         | `""`                       |
+| `noProxy`                                   | provide URl here which doesn't need to go through a proxy(do not include protocol)                                                            | `""`                       |
 
 ### Image Registry
 
@@ -261,22 +303,7 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `containerSecurityContext.runAsNonRoot`             | Set Broker containers' Security Context runAsNonRoot                                         | `true`           |
 | `containerSecurityContext.privileged`               | Set container's Security Context privileged                                                  | `false`          |
 | `containerSecurityContext.seccompProfile.type`      | Set container's Security Context seccomp profile                                             | `RuntimeDefault` |
-| `service.type`                                      | Broker svc type                                                                              | `ClusterIP`      |
-| `service.ports.http`                                | Broker svc port                                                                              | `8000`           |
-| `service.tls`                                       | is running Broker with https                                                                 | `[]`             |
-| `service.extraPorts`                                | Extra ports to expose                                                                        | `[]`             |
-| `ingress.enabled`                                   | Set to true to create an Ingress                                                             | `true`           |
-| `ingress.ingressClassName`                          | Optionally define the Ingress Class for this ingress - otherwise leave blank                 | `""`             |
-| `ingress.hostname`                                  | define the host associated with this ingress - add Broker_client_url here                    | `broker.local`   |
-| `ingress.extraHosts`                                | An array with additional hostname(s) to be covered with the ingress record                   | `[]`             |
-| `ingress.tls.enabled`                               | Set to true to enable TLS on the in-built ingress                                            | `false`          |
-| `ingress.tls.secret.key`                            | The TLS key for TLS encryption, in PEM format                                                | `""`             |
-| `ingress.tls.secret.cert`                           | The TLS certificate for TLS encryption, in PEM format                                        | `""`             |
-| `ingress.annotations`                               | Additional annotations for the Ingress resource.                                             | `{}`             |
-| `ingress.path`                                      | Path for the default host                                                                    | `/`              |
-| `ingress.pathType`                                  | Ingress path type                                                                            | `Prefix`         |
-| `ingress.extraPaths`                                | Any additional arbitrary paths that may need to be added to the ingress under the main host. | `[]`             |
-| `ingress.existingSecret`                            | It is you own the certificate as secret.                                                     | `""`             |
 | `extraVolumes`                                      | Optionally specify extra list of additional volumes for Broker container                     | `[]`             |
 | `extraVolumeMounts`                                 | Optionally specify extra list of additional volumeMounts for Broker container                | `[]`             |
 | `extraEnvVars`                                      | Optionally specify extra list of additional environment variables for Broker container       | `[]`             |
+

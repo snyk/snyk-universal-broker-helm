@@ -5,35 +5,34 @@ metadata:
   name: {{ include "common.names.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-  annotations:
-    {{- if or .Values.ingress.annotations .Values.commonAnnotations }}
-    {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list .Values.ingress.annotations .Values.commonAnnotations ) "context" . ) }}
-    {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $) | nindent 4 }}
-    {{- end }}
+  {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list .Values.ingress.annotations .Values.commonAnnotations ) "context" . ) }}
+  {{- if $annotations }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
 spec:
-  {{- if and .Values.ingress.ingressClassName (eq "true" (include "common.ingress.supportsIngressClassname" .)) }}
-  ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
+  {{- if and .Values.ingress.className (include "common.ingress.supportsIngressClassname" . ) }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
   {{- end }}
   rules:
     {{- if .Values.ingress.hostname }}
     - host: {{ tpl .Values.ingress.hostname . }}
       http:
         paths:
-          {{- if $.Values.ingress.extraPaths }}
-          {{- include "common.tplvalues.render" (dict "value"  $.Values.ingress.extraPaths "context" $) | nindent 10 }}
+          {{- if .Values.ingress.extraPaths }}
+          {{- include "common.tplvalues.render" (dict "value"  .Values.ingress.extraPaths "context" . ) | nindent 10 }}
           {{- end }}
-          - path: {{ $.Values.ingress.path }}
+          - path: {{ .Values.ingress.path }}
             {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
-            pathType: {{ $.Values.ingress.pathType }}
+            pathType: {{ .Values.ingress.pathType }}
             {{- end }}
-            backend: 
+            backend:
               service:
-                name: {{ include "common.names.fullname" $ }}
+                name: {{ include "common.names.fullname" . }}
                 port:
                   number: {{ $.Values.service.port }}
     {{- end }}
     {{- range .Values.ingress.extraHosts }}
-    - host: {{ .name }}
+    - host: {{ .name | quote }}
       http:
         paths:
           - path: {{ default "/" .path }}
@@ -46,16 +45,19 @@ spec:
                 port:
                   number: {{ $.Values.service.port }}
     {{- end }}
+    {{- if .Values.ingress.extraRules }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.ingress.extraRules "context" $) | nindent 4 }}
+    {{- end }}
+  {{- $annotationsMap := include "common.tplvalues.render" (dict "value" $annotations "context" $) | fromYaml }}
   {{- if .Values.ingress.tls.enabled }}
   tls:
-    {{- if and .Values.ingress.tls.enabled }}
-    {{- if $.Values.ingress.existingSecret }}
-    - secretName: {{ .Values.ingress.existingSecret }}
-    {{- else }}
-    - secretName: {{ printf "%s-tls" (tpl .Values.ingress.hostname .) | trunc 63 | trimSuffix "-" }}
-    {{- end }}
-      hosts:
+    {{- if or .Values.ingress.secrets .Values.ingress.tls.existingSecret (include "common.ingress.certManagerRequest" ( dict "annotations" .Values.ingress.annotations ) ) }}
+    - hosts:
         - {{ .Values.ingress.hostname | quote }}
+      secretName: {{ coalesce .Values.ingress.tls.existingSecret (first .Values.ingress.secrets).name (printf "%s-tls" .Values.ingress.hostname | trunc 63 | trimSuffix "-" ) }}
+    {{- end }}
+    {{- if .Values.ingress.extraTls }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.ingress.extraTls "context" $) | nindent 4 }}
+    {{- end }}
   {{- end }}
-{{- end }}
 {{- end }}
