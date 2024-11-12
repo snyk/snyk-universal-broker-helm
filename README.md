@@ -278,6 +278,22 @@ THen set values within `localWebServerSecret` to reference this external Secret:
 localWebServerSecret:
   name: broker-tls
 ```
+### Extending the Helm Chart
+
+#### Arbitrary Kubernetes Objects
+
+Use the [Additional Objects](#additional-objects) values to add ConfigMaps, Secrets, Sidecars, initContainers, Volumes and VolumeMounts to the Universal Broker.
+
+#### Additional Environment Variables
+
+Use `extraEnvVars` to add arbitrary environment variables directly in Helm:
+
+```yaml
+extraEnvVars:
+  - MY_ENV_VAR: myvalue
+```
+
+_Note:_ Check for duplicate environment variables.
 
 ## Parameters
 
