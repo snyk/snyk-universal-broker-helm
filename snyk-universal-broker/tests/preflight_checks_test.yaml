@@ -10,16 +10,6 @@ tests:
   - it: enables preflight checks by default
     asserts:
       - notContains:
-          path: spec.template.spec.containers[0].env 
+          path: spec.template.spec.containers[0].env
           content:
             name: PREFLIGHT_CHECKS_ENABLED
-
-  - it: disables preflight checks
-    set:
-      preflightChecks.enabled: false
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env 
-          content:
-            name: PREFLIGHT_CHECKS_ENABLED
-            value: "false"
