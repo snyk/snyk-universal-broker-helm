@@ -166,6 +166,10 @@ spec:
               value: "0"
          {{- end }}
         {{- include "snyk-broker.proxyConfig" . | nindent 12 }}
+          {{- if .Values.insecureDownstream }}
+            - name: INSECURE_DOWNSTREAM
+              value: "true"
+          {{- end }}
         {{- if not .Values.preflightChecks.enabled }}
             - name: PREFLIGHT_CHECKS_ENABLED
               value: "false"

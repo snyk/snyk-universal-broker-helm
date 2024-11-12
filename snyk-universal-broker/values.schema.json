@@ -440,6 +440,9 @@
     "readinessProbe": {
       "$ref": "#/$defs/probe"
     },
+    "insecureDownstream":{
+      "type":"boolean"
+    },
     "global": {
       "type": "object",
       "additionalProperties": true

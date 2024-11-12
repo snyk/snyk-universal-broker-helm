@@ -64,7 +64,7 @@ acceptLargeManifests: true
 ## @param commitSigning.name [string] The name to associate with any signed commits
 ## @param commitSigning.email [string] The email to associate with any signed commits
 ## @param commitSigning.gpgPrivateKey [string] The GPG private key to sign commits with (ASCII armored version)
-## @param commitSigning.passphrase [string] The passpharse for the GPG key
+## @param commitSigning.passphrase [string] The passphrase for the GPG key
 ## @param commitSigningSecret [string] An external secret containing `GIT_COMMITTER_NAME`, `GIT_COMMITTER_EMAIL`, `GPG_PASSPHRASE` and `GPG_PRIVATE_KEY`
 commitSigning:
   enabled: false
@@ -77,6 +77,8 @@ commitSigningSecret:
   name: ""
 
 ## @section Networking Parameters
+## @param insecureDownstream [default: false] Set to true to communicate with _all_ downstream integrations via http. Not recommended, as traffic will no longer be encrypted
+insecureDownstream: false
 
 ## @param containerPort Port to open for HTTP in Broker
 containerPort: 8000

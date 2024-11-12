@@ -295,6 +295,17 @@ THen set values within `localWebServerSecret` to reference this external Secret:
 localWebServerSecret:
   name: broker-tls
 ```
+
+### Insecure Downstream
+
+Universal Broker will communicate with any downstream systems via HTTPS by default.
+
+In some situations `http` only traffic is required. This mode is not recommended as credentials/data will be transmitted to downstream systems unencrypted.
+
+**Snyk will not be held responsible for any credential leaks that may occur as a result of the use of insecure downstream mode.**
+
+Enable by setting `insecureDownstream: true`.
+
 ### Extending the Helm Chart
 
 #### Arbitrary Kubernetes Objects
@@ -343,24 +354,25 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `commitSigning.name`              | The name to associate with any signed commits                                                                                                                                    | `""`    |
 | `commitSigning.email`             | The email to associate with any signed commits                                                                                                                                   | `""`    |
 | `commitSigning.gpgPrivateKey`     | The GPG private key to sign commits with (ASCII armored version)                                                                                                                 | `""`    |
-| `commitSigning.passphrase`        | The passpharse for the GPG key                                                                                                                                                   | `""`    |
+| `commitSigning.passphrase`        | The passphrase for the GPG key                                                                                                                                                   | `""`    |
 | `commitSigningSecret`             | An external secret containing `GIT_COMMITTER_NAME`, `GIT_COMMITTER_EMAIL`, `GPG_PASSPHRASE` and `GPG_PRIVATE_KEY`                                                                | `""`    |
 
 ### Networking Parameters
 
-| Name                               | Description                                                                                             | Value       |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------- |
-| `containerPort`                    | Port to open for HTTP in Broker                                                                         | `8000`      |
-| `hostAliases`                      | Broker pod host aliases                                                                                 | `[]`        |
-| `service.type`                     | Set the included Service type                                                                           | `ClusterIP` |
-| `service.port`                     | Set the port the Service will expose                                                                    | `8000`      |
-| `service.nodePort`                 | Optionally specify a nodePort (only takes effect if service.type=NodePort)                              | `nil`       |
-| `service.clusterIP`                | Optionally specify an IP address (only takes effect if service.type=ClusterIP)                          | `nil`       |
-| `service.loadBalancerIP`           | Optionally specify an IP address (only takes effect if service.type=LoadBalancer)                       | `nil`       |
-| `service.loadBalancerSourceRanges` | Specify an array of CIDR blocks to permit traffic from (only takes effect if service.type=LoadBalancer) | `[]`        |
-| `service.externalTrafficPolicy`    | Set the externalTrafficPolicy of the service (only takes effect if service.type=LoadBalancer)           | `Cluster`   |
-| `service.extraPorts`               | Add extra ports to the Service                                                                          | `[]`        |
-| `service.tls`                      | Enable TLS at the Service level                                                                         | `[]`        |
+| Name                               | Description                                                                                                                     | Value       |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `insecureDownstream`               | Set to true to communicate with _all_ downstream integrations via http. Not recommended, as traffic will no longer be encrypted | `false`     |
+| `containerPort`                    | Port to open for HTTP in Broker                                                                                                 | `8000`      |
+| `hostAliases`                      | Broker pod host aliases                                                                                                         | `[]`        |
+| `service.type`                     | Set the included Service type                                                                                                   | `ClusterIP` |
+| `service.port`                     | Set the port the Service will expose                                                                                            | `8000`      |
+| `service.nodePort`                 | Optionally specify a nodePort (only takes effect if service.type=NodePort)                                                      | `nil`       |
+| `service.clusterIP`                | Optionally specify an IP address (only takes effect if service.type=ClusterIP)                                                  | `nil`       |
+| `service.loadBalancerIP`           | Optionally specify an IP address (only takes effect if service.type=LoadBalancer)                                               | `nil`       |
+| `service.loadBalancerSourceRanges` | Specify an array of CIDR blocks to permit traffic from (only takes effect if service.type=LoadBalancer)                         | `[]`        |
+| `service.externalTrafficPolicy`    | Set the externalTrafficPolicy of the service (only takes effect if service.type=LoadBalancer)                                   | `Cluster`   |
+| `service.extraPorts`               | Add extra ports to the Service                                                                                                  | `[]`        |
+| `service.tls`                      | Enable TLS at the Service level                                                                                                 | `[]`        |
 
 ### Broker Ingress
 
