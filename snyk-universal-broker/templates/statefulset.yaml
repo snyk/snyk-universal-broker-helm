@@ -139,8 +139,10 @@ spec:
          # Logging
             - name: LOG_LEVEL
               value: {{ .Values.logLevel }}
-            - name: LOG_ENABLE_BODY
-              value: {{ .Values.logEnableBody | squote }}
+            {{- if and .Values.logVerbose (eq .Values.logLevel "info") }}
+            - name: LOG_INFO_VERBOSE
+              value: "true"
+            {{- end }}
           {{- if or .Values.caCert .Values.caCertSecret.name }}
             - name: CA_CERT
               value: {{ printf "%s/%s" .Values.caCertMount.path .Values.caCertMount.name }}
