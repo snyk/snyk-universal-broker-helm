@@ -653,6 +653,12 @@
         "type":"string"
       }
     },
+    "priorityClassName":{
+      "type":"string"
+    },
+    "runtimeClassName":{
+      "type":"string"
+    },
     "global": {
       "type": "object",
       "additionalProperties": true

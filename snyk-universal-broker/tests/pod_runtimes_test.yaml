@@ -141,3 +141,19 @@ tests:
     - equal:
         path: spec.template.spec.hostAliases[0].ip
         value: "127.0.0.1"
+
+  - it: can set a priorityClass
+    set:
+      priorityClassName: highest-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: highest-priority
+
+  - it: can set a runtimeCLass
+    set:
+      runtimeClassName: myRuntimeClass
+    asserts:
+      - equal:
+          path: spec.template.spec.runtimeClassName
+          value: myRuntimeClass
