@@ -31,6 +31,71 @@ If required, specify your [Snyk Region](https://docs.snyk.io/working-with-snyk/r
 region: "eu"
 ```
 
+### Credential References
+
+Any Credential References (refer to the example provided on [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/set-up-a-github-connection-using-the-api#id-3-create-your-credentials-references)) must be provided to the Universal Broker. This can be achieved directly through Helm, or via an external Kubernetes Secret.
+
+For the following example, assume three credential references are created of the following `deployment_credential` types:
+- `github`
+- `gitlab`
+- `azure-repos`
+
+An example data object is shown for the `github` type.
+```json
+{
+  ...
+  "data":{
+    "id": "uuidv4",
+    "type": "deployment_credential",
+    "attributes": {
+      "comment": "",
+      "deployment_id": "uuidv4",
+      "environment_variable_name": "MY_GITHUB_TOKEN",
+      "type": "github"
+    }
+  }
+}
+```
+The number of credential references will depend on the `type` of the `deployment_credential`; `github` holds just one (the GitHub PAT), whilst `azure-repos` holds three (the Azure Repos Org, Username and Password)
+
+#### Via Helm
+
+Provide the environment variable used when creating the credential reference, and the actual value of your credential.
+
+For example, providing the Universal Broker with a GitHub, GitLab and Azure Repos credential:
+
+```yaml
+credentialReferences:
+  MY_GITHUB_TOKEN: <your-github-token>
+  MY_GITLAB_TOKEN: <your-gitlab-token>
+  AZURE_REPOS_PRODSEC_ORG: prodsec
+  AZURE_REPOS_PRODSEC_USERNAME: <your-azure-repos-username>
+  AZURE_REPOS_PRODSEC_PASSWORD: <your-azure-repos-password>
+```
+
+The Universal Broker Helm Chart creates this secret for you.
+
+#### Via External Secret
+
+First create or otherwise ensure the secret exists:
+
+```yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: my-universal-broker-secrets
+data:
+  MY_GITHUB_TOKEN: <your-github-token>
+  ...
+```
+
+Then set values within `.Values.credentialReferencesSecret` that match your external Secret:
+
+```yaml
+credentialReferencesSecret:
+  name: my-universal-broker-secrets
+```
+
 ## Advanced Configuration
 
 ### Certificate Trust
@@ -102,16 +167,24 @@ image:
 
 ### Snyk Broker parameters
 
+Refer to documentation via [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/initial-configuration-of-the-universal-broker) to obtain `deploymentId`, `clientId`, `clientSecret` values.
+
+Credential References should contain one or more key/value pairs where each key matches the `environment_variable_name` of a `deployment_credential`, and the value provides the secret. For example:
+```bash
+helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
+```
+
 | Name                                        | Description                                                                                                                                                                      | Value                 |
 | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
 | `brokerClientUrl`                           | is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup. | `""`                  |
 | `region`                                    | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                             | `""`                  |
 | `preflightChecks.enabled`                   | broker client preflight checks                                                                                                                                                   | `true`                |
-| `deploymentId`                              | is obtained by installing the Broker App at the Organization level                                                                                                               | `""`                  |
-| `clientId`                                  | is obtained by installing the Broker App at the Organization level                                                                                                               | `""`                  |
-| `clientSecret`                              | is obtained by installing the Broker App at the Organization level                                                                                                               | `""`                  |
-| `existingAuthSecret`                        | Name of existing secret with Snyk platform auth and scm credential reference data                                                                                                | `""`                  |
-| `credentialReferences`                      | SCM token credential reference                                                                                                                                                   | `{}`                  |
+| `deploymentId`                              | Obtained by installing the Broker App                                                                                                                                            | `""`                  |
+| `clientId`                                  | Obtained by installing the Broker App                                                                                                                                            | `""`                  |
+| `clientSecret`                              | Obtained by installing the Broker App                                                                                                                                            | `""`                  |
+| `platformAuthSecret.name`                   | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`                                                                    | `""`                  |
+| `credentialReferences`                      | Credential References to pass to Broker                                                                                                                                          | `{}`                  |
+| `credentialReferencesSecret.name`           | Optionally provide a pre-existing secret with SCM credential reference data                                                                                                      | `""`                  |
 | `acceptCode`                                | Set to false to block Broker rules relating to Snyk Code analysis                                                                                                                | `true`                |
 | `acceptAppRisk`                             | Set to false to block Broker rules relating to AppRisk                                                                                                                           | `true`                |
 | `acceptIaC`                                 | Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. Set to "" to block Broker rules relating to Snyk IaC analysis        | `""`                  |

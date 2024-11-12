@@ -173,12 +173,14 @@ workflows:
       # - deploy_and_test:
       #     context:
       #       - snyk-universal-broker-helm-chart
+      #     requires:
+      #       - validate_charts
       - publish:
           context:
             - team-broker-docker-hub
           requires:
-            - validate_charts
             - validate_documentation
+            # - deploy_and_test
           filters:
             branches:
               only:

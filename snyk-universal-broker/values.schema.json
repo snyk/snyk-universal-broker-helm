@@ -49,11 +49,27 @@
         },
         "annotations": {
           "type": "object"
-        },
+        }
+      }
+    },
+    "platformAuthSecret": {
+      "type": "object",
+      "properties": {
         "name": {
           "type": "string"
         }
       }
+    },
+    "credentialReferencesSecret": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "credentialReferences": {
+      "type": "object"
     },
     "acceptAppRisk": {
       "type": "boolean"

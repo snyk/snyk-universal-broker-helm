@@ -67,7 +67,40 @@ Create a name for the CA Cert secret, using a provided override if present
 {{- .Values.caCertSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "cacert-secret" ) ) -}}
 {{- end }}
 
-{{/*}}
+{{/*
+Create a name for the Credentials Reference secret, using a provided override if present
+*/}}
+{{- define "snyk-broker.credentialReferencesSecretName" -}}
+{{- .Values.credentialReferencesSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "creds-secret" ) ) -}}
+{{- end }}
+
+{{/*
+Create a name for the Platform Auth secret, using a provided override if present
+*/}}
+{{- define "snyk-broker.snykPlatformSecretName" -}}
+{{- .Values.platformAuthSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "platform-secret" ) ) -}}
+{{- end }}
+
+{{/*
+Credential References
+
+Each credential must be a valid env var, with associated string value
+*/}}
+{{- define "snyk-broker.credentialReferences" -}}
+{{- $failedKeys := list -}}
+{{- with .Values.credentialReferences -}}
+{{- range ( . | keys ) }}
+{{- if not (regexMatch "^[a-zA-Z_]{1,}[a-zA-Z0-9_]{0,}$" .) -}}
+{{- $failedKeys = append $failedKeys . -}}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if gt ($failedKeys | len) 0 -}}
+{{- fail (printf "Key(s) \"%s\" in .Values.credentialReferences are unsupported. All keys must be valid environment variable names." ($failedKeys | sortAlpha | join ", ") ) -}}
+{{- end }}
+{{- end }}
+
+{{/*
 Snyk Broker ACCEPT_ vars
 */}}
 {{- define "snyk-broker.accepts" -}}

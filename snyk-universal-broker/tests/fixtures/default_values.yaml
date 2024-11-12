@@ -9,10 +9,10 @@ highAvailabilityMode:
   enabled: false
 
 ##### Snyk Platform Server Auth #####
-deploymentId: 8B338A3B-424A-497E-836E-5E0F9486605A
-clientId: 8B338A3B-424A-497E-836E-5E0F9486605A
-clientSecret: 8B338A3B-424A-497E-836E-5E0F9486605A
+deploymentId: 8b338a3b-424a-497e-836e-5e0f9486605a
+clientId: 8b338a3b-424a-497e-836e-5e0f9486605a
+clientSecret: super-secret-secret
 
 ##### SCM Tokens #####
-credentialReferences: 
-  mygithubtoken: "8B338A3B-424A-497E-836E-5E0F9486605A"
+credentialReferences:
+  MY_GITHUB_TOKEN: "not_a_real_token"
