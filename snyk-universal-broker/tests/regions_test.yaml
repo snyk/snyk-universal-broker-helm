@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Region tests
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+templates:
+  - statefulset.yaml
+
+tests:
+  - it: sets snyk-us-02
+    set:
+      region: us
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_SERVER_URL
+            value: https://broker.us.snyk.io
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_DISPATCHER_BASE_URL
+            value: https://api.us.snyk.io
+  - it: sets snyk-eu-01
+    set:
+      region: eu
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_SERVER_URL
+            value: https://broker.eu.snyk.io
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_DISPATCHER_BASE_URL
+            value: https://api.eu.snyk.io
+  - it: sets snyk-au-01
+    set:
+      region: au
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_SERVER_URL
+            value: https://broker.au.snyk.io
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_DISPATCHER_BASE_URL
+            value: https://api.au.snyk.io
+  - it: sets snyk-gov-01
+    set:
+      region: gov
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_SERVER_URL
+            value: https://broker.gov.snyk.io
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_DISPATCHER_BASE_URL
+            value: https://api.gov.snyk.io
+  - it: sets my-snyk
+    set:
+      region: xyz.my
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_SERVER_URL
+            value: https://broker.xyz.my.snyk.io
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_DISPATCHER_BASE_URL
+            value: https://api.xyz.my.snyk.io

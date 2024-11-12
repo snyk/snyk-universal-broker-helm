@@ -5,6 +5,32 @@
 
 This is a Helm Chart to deploy the [Snyk Universal Broker](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker).
 
+## Requirements
+
+### Networking
+
+#### Outbound
+
+Universal Broker requires outbound communication via TLS to the following domains (or your regional equivalent):
+
+- `https://api.snyk.io`
+- `https://app.snyk.io`
+- `https://broker.snyk.io`
+
+If a proxy, firewall, or other network appliance sits between Broker and the public internet, ensure:
+- the above domains are whitelisted, _and_
+- the proxy, firewall or other network appliance supports the websockets protocol
+
+## Basic Configuration
+
+### Selecting your Snyk Region
+
+If required, specify your [Snyk Region](https://docs.snyk.io/working-with-snyk/regional-hosting-and-data-residency#available-snyk-regions) by entering the url fragment between `app` and `snyk.io` into `region`. For example, to set the Universal Broker to connect to `SNYK-EU-01`:
+
+```yaml
+region: "eu"
+```
+
 ## Advanced Configuration
 
 ### Certificate Trust
@@ -55,7 +81,7 @@ Set `.Values.disableAllCertificateTrust` to `true`. Broker will no longer valida
 | Name                                        | Description                                                                                                                                                                      | Value                    |
 | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
 | `brokerClientUrl`                           | is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup. | `""`                     |
-| `tenant`                                    | Optionally specify a Snyk Region - defaults to "US".                                                                                                                             | `default`                |
+| `region`                                    | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                             | `""`                     |
 | `preflightChecks.enabled`                   | broker client preflight checks                                                                                                                                                   | `true`                   |
 | `deploymentId`                              | is obtained by installing the Broker App at the Organization level                                                                                                               | `""`                     |
 | `clientId`                                  | is obtained by installing the Broker App at the Organization level                                                                                                               | `""`                     |
@@ -151,3 +177,4 @@ Set `.Values.disableAllCertificateTrust` to `true`. Broker will no longer valida
 | `extraVolumes`                                      | Optionally specify extra list of additional volumes for Broker container                     | `[]`             |
 | `extraVolumeMounts`                                 | Optionally specify extra list of additional volumeMounts for Broker container                | `[]`             |
 | `extraEnvVars`                                      | Optionally specify extra list of additional environment variables for Broker container       | `[]`             |
+
