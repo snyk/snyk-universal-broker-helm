@@ -60,6 +60,22 @@ acceptIaC: "tf,yaml,yml,json,tpl"
 acceptCustomPrTemplates: true
 acceptLargeManifests: true
 
+## @param commitSigning.enabled [default: false] Set to true to sign any commits made to GitHub or GitHub Enterprise. Requires `name`, `email`, `passphrase`, `privateKey` _or_ `commitSigningSecret`
+## @param commitSigning.name [string] The name to associate with any signed commits
+## @param commitSigning.email [string] The email to associate with any signed commits
+## @param commitSigning.gpgPrivateKey [string] The GPG private key to sign commits with (ASCII armored version)
+## @param commitSigning.passphrase [string] The passpharse for the GPG key
+## @param commitSigningSecret [string] An external secret containing `GIT_COMMITTER_NAME`, `GIT_COMMITTER_EMAIL`, `GPG_PASSPHRASE` and `GPG_PRIVATE_KEY`
+commitSigning:
+  enabled: false
+  name: ""
+  email: ""
+  gpgPrivateKey: ""
+  passphrase: ""
+
+commitSigningSecret:
+  name: ""
+
 ## @section Networking Parameters
 
 ## @param containerPort Port to open for HTTP in Broker

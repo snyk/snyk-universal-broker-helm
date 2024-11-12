@@ -104,6 +104,13 @@ Each credential must be a valid env var, with associated string value
 {{- end }}
 
 {{/*
+Create a name for the Commit Signing secret, using a provided override if present
+*/}}
+{{- define "snyk-broker.commitSigningSecretName" -}}
+{{- .Values.commitSigningSecret.name | default ( include "snyk-broker.genericSecretName" (dict "Context" . "secretName" "commit-signing-secret" ) ) -}}
+{{- end }}
+
+{{/*}}
 Snyk Broker ACCEPT_ vars
 */}}
 {{- define "snyk-broker.accepts" -}}

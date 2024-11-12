@@ -1,0 +1,119 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Commit Signing
+templates:
+  - statefulset.yaml
+  - commit-signing-secret.yaml
+values:
+- ../values.yaml
+- fixtures/default_values.yaml
+
+tests:
+  - it: enables commit signing with inline private key
+    set: 
+      commitSigning:
+        enabled: true
+        name: "Bot"
+        email: "bot@corp.io"
+        passphrase: "fake"
+        gpgPrivateKey: "-----BEGIN GPG PRIVATE KEY BLOCK-----\nFAKE\n-----END GPG PRIVATE KEY BLOCK-----"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef: 
+              name: RELEASE-NAME-commit-signing-secret
+        template: statefulset.yaml
+      - equal:
+          path: data.GPG_PRIVATE_KEY
+          value: LS0tLS1CRUdJTiBHUEcgUFJJVkFURSBLRVkgQkxPQ0stLS0tLQpGQUtFCi0tLS0tRU5EIEdQRyBQUklWQVRFIEtFWSBCTE9DSy0tLS0t
+        template: commit-signing-secret.yaml
+      - equal:
+          path: data.GPG_PASSPHRASE
+          value: ZmFrZQ==
+        template: commit-signing-secret.yaml
+      - equal:
+          path: data.GIT_COMMITER_NAME
+          value: Qm90
+        template: commit-signing-secret.yaml
+      - equal:
+          path: data.GIT_COMMITER_EMAIL
+          value: Ym90QGNvcnAuaW8=
+        template: commit-signing-secret.yaml
+
+  - it: enables commit signing with multiline private key
+    set: 
+      commitSigning:
+        enabled: true
+        name: "Bot"
+        email: "bot@corp.io"
+        passphrase: "fake"
+        gpgPrivateKey: |-
+          -----BEGIN GPG PRIVATE KEY BLOCK-----
+          FAKE
+          -----END GPG PRIVATE KEY BLOCK-----
+
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef: 
+              name: RELEASE-NAME-commit-signing-secret
+        template: statefulset.yaml
+      - equal:
+          path: data.GPG_PRIVATE_KEY
+          value: LS0tLS1CRUdJTiBHUEcgUFJJVkFURSBLRVkgQkxPQ0stLS0tLQpGQUtFCi0tLS0tRU5EIEdQRyBQUklWQVRFIEtFWSBCTE9DSy0tLS0t
+        template: commit-signing-secret.yaml
+      - equal:
+          path: data.GPG_PASSPHRASE
+          value: ZmFrZQ==
+        template: commit-signing-secret.yaml
+      - equal:
+          path: data.GIT_COMMITER_NAME
+          value: Qm90
+        template: commit-signing-secret.yaml
+      - equal:
+          path: data.GIT_COMMITER_EMAIL
+          value: Ym90QGNvcnAuaW8=
+        template: commit-signing-secret.yaml
+  
+  - it: fails if one of the commit signing values is missing and no external secret is specified
+    set: 
+      commitSigning:
+        enabled: true
+        name: "Bot"
+        email: "bot@corp.io"
+        gpgPrivateKey: "-----BEGIN GPG PRIVATE KEY BLOCK-----\nFAKE\n-----END GPG PRIVATE KEY BLOCK-----"
+    asserts:
+      - failedTemplate:
+          errorMessage: "Missing value(s) under .Values.commitSigning for: passphrase"
+    template: commit-signing-secret.yaml
+
+  - it: uses an external secret if specified
+    set: 
+      commitSigning:
+        enabled: true
+      commitSigningSecret:
+        name: "my-commit-signing-secret"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef: 
+              name: my-commit-signing-secret
+        template: statefulset.yaml
+
+  - it: uses an external secret if specified, ignoring any values set under commitSigning
+    set: 
+      commitSigning:
+        enabled: true
+        name: "Bot"
+        email: "bot@corp.io"
+      commitSigningSecret:
+        name: "my-commit-signing-secret"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef: 
+              name: my-commit-signing-secret
+        template: statefulset.yaml
