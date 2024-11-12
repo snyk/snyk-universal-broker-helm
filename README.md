@@ -114,6 +114,15 @@ High Availability Mode may be disabled by setting `highAvailabilityMode.enabled:
 
 ## Advanced Configuration
 
+### Configure an Outbound Proxy
+
+To use Universal Broker behind a proxy, set:
+
+- `.Values.httpsProxy` to the Proxy URL - this may contain username/password authentication if required
+- `.Values.noProxy` to any URLs that should _not_ transit the Proxy - this may include internal registries, SCMs, or other systems Broker may interact with.
+
+Other authentication methods are not supported.
+
 ### Certificate Trust
 
 Certificate Authority material may be provided directly to Universal Broker in the Helm Chart, or referenced to an external secret.
@@ -363,21 +372,30 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 ### Serving over HTTPS and Certificate Trust
 
-| Name                         | Description                                                                                                                                   | Value                 |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| `localWebServer.https`       | enables Broker client to run a HTTPS server instead of the default HTTP server                                                                | `false`               |
-| `localWebServer.certificate` | Provide HTTPS cert                                                                                                                            | `""`                  |
-| `localWebServer.key`         | Provides HTTPS cert key                                                                                                                       | `""`                  |
-| `localWebServerSecret.name`  | the name of the secret to create or (if cert and key are empty) the existing TLS secret to use                                                | `""`                  |
-| `caCert`                     | Set caCert to read certificate content from the values.yaml file as a multiline string:                                                       | `""`                  |
-| `caCertMount.path`           | the path to mount a certificate bundle to                                                                                                     | `"/home/node/cacert"` |
-| `caCertMount.name`           | the filename to write a certificate bundle to                                                                                                 | `"cacert"`            |
-| `caCertSecret.name`          | set to read a CA cert from an external secret                                                                                                 | `""`                  |
-| `caCertSecret.caCertKey`     | set to read the ca cert from a different key                                                                                                  | `ca.pem`              |
-| `disableAllCertificateTrust` | Set to `true` to disable trust of **all** certificates, including any provided CAs                                                            | `false`               |
-| `httpProxy`                  | Do not change unless advised by your Snyk Representative. You probably need to use HTTPS proxy setting and leave this blank. - HTTP Proxy URL | `""`                  |
-| `httpsProxy`                 | HTTPS Proxy URL - This will apply to both Snyk Broker                                                                                         | `""`                  |
-| `noProxy`                    | provide URl here which doesn't need to go through a proxy(do not include protocol)                                                            | `""`                  |
+| Name                         | Description                                                                                    | Value                 |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- | --------------------- |
+| `localWebServer.https`       | enables Broker client to run a HTTPS server instead of the default HTTP server                 | `false`               |
+| `localWebServer.certificate` | Provide HTTPS cert                                                                             | `""`                  |
+| `localWebServer.key`         | Provides HTTPS cert key                                                                        | `""`                  |
+| `localWebServerSecret.name`  | the name of the secret to create or (if cert and key are empty) the existing TLS secret to use | `""`                  |
+| `caCert`                     | Set caCert to read certificate content from the values.yaml file as a multiline string:        | `""`                  |
+| `caCertMount.path`           | the path to mount a certificate bundle to                                                      | `"/home/node/cacert"` |
+| `caCertMount.name`           | the filename to write a certificate bundle to                                                  | `"cacert"`            |
+| `caCertSecret.name`          | set to read a CA cert from an external secret                                                  | `""`                  |
+| `caCertSecret.caCertKey`     | set to read the ca cert from a different key                                                   | `ca.pem`              |
+| `disableAllCertificateTrust` | Set to `true` to disable trust of **all** certificates, including any provided CAs             | `false`               |
+
+### Proxy Configuration
+
+| Name                        | Description                                                                                                                                                        | Value |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- |
+| `httpProxy`                 | Set to proxy any http-only traffic. You probably need to use HTTPS proxy setting and leave this blank                                                              | `""`  |
+| `httpsProxy`                | HTTPS Proxy URL. Optionally provide user/password auth in the url (http(s)://[username]:[password]@my.proxy:[port]). No other authentication schemes are supported | `""`  |
+| `noProxy`                   | A comma-separated list of hostnames that must not transit a proxy. Do not include protocol or port numbers                                                         | `""`  |
+| `proxySecret.name`          | The name of a pre-existing secret containing up to three entries. If set, supersedes `.Values.httpProxy`, `.Values.httpsProxy` and `.Values.noProxy`               | `""`  |
+| `proxySecret.httpProxyKey`  | Specify the key within the pre-existing secret containing the value for HTTP_PROXY. If left empty, no value is set                                                 | `""`  |
+| `proxySecret.httpsProxyKey` | Specify the key within the pre-existing secret containing the value for HTTPS_PROXY. If left empty, no value is set                                                | `""`  |
+| `proxySecret.noProxyKey`    | Specify the key within the pre-existing secret containing the value for NO_PROXY. If left empty, no value is set                                                   | `""`  |
 
 ### Image Registry
 

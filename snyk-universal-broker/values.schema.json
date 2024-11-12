@@ -1,5 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "urlNoSchema": {
+      "type": "string",
+      "not": {
+        "pattern": "^http(s?):\/\/.*"
+      }
+    },
+    "urlWithSchema": {
+      "type": "string",
+      "pattern": "^$|^http(s?):\/\/.*"
+    }
+  },
   "type": "object",
   "properties": {
     "region": {
@@ -351,6 +363,33 @@
       "type": "object",
       "properties": {
         "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "httpProxy": {
+      "$ref": "#/$defs/urlWithSchema"
+    },
+    "httpsProxy": {
+      "$ref": "#/$defs/urlWithSchema"
+    },
+    "noProxy": {
+      "type": "string"
+    },
+    "proxySecret": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "httpProxyKey": {
+          "type": "string"
+        },
+        "httpsProxyKey": {
+          "type": "string"
+        },
+        "noProxyKey": {
           "type": "string"
         }
       },
