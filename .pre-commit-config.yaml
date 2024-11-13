@@ -10,24 +10,21 @@ repos:
   - repo: https://github.com/bitnami/readme-generator-for-helm
     rev: "2.6.1"
     hooks:
-    - id: helm-readme-generator
-      pass_filenames: false
-      always_run: true
-      args: [--readme=README.md, --values=snyk-universal-broker/values.yaml]
+      - id: helm-readme-generator
+        pass_filenames: false
+        always_run: true
+        args: [--readme=README.md, --values=snyk-universal-broker/values.yaml]
   - repo: local
     hooks:
-    - id: prettier
-      name: Prettier
-      entry: npx prettier
-      pass_filenames: true
-      args: [--ignore-unknown]
-      language: system
-      types:
-        - json
-        - markdown
-    - id: helm-unittest
-      name: Helm Unittest
-      entry: helm unittest snyk-universal-broker
-      language: system
-      pass_filenames: false
-      stages: [pre-commit]
+      - id: prettier
+        name: Prettier
+        entry: npx prettier -c
+        pass_filenames: true
+        args: [--ignore-unknown]
+        language: system
+      - id: helm-unittest
+        name: Helm Unittest
+        entry: helm unittest snyk-universal-broker
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
