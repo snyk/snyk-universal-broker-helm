@@ -57,6 +57,10 @@ jobs:
           command: |
             kubeconform -ignore-missing-schemas template.yaml
           working_directory: snyk-universal-broker
+      - persist_to_workspace:
+          root: snyk-universal-broker
+          paths:
+            - template.yaml
 
   validate_documentation:
     docker:
@@ -159,6 +163,16 @@ jobs:
           name: Run semantic-release
           command: npx semantic-release
 
+  security_scans:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - prodsec/security_scans:
+          mode: auto
+
 workflows:
   validate_and_publish:
     jobs:
@@ -171,18 +185,25 @@ workflows:
       - validate_charts:
           context:
             - snyk-universal-broker-helm-chart
+      - security_scans:
+          context:
+            - team-hybrid-snyk
+          requires:
+            - validate_charts
       - validate_documentation
       - deploy_and_test:
           context:
             - snyk-universal-broker-helm-chart
           requires:
             - validate_charts
+            - security_scans
+            - Scan repository for secrets
       - publish:
           context:
             - team-broker-docker-hub
           requires:
             - validate_documentation
-            # - deploy_and_test
+            - deploy_and_test
           filters:
             branches:
               only:
