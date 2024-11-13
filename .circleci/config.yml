@@ -57,6 +57,10 @@ jobs:
           command: |
             kubeconform -ignore-missing-schemas template.yaml
           working_directory: snyk-universal-broker
+      - persist_to_workspace:
+          root: snyk-universal-broker
+          paths:
+            - template.yaml
 
   validate_documentation:
     docker:
@@ -164,6 +168,8 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
+      - attach_workspace:
+          at: .
       - prodsec/security_scans:
           mode: auto
 
@@ -176,12 +182,14 @@ workflows:
             - snyk-bot-slack
           channel: hybrid-alerts
           trusted-branch: main
-      - security_scans:
-          context:
-            - team-hybrid-snyk
       - validate_charts:
           context:
             - snyk-universal-broker-helm-chart
+      - security_scans:
+          context:
+            - team-hybrid-snyk
+          requires:
+            - validate_charts
       - validate_documentation
       - deploy_and_test:
           context:
