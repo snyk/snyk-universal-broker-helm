@@ -59,7 +59,7 @@ export default class snykApiClient {
     let requestHeaders = {
       Authorization: `Token ${this.snykToken}`,
       "Content-Type": "application/json; charset=utf-8",
-      "snyk-request-id": this.snykRequestId
+      "snyk-request-id": this.snykRequestId,
     } as types.snykRequestHeaders;
     const response = await fetch(
       `${this.snykAPIBase}/${args.endpoint}?version=2024-06-10`,
@@ -70,9 +70,10 @@ export default class snykApiClient {
       }
     );
     await sleep(100);
-    const body = args.method === types.requestMethods.DELETE
-          ? null
-          : await response.json()
+    const body =
+      args.method === types.requestMethods.DELETE
+        ? null
+        : await response.json();
     logger.debug(`{
       method: ${args.method},
       endpoint: ${args.endpoint},
@@ -82,7 +83,7 @@ export default class snykApiClient {
       requestId: ${this.snykRequestId},
     }`);
     if (this.snykRequestId === undefined) {
-      this.snykRequestId = response.headers.get("snyk-request-id")
+      this.snykRequestId = response.headers.get("snyk-request-id");
     }
     return {
       status: response.status,

@@ -1,4 +1,3 @@
-
 [![Snyk logo](https://snyk.io/style/asset/logo/snyk-print.svg)](https://snyk.io)
 
 # Helm Chart for Universal Broker
@@ -18,6 +17,7 @@ Universal Broker requires outbound communication via TLS to the following domain
 - `https://broker.snyk.io`
 
 If a proxy, firewall, or other network appliance sits between Broker and the public internet, ensure:
+
 - the above domains are whitelisted, _and_
 - the proxy, firewall or other network appliance supports the websockets protocol
 
@@ -36,11 +36,13 @@ region: "eu"
 Any Credential References (refer to the example provided on [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/set-up-a-github-connection-using-the-api#id-3-create-your-credentials-references)) must be provided to the Universal Broker. This can be achieved directly through Helm, or via an external Kubernetes Secret.
 
 For the following example, assume three credential references are created of the following `deployment_credential` types:
+
 - `github`
 - `gitlab`
 - `azure-repos`
 
 An example data object is shown for the `github` type.
+
 ```json
 {
   ...
@@ -56,6 +58,7 @@ An example data object is shown for the `github` type.
   }
 }
 ```
+
 The number of credential references will depend on the `type` of the `deployment_credential`; `github` holds just one (the GitHub PAT), whilst `azure-repos` holds three (the Azure Repos Org, Username and Password)
 
 #### Via Helm
@@ -111,6 +114,7 @@ It may be [extended with additional hosts, paths, annotations as required](#brok
 Universal Broker will run with [High Availability Mode](https://docs.snyk.io/enterprise-configuration/snyk-broker/high-availability-mode) enabled by default. Optionally increase the number of replicas from 2 up to 4 to suit fault tolerance.
 
 High Availability Mode may be disabled by setting `highAvailabilityMode.enabled: false`.
+
 ## Troubleshooting
 
 ### Preflight Checks
@@ -177,6 +181,7 @@ data:
 ```
 
 Then set values within `.Values.caCertSecret` that match your external Secret:
+
 ```yaml
 caCertSecret:
   name: ca-certificate
@@ -250,6 +255,7 @@ data:
 The keys **must** match the example above.
 
 Then set values within `.Values.commitSigningSecret` to reference this external Secret:
+
 ```yaml
 commitSigning:
   enabled: true
@@ -336,6 +342,7 @@ _Note:_ Check for duplicate environment variables.
 Refer to documentation via [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/initial-configuration-of-the-universal-broker) to obtain `deploymentId`, `clientId`, `clientSecret` values.
 
 Credential References should contain one or more key/value pairs where each key matches the `environment_variable_name` of a `deployment_credential`, and the value provides the secret. For example:
+
 ```bash
 helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 ```
