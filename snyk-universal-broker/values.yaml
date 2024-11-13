@@ -13,6 +13,7 @@ region: ""
 ## Refer to documentation via [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/initial-configuration-of-the-universal-broker) to obtain `deploymentId`, `clientId`, `clientSecret` values.
 ##
 ## Credential References should contain one or more key/value pairs where each key matches the `environment_variable_name` of a `deployment_credential`, and the value provides the secret. For example:
+##
 ## ```bash
 ## helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 ## ```

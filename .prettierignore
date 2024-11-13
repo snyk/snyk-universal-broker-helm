@@ -1,4 +1,4 @@
-snyk-universal-broker/templates
-snyk-universal-broker/charts
+*.yaml
+*.yml
 package.json
 package-lock.json

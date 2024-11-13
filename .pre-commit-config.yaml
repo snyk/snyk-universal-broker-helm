@@ -18,9 +18,9 @@ repos:
     hooks:
       - id: prettier
         name: Prettier
-        entry: npx prettier -c
+        entry: npx prettier
         pass_filenames: true
-        args: [--ignore-unknown]
+        args: [--check, --ignore-unknown]
         language: system
       - id: helm-unittest
         name: Helm Unittest

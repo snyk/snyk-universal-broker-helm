@@ -25,7 +25,7 @@ export default {
         // publishCmd:
         //   "helm push snyk-universal-broker-*.tgz oci://registry-1.docker.io/snyk",
         execCwd: "snyk-universal-broker",
-      }
+      },
     ],
     [
       "@semantic-release/github",

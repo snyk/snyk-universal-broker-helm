@@ -45,7 +45,7 @@ async function getTargets(orgId) {
 async function removeTargets(orgId, integrationId) {
   // Get a list of targets that exist on the organisation
   const targets = await getTargets(orgId);
-  logger.debug(`Found ${(targets.data["data"]).length} targets`)
+  logger.debug(`Found ${targets.data["data"].length} targets`);
   //
   for (const target of targets.data["data"]) {
     // Each target has attributes.origin == integrationType
@@ -54,7 +54,7 @@ async function removeTargets(orgId, integrationId) {
       logger.info(`Removing target ${JSON.stringify(target)}`);
       await client.delete(`rest/orgs/${orgId}/targets/${target["id"]}`);
     }
-  };
+  }
 }
 
 async function pollRequestImport(
@@ -92,10 +92,12 @@ async function pollJobStatus(
       return ["failed", "aborted"].includes(response.data["status"]);
     },
     successFunction: (response) => {
-      const logs = response.data.logs
+      const logs = response.data.logs;
       if (logs.length > 0) {
         const success = response.data["status"].includes("complete");
-        const noFailedProjects = logs[0].projects.some((project) => project.success === false);
+        const noFailedProjects = logs[0].projects.some(
+          (project) => project.success === false
+        );
         return success && !noFailedProjects;
       }
     },
@@ -138,7 +140,7 @@ async function runImport(importDataTarget, orgId, orgName, integrationId) {
         }
       } catch {
         // This fails sometimes
-        logger.warn("Could not determine project type, may retry")
+        logger.warn("Could not determine project type, may retry");
         logger.debug(JSON.stringify(projectData));
       }
     }
