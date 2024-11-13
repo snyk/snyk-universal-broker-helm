@@ -37,60 +37,38 @@
             }
           }
         }
+      },
+      "additionalProperties": false
+    },
+    "emptyOrUuid":{
+      "oneOf":[{
+        "type":"string",
+        "maxLength":0
+      },
+      {
+        "type":"string",
+        "format":"uuid"
       }
+    ]
     }
   },
   "type": "object",
   "properties": {
+    "brokerClientUrl":{
+      "$ref":"#/$defs/urlWithSchema"
+    },
     "region": {
       "type": "string",
       "default": ""
     },
-    "caCert": {
-      "type": "string",
-      "pattern": "^$|^\\s*-----BEGIN CERTIFICATE-----(?:.|\\s)*-----END CERTIFICATE-----\\s*$"
+    "deploymentId":{
+      "$ref":"#/$defs/emptyOrUuid"
     },
-    "caCertMount": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "path": {
-          "type": "string"
-        },
-        "allowAdditionalProperties": false
-      }
+    "clientId":{
+      "$ref": "#/$defs/emptyOrUuid"
     },
-    "caCertSecret": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "caCertKey": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "disableAllCertificateTrust": {
-      "type": "boolean",
-      "default": false
-    },
-    "serviceAccount": {
-      "type": "object",
-      "properties": {
-        "create": {
-          "type": "boolean"
-        },
-        "existingName": {
-          "type": "string"
-        },
-        "annotations": {
-          "type": "object"
-        }
-      }
+    "clientSecret":{
+      "type":"string"
     },
     "platformAuthSecret": {
       "type": "object",
@@ -98,7 +76,11 @@
         "name": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
+    },
+    "credentialReferences": {
+      "type": "object"
     },
     "credentialReferencesSecret": {
       "type": "object",
@@ -106,10 +88,8 @@
         "name": {
           "type": "string"
         }
-      }
-    },
-    "credentialReferences": {
-      "type": "object"
+      },
+      "additionalProperties": false
     },
     "acceptAppRisk": {
       "type": "boolean"
@@ -133,6 +113,104 @@
     },
     "acceptLargeManifests": {
       "type": "boolean"
+    },
+    "commitSigning": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "oneOf": [
+            {
+              "maxLength": 0
+            },
+            {
+              "format": "email"
+            }
+          ]
+        },
+        "gpgPrivateKey": {
+          "type": "string",
+          "regex": "^$|^\\s*-----BEGIN PGP PRIVATE KEY BLOCK-----(?:.|\\s)*-----END PGP PRIVATE KEY BLOCK-----\\s*$"
+        },
+        "passphrase": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "commitSigningSecret": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "insecureDownstream": {
+      "type": "boolean"
+    },
+    "containerPort":{
+      "type":"integer",
+      "default":8000
+    },
+    "hostAliases":{
+      "type":"array",
+      "items":{
+        "type":"object",
+        "properties":{
+          "ip":{
+            "type":"string"
+          },
+          "hostnames":{
+            "type":"array",
+            "items":{
+              "type":"string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "service":{
+      "type":"object",
+      "properties":{
+        "type":{
+          "type":"string",
+          "enum":["ClusterIP","NodePort","LoadBalancer"]
+        },
+        "port":{
+          "type":"integer"
+        },
+        "nodePort":{
+          "type": ["integer","null"]
+        },
+        "clusterIP":{
+          "type":["string","null"]
+        },
+        "loadBalancerIP":{
+          "type":["string","null"]
+        },
+        "loadBalancerSourceRanges":{
+          "type":"array"
+        },
+        "externalTrafficPolicy":{
+          "type":"string"
+        },
+        "extraPorts":{
+          "type":"array"
+        },
+        "tls":{
+          "type":"array"
+        }
+      },
+      "additionalProperties": false
     },
     "ingress": {
       "type": "object",
@@ -184,10 +262,19 @@
             }
           }
         },
+        "secrets":{
+          "type":"array"
+        },
         "extraPaths": {
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "extraRules":{
+          "type":"array",
+          "items":{
+            "type":"object"
           }
         },
         "extraTls": {
@@ -229,10 +316,29 @@
             }
           }
         }
-      }
+      },
+      "additionalProperties": false
+    },
+    "runtimeClassName":{
+      "type":"string"
+    },
+    "priorityClassName":{
+      "type":"string"
+    },
+    "resources":{
+      "type":"object",
+      "properties":{
+        "requests":{
+          "type":"object"
+        },
+        "limits":{
+          "type":"object"
+        }
+      },
+      "additionalProperties": false
     },
     "highAvailabilityMode": {
-      "properties":{
+      "properties": {
         "enabled": {
           "type": "boolean"
         },
@@ -241,7 +347,176 @@
           "minimum": 2,
           "maximum": 4
         }
+      },
+      "additionalProperties": false
+    },
+    "commonLabels":{
+      "type":"object"
+    },
+    "commonAnnotations":{
+      "type":"object"
+    },
+    "podLabels":{
+      "type":"object"
+    },
+    "affinity":{
+      "type":"object"
+    },
+    "nodeSelector":{
+      "type":"object"
+    },
+    "tolerations":{
+      "type":"array"
+    },
+    "livenessProbe": {
+      "$ref": "#/$defs/probe"
+    },
+    "readinessProbe": {
+      "$ref": "#/$defs/probe"
+    },
+    "logLevel": {
+      "type": "string",
+      "enum": [
+        "info",
+        "debug"
+      ]
+    },
+    "logVerbose": {
+      "type": "boolean",
+      "default": "false"
+    },
+    "localWebServer": {
+      "type": "object",
+      "properties": {
+        "https": {
+          "type": "boolean",
+          "default": false
+        },
+        "certificate": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "localWebServerSecret": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "caCert": {
+      "type": "string",
+      "pattern": "^$|^\\s*-----BEGIN CERTIFICATE-----(?:.|\\s)*-----END CERTIFICATE-----\\s*$"
+    },
+    "caCertMount": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "allowAdditionalProperties": false
       }
+    },
+    "caCertSecret": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "caCertKey": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "disableAllCertificateTrust": {
+      "type": "boolean",
+      "default": false
+    },
+    "httpProxy": {
+      "$ref": "#/$defs/urlWithSchema"
+    },
+    "httpsProxy": {
+      "$ref": "#/$defs/urlWithSchema"
+    },
+    "noProxy": {
+      "type": "string"
+    },
+    "proxySecret": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "httpProxyKey": {
+          "type": "string"
+        },
+        "httpsProxyKey": {
+          "type": "string"
+        },
+        "noProxyKey": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "image":{
+      "type":"object",
+      "properties":{
+        "registry":{
+          "type":"string"
+        },
+        "repository":{
+          "type":"string"
+        },
+        "pullPolicy":{
+          "type":"string",
+          "enum":["Always","IfNotPresent","Never"]
+        },
+        "tag":{
+          "type":"string"
+        },
+        "pullSecrets":{
+          "type":"array",
+          "items":{
+            "type":"object",
+            "properties":{
+              "name":{
+                "type":"string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "name":{
+          "type":"string"
+        },
+        "create": {
+          "type": "boolean"
+        },
+        "existingName": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
     },
     "podSecurityContext": {
       "type": "object",
@@ -280,7 +555,8 @@
           "type": "integer",
           "default": 1000
         }
-      }
+      },
+      "additionalProperties":false
     },
     "containerSecurityContext": {
       "type": "object",
@@ -332,121 +608,55 @@
           ],
           "default": false
         }
-      }
-    },
-    "commitSigning": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "name": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string",
-          "oneOf": [
-            {
-              "maxLength": 0
-            },
-            {
-              "format": "email"
-            }
-          ]
-        },
-        "gpgPrivateKey": {
-          "type": "string",
-          "regex": "^$|^\\s*-----BEGIN PGP PRIVATE KEY BLOCK-----(?:.|\\s)*-----END PGP PRIVATE KEY BLOCK-----\\s*$"
-        },
-        "passphrase": {
-          "type": "string"
-        }
-      }
-    },
-    "commitSigningSecret": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        }
-      }
-    },
-    "localWebServer": {
-      "type": "object",
-      "properties": {
-        "https": {
-          "type": "boolean",
-          "default": false
-        },
-        "certificate": {
-          "type": "string"
-        },
-        "key": {
-          "type": "string"
-        }
       },
       "additionalProperties": false
     },
-    "localWebServerSecret": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
+    "sidecars":{
+      "type":"array",
+      "items":{
+        "type":"object"
+      }
     },
-    "httpProxy": {
-      "$ref": "#/$defs/urlWithSchema"
+    "initContainers":{
+      "type":"array",
+      "items":{
+        "type":"object"
+      }
     },
-    "httpsProxy": {
-      "$ref": "#/$defs/urlWithSchema"
+    "extraVolumes":{
+      "type":"array",
+      "items":{
+        "type":"object"
+      }
     },
-    "noProxy": {
-      "type": "string"
+    "extraVolumeMounts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
     },
-    "proxySecret": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "httpProxyKey": {
-          "type": "string"
-        },
-        "httpsProxyKey": {
-          "type": "string"
-        },
-        "noProxyKey": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
+    "extraEnvVars": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
     },
-    "logLevel": {
-      "type": "string",
-      "enum": [
-        "info",
-        "debug"
-      ]
+    "extraEnvVarsCM":{
+      "type":"array",
+      "items":{
+        "type":"string"
+      }
     },
-    "logVerbose": {
-      "type": "boolean",
-      "default": "false"
-    },
-    "livenessProbe": {
-      "$ref": "#/$defs/probe"
-    },
-    "readinessProbe": {
-      "$ref": "#/$defs/probe"
-    },
-    "insecureDownstream":{
-      "type":"boolean"
+    "extraEnvVarsSecret":{
+      "type":"array",
+      "items":{
+        "type":"string"
+      }
     },
     "global": {
       "type": "object",
       "additionalProperties": true
-    },
-    "additionalProperties": false
-  }
+    }
+  },
+  "additionalProperties": true
 }

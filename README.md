@@ -344,7 +344,6 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | `brokerClientUrl`                 | is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup. | `""`    |
 | `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                             | `""`    |
-| `preflightChecks.enabled`         | broker client preflight checks                                                                                                                                                   | `true`  |
 | `deploymentId`                    | Obtained by installing the Broker App                                                                                                                                            | `""`    |
 | `clientId`                        | Obtained by installing the Broker App                                                                                                                                            | `""`    |
 | `clientSecret`                    | Obtained by installing the Broker App                                                                                                                                            | `""`    |
@@ -368,8 +367,8 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | Name                               | Description                                                                                                                     | Value       |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | `insecureDownstream`               | Set to true to communicate with _all_ downstream integrations via http. Not recommended, as traffic will no longer be encrypted | `false`     |
-| `containerPort`                    | Port to open for HTTP in Broker                                                                                                 | `8000`      |
-| `hostAliases`                      | Broker pod host aliases                                                                                                         | `[]`        |
+| `containerPort`                    | The port the Broker container will expose                                                                                       | `8000`      |
+| `hostAliases`                      | Add host aliases to the Broker pod if required                                                                                  | `[]`        |
 | `service.type`                     | Set the included Service type                                                                                                   | `ClusterIP` |
 | `service.port`                     | Set the port the Service will expose                                                                                            | `8000`      |
 | `service.nodePort`                 | Optionally specify a nodePort (only takes effect if service.type=NodePort)                                                      | `nil`       |
@@ -382,49 +381,69 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 ### Broker Ingress
 
-| Name                                        | Description                                                                                 | Value                      |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------- |
-| `ingress.enabled`                           | Set to true to create an Ingress                                                            | `false`                    |
-| `ingress.className`                         | Optionally define an Ingress Class                                                          | `""`                       |
-| `ingress.annotations`                       | Additional annotations for the Ingress resource                                             | `{}`                       |
-| `ingress.path`                              | sets the path associated with the ingress                                                   | `"/"`                      |
-| `ingress.pathType`                          | sets the path type associated with the ingress                                              | `"ImplementationSpecific"` |
-| `ingress.hostname`                          | define the host associated with this ingress - add Broker_client_url here                   | `"broker.local"`           |
-| `ingress.extraHosts`                        | An array with additional hostname(s) to be covered with the ingress record                  | `[]`                       |
-| `ingress.extraPaths`                        | Any additional arbitrary paths that may need to be added to the ingress under the main host | `[]`                       |
-| `ingress.extraTls`                          | Any additional tls entries to add to the ingress                                            | `[]`                       |
-| `ingress.extraRules`                        | Any additional rules to add to the ingress                                                  | `[]`                       |
-| `ingress.secrets`                           | A list of TLS secrets to create, each with `name`, `key` and `certificate`                  | `[]`                       |
-| `ingress.tls.enabled`                       | Set to true to enable TLS on the in-built ingress                                           | `false`                    |
-| `ingress.tls.existingSecret`                | Specify an existing TLS secret to use with this ingress                                     | `""`                       |
-| `resources.requests.cpu`                    | Set CPU requests                                                                            | `1`                        |
-| `resources.requests.memory`                 | Set memory requests                                                                         | `512Mi`                    |
-| `resources.limits.cpu`                      | Set CPU limits                                                                              | `2`                        |
-| `resources.limits.memory`                   | Set memory limits                                                                           | `1024Mi`                   |
-| `highAvailabilityMode.enabled`              | snyk [default: true] Set to false to disable High Availability Mode for Broker              | `true`                     |
-| `highAvailabilityMode.replicaCount`         | Number of Broker pods when running in HA mode (min 2, max 4)                                | `2`                        |
-| `commonLabels`                              | Labels to add to all deployed objects (sub-charts are not considered)                       | `{}`                       |
-| `commonAnnotations`                         | Annotations to add to all deployed objects (sub-charts are not considered)                  | `{}`                       |
-| `podLabels`                                 | Pod labels                                                                                  | `{}`                       |
-| `livenessProbe.enabled`                     | Enable livenessProbe                                                                        | `true`                     |
-| `livenessProbe.path`                        | Path for the livenessProbe                                                                  | `/healthcheck`             |
-| `livenessProbe.config.initialDelaySeconds`  | Initial delay seconds for livenessProbe                                                     | `3`                        |
-| `livenessProbe.config.periodSeconds`        | Period seconds for livenessProbe                                                            | `10`                       |
-| `livenessProbe.config.timeoutSeconds`       | Timeout seconds for livenessProbe                                                           | `1`                        |
-| `livenessProbe.config.failureThreshold`     | Failure threshold for livenessProbe                                                         | `3`                        |
-| `readinessProbe.enabled`                    | Enable readinessProbe                                                                       | `true`                     |
-| `readinessProbe.path`                       | Path for the readinessProbe                                                                 | `/healthcheck`             |
-| `readinessProbe.config.initialDelaySeconds` | Initial delay seconds for readinessProbe                                                    | `3`                        |
-| `readinessProbe.config.periodSeconds`       | Period seconds for readinessProbe                                                           | `10`                       |
-| `readinessProbe.config.timeoutSeconds`      | Timeout seconds for readinessProbe                                                          | `1`                        |
-| `readinessProbe.config.failureThreshold`    | Failure threshold for readinessProbe                                                        | `3`                        |
+| Name                         | Description                                                                                 | Value                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------- | -------------------------- |
+| `ingress.enabled`            | Set to true to create an Ingress                                                            | `false`                    |
+| `ingress.className`          | Optionally define an Ingress Class                                                          | `""`                       |
+| `ingress.annotations`        | Additional annotations for the Ingress resource                                             | `{}`                       |
+| `ingress.path`               | sets the path associated with the ingress                                                   | `"/"`                      |
+| `ingress.pathType`           | sets the path type associated with the ingress                                              | `"ImplementationSpecific"` |
+| `ingress.hostname`           | define the host associated with this ingress - add Broker_client_url here                   | `"broker.local"`           |
+| `ingress.extraHosts`         | An array with additional hostname(s) to be covered with the ingress record                  | `[]`                       |
+| `ingress.extraPaths`         | Any additional arbitrary paths that may need to be added to the ingress under the main host | `[]`                       |
+| `ingress.extraTls`           | Any additional tls entries to add to the ingress                                            | `[]`                       |
+| `ingress.extraRules`         | Any additional rules to add to the ingress                                                  | `[]`                       |
+| `ingress.secrets`            | A list of TLS secrets to create, each with `name`, `key` and `certificate`                  | `[]`                       |
+| `ingress.tls.enabled`        | Set to true to enable TLS on the in-built ingress                                           | `false`                    |
+| `ingress.tls.existingSecret` | Specify an existing TLS secret to use with this ingress                                     | `""`                       |
+
+### Runtime
+
+| Name                                | Description                                                                    | Value    |
+| ----------------------------------- | ------------------------------------------------------------------------------ | -------- |
+| `runtimeClassName`                  | Optionally specify a runtimeClassName for Broker to target                     | `""`     |
+| `priorityClassName`                 | Optionally specify a priorityClassName for Broker to target                    | `""`     |
+| `resources.requests.cpu`            | Set CPU requests                                                               | `1`      |
+| `resources.requests.memory`         | Set memory requests                                                            | `512Mi`  |
+| `resources.limits.cpu`              | Set CPU limits                                                                 | `2`      |
+| `resources.limits.memory`           | Set memory limits                                                              | `1024Mi` |
+| `highAvailabilityMode.enabled`      | snyk [default: true] Set to false to disable High Availability Mode for Broker | `true`   |
+| `highAvailabilityMode.replicaCount` | Number of Broker pods when running in HA mode (min 2, max 4)                   | `2`      |
+
+### Metadata
+
+| Name                | Description                                       | Value |
+| ------------------- | ------------------------------------------------- | ----- |
+| `commonLabels`      | Labels to add to all deployed objects             | `{}`  |
+| `commonAnnotations` | Annotations to add to all deployed objects        | `{}`  |
+| `podLabels`         | Labels to add to the Broker Pod                   | `{}`  |
+| `affinity`          | Any affinities/anti-affinities to apply to Broker | `{}`  |
+| `nodeSelector`      | Any node labels to match when scheduling Broker   | `{}`  |
+| `tolerations`       | Any taints to tolerate when scheduling Broker     | `{}`  |
+
+### Probes
+
+| Name                                        | Description                                               | Value            |
+| ------------------------------------------- | --------------------------------------------------------- | ---------------- |
+| `livenessProbe.enabled`                     | Enable livenessProbe                                      | `true`           |
+| `livenessProbe.path`                        | Path for the livenessProbe                                | `"/healthcheck"` |
+| `livenessProbe.config.initialDelaySeconds`  | Initial delay in seconds                                  | `3`              |
+| `livenessProbe.config.periodSeconds`        | Seconds between probes                                    | `10`             |
+| `livenessProbe.config.timeoutSeconds`       | Elapsed second(s) for timeout                             | `1`              |
+| `livenessProbe.config.failureThreshold`     | Number of consecutive probe failures to mark as unhealty  | `3`              |
+| `readinessProbe.enabled`                    | Enable readinessProbe                                     | `true`           |
+| `readinessProbe.path`                       | Path for the readinessProbe                               | `/healthcheck`   |
+| `readinessProbe.config.initialDelaySeconds` | Initial delay in seconds                                  | `3`              |
+| `readinessProbe.config.periodSeconds`       | Seconds between probes                                    | `10`             |
+| `readinessProbe.config.timeoutSeconds`      | Elapsed second(s) for timeout                             | `1`              |
+| `readinessProbe.config.failureThreshold`    | Number of consecutive probe failures to mark as not ready | `3`              |
 
 ### Logging
 
-| Name         | Description                                                                         | Value   |
-| ------------ | ----------------------------------------------------------------------------------- | ------- |
-| `logLevel`   | defines Log Level for broker client pod. Can be set to "debug" for more information | `info`  |
-| `logVerbose` | Enable to log request headers. Takes effect if log level is "info"                  | `false` |
+| Name         | Description                                                                        | Value   |
+| ------------ | ---------------------------------------------------------------------------------- | ------- |
+| `logLevel`   | Set the Log Level for Universal Broker. Can be set to "debug" for more information | `info`  |
+| `logVerbose` | Enable to log request headers. Takes effect if log level is "info"                 | `false` |
 
 ### Serving over HTTPS and Certificate Trust
 
@@ -465,28 +484,42 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 ### Service Account
 
-| Name                                                | Description                                                                                  | Value              |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------ |
-| `serviceAccount.create`                             | Enable creation of a serviceAccount                                                          | `true`             |
-| `serviceAccount.existingName`                       | Optionally provide an existing serviceAccount name                                           | `""`               |
-| `serviceAccount.annotations`                        | Additional custom annotations for the serviceAccount                                         | `{}`               |
-| `serviceAccount.name`                               | The name of the serviceAccount to create. If not set and create is true, a name is generated | `""`               |
-| `podSecurityContext.enabled`                        | Enable security context for Broker Pods                                                      | `true`             |
-| `podSecurityContext.fsGroupChangePolicy`            | Set filesystem group change policy                                                           | `Always`           |
-| `podSecurityContext.sysctls`                        | Set kernel settings using the sysctl interface                                               | `[]`               |
-| `podSecurityContext.supplementalGroups`             | Set filesystem extra groups                                                                  | `[]`               |
-| `podSecurityContext.fsGroup`                        | Group ID for the volumes of the pod                                                          | `1000`             |
-| `containerSecurityContext.enabled`                  | Enable Broker container security context                                                     | `true`             |
-| `containerSecurityContext.seLinuxOptions`           | Set SELinux options for Broker container                                                     | `{}`               |
-| `containerSecurityContext.runAsUser`                |                                                                                              | `1000`             |
-| `containerSecurityContext.runAsGroup`               |                                                                                              | `1000`             |
-| `containerSecurityContext.allowPrivilegeEscalation` | Allow the Broker container to escalate privileges                                            | `false`            |
-| `containerSecurityContext.capabilities.drop`        | ] Linux capabilities to drop                                                                 | `""`               |
-| `containerSecurityContext.readOnlyRootFilesystem`   | Must be set to false; Broker will write configuration to filesystem upon startup             | `false`            |
-| `containerSecurityContext.runAsNonRoot`             | Run Broker as non-root                                                                       | `true`             |
-| `containerSecurityContext.privileged`               | Run Broker as a privileged container                                                         | `false`            |
-| `containerSecurityContext.seccompProfile.type`      | Set the `seccomProfile` for Broker                                                           | `"RunTimeDefault"` |
-| `extraVolumes`                                      | Optionally specify extra list of additional volumes for Broker container                     | `[]`               |
-| `extraVolumeMounts`                                 | Optionally specify extra list of additional volumeMounts for Broker container                | `[]`               |
-| `extraEnvVars`                                      | Optionally specify extra list of additional environment variables for Broker container       | `[]`               |
+| Name                          | Description                                                                                  | Value  |
+| ----------------------------- | -------------------------------------------------------------------------------------------- | ------ |
+| `serviceAccount.create`       | Enable creation of a serviceAccount                                                          | `true` |
+| `serviceAccount.existingName` | Optionally provide an existing serviceAccount name                                           | `""`   |
+| `serviceAccount.annotations`  | Additional custom annotations for the serviceAccount                                         | `{}`   |
+| `serviceAccount.name`         | The name of the serviceAccount to create. If not set and create is true, a name is generated | `""`   |
+
+### Security Contexts
+
+| Name                                                | Description                                                                      | Value              |
+| --------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------ |
+| `podSecurityContext.enabled`                        | Enable Pod Security Context for Broker                                           | `true`             |
+| `podSecurityContext.fsGroupChangePolicy`            | Set filesystem group change policy                                               | `Always`           |
+| `podSecurityContext.sysctls`                        | Set kernel settings using the sysctl interface                                   | `[]`               |
+| `podSecurityContext.fsGroup`                        | Group ID for the volumes of the pod                                              | `1000`             |
+| `podSecurityContext.supplementalGroups`             | Set filesystem groups                                                            | `[]`               |
+| `containerSecurityContext.enabled`                  | Enable Broker container security context                                         | `true`             |
+| `containerSecurityContext.seLinuxOptions`           | Set SELinux options for Broker container                                         | `{}`               |
+| `containerSecurityContext.runAsUser`                |                                                                                  | `1000`             |
+| `containerSecurityContext.runAsGroup`               |                                                                                  | `1000`             |
+| `containerSecurityContext.allowPrivilegeEscalation` | Allow the Broker container to escalate privileges                                | `false`            |
+| `containerSecurityContext.capabilities.drop`        | ] Linux capabilities to drop                                                     | `""`               |
+| `containerSecurityContext.readOnlyRootFilesystem`   | Must be set to false; Broker will write configuration to filesystem upon startup | `false`            |
+| `containerSecurityContext.runAsNonRoot`             | Run Broker as non-root                                                           | `true`             |
+| `containerSecurityContext.privileged`               | Run Broker as a privileged container                                             | `false`            |
+| `containerSecurityContext.seccompProfile.type`      | Set the `seccomProfile` for Broker                                               | `"RunTimeDefault"` |
+
+### Additional Objects
+
+| Name                 | Description                                                                                               | Value |
+| -------------------- | --------------------------------------------------------------------------------------------------------- | ----- |
+| `sidecars`           | Any sidecars to attach to Broker                                                                          | `[]`  |
+| `initContainers`     | Any initContainers to run before Broker                                                                   | `[]`  |
+| `extraVolumes`       | Optionally specify extra list of additional volumes for Broker container                                  | `[]`  |
+| `extraVolumeMounts`  | Optionally specify extra list of additional volumeMounts for Broker container                             | `[]`  |
+| `extraEnvVars`       | Optionally specify extra list of additional environment variables for Broker container                    | `[]`  |
+| `extraEnvVarsCM`     | Optionally specify one or more external configmaps containing additional environment variables for Broker | `[]`  |
+| `extraEnvVarsSecret` | Optionally specify one or more external secrets containing additional environment variables for Broker    | `[]`  |
 

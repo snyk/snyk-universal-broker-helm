@@ -8,10 +8,6 @@ brokerClientUrl: ""
 ## See https://docs.snyk.io/working-with-snyk/regional-hosting-and-data-residency#regional-urls for options.
 region: ""
 
-## @param preflightChecks.enabled broker client preflight checks
-preflightChecks:
-  enabled: true
-
 ##### Snyk Platform Auth #####
 ## @descriptionStart
 ## Refer to documentation via [docs.snyk.io](https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/initial-configuration-of-the-universal-broker) to obtain `deploymentId`, `clientId`, `clientSecret` values.
@@ -80,10 +76,10 @@ commitSigningSecret:
 ## @param insecureDownstream [default: false] Set to true to communicate with _all_ downstream integrations via http. Not recommended, as traffic will no longer be encrypted
 insecureDownstream: false
 
-## @param containerPort Port to open for HTTP in Broker
+## @param containerPort [default: 8000] The port the Broker container will expose
 containerPort: 8000
 
-## @param hostAliases Broker pod host aliases
+## @param hostAliases [array] Add host aliases to the Broker pod if required
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##
 hostAliases: []
@@ -145,10 +141,18 @@ ingress:
     enabled: false
     existingSecret: ""
 
-## @param resources.requests.cpu Set CPU requests
-## @param resources.requests.memory Set memory requests
-## @param resources.limits.cpu Set CPU limits
-## @param resources.limits.memory Set memory limits
+## @section Runtime
+
+## @param runtimeClassName [string] Optionally specify a runtimeClassName for Broker to target
+runtimeClassName: ""
+
+## @param priorityClassName [string] Optionally specify a priorityClassName for Broker to target
+priorityClassName: ""
+
+## @param resources.requests.cpu [default:1] Set CPU requests
+## @param resources.requests.memory [default:512Mi] Set memory requests
+## @param resources.limits.cpu [default: 2] Set CPU limits
+## @param resources.limits.memory [default: 1024Mi] Set memory limits
 resources:
   requests:
     cpu: 1
@@ -164,26 +168,34 @@ highAvailabilityMode:
   enabled: true
   replicaCount: 2
 
-## @param commonLabels Labels to add to all deployed objects (sub-charts are not considered)
-##
+## @section Metadata
+
+## @param commonLabels [object] Labels to add to all deployed objects
 commonLabels: {}
-## @param commonAnnotations Annotations to add to all deployed objects (sub-charts are not considered)
-##
+
+## @param commonAnnotations [object] Annotations to add to all deployed objects
 commonAnnotations: {}
 
-## @param podLabels Pod labels
+## @param podLabels [object] Labels to add to the Broker Pod
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-##
 podLabels: {}
 
-##### Liveness and Readiness Probes #####
-## Configure Broker containers' options for liveness probe
-## @param livenessProbe.enabled Enable livenessProbe
-## @param livenessProbe.path Path for the livenessProbe
-## @param livenessProbe.config.initialDelaySeconds Initial delay seconds for livenessProbe
-## @param livenessProbe.config.periodSeconds Period seconds for livenessProbe
-## @param livenessProbe.config.timeoutSeconds Timeout seconds for livenessProbe
-## @param livenessProbe.config.failureThreshold Failure threshold for livenessProbe
+## @param affinity [object] Any affinities/anti-affinities to apply to Broker
+affinity: {}
+
+## @param nodeSelector [object] Any node labels to match when scheduling Broker
+nodeSelector: {}
+
+## @param tolerations [object] Any taints to tolerate when scheduling Broker
+tolerations: []
+
+## @section Probes
+## @param livenessProbe.enabled [default: true] Enable livenessProbe
+## @param livenessProbe.path [default: "/healthcheck"] Path for the livenessProbe
+## @param livenessProbe.config.initialDelaySeconds [default: 3] Initial delay in seconds
+## @param livenessProbe.config.periodSeconds [default: 10] Seconds between probes
+## @param livenessProbe.config.timeoutSeconds [default: 1] Elapsed second(s) for timeout
+## @param livenessProbe.config.failureThreshold [default: 3] Number of consecutive probe failures to mark as unhealty
 
 livenessProbe:
   enabled: true
@@ -194,13 +206,12 @@ livenessProbe:
     timeoutSeconds: 1
     failureThreshold: 3
 
-## Configure Broker containers' options for readinessProbe probe
-## @param readinessProbe.enabled Enable readinessProbe
+## @param readinessProbe.enabled [default: true] Enable readinessProbe
 ## @param readinessProbe.path Path for the readinessProbe
-## @param readinessProbe.config.initialDelaySeconds Initial delay seconds for readinessProbe
-## @param readinessProbe.config.periodSeconds Period seconds for readinessProbe
-## @param readinessProbe.config.timeoutSeconds Timeout seconds for readinessProbe
-## @param readinessProbe.config.failureThreshold Failure threshold for readinessProbe
+## @param readinessProbe.config.initialDelaySeconds Initial delay in seconds
+## @param readinessProbe.config.periodSeconds Seconds between probes
+## @param readinessProbe.config.timeoutSeconds Elapsed second(s) for timeout
+## @param readinessProbe.config.failureThreshold Number of consecutive probe failures to mark as not ready
 
 readinessProbe:
   enabled: true
@@ -212,7 +223,7 @@ readinessProbe:
     failureThreshold: 3
 
 ## @section Logging
-## @param logLevel defines Log Level for broker client pod. Can be set to "debug" for more information
+## @param logLevel Set the Log Level for Universal Broker. Can be set to "debug" for more information
 ## @param logVerbose [default: false] Enable to log request headers. Takes effect if log level is "info"
 
 logLevel: "info"
@@ -306,20 +317,21 @@ serviceAccount:
   ## @param serviceAccount.name [string] The name of the serviceAccount to create. If not set and create is true, a name is generated
   name: ""
 
+## @section Security Contexts
 ## Pod security context
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
-## @param podSecurityContext.enabled Enable security context for Broker Pods
-## @param podSecurityContext.fsGroupChangePolicy Set filesystem group change policy
-## @param podSecurityContext.sysctls Set kernel settings using the sysctl interface
-## @param podSecurityContext.supplementalGroups Set filesystem extra groups
-## @param podSecurityContext.fsGroup Group ID for the volumes of the pod
-##
+## @param podSecurityContext.enabled [default:true] Enable Pod Security Context for Broker
+## @param podSecurityContext.fsGroupChangePolicy [default:Always] Set filesystem group change policy
+## @param podSecurityContext.sysctls [array] Set kernel settings using the sysctl interface
+## @param podSecurityContext.fsGroup [default:1000] Group ID for the volumes of the pod
+## @param podSecurityContext.supplementalGroups [array] Set filesystem groups
+
 podSecurityContext:
   enabled: true
   fsGroupChangePolicy: Always
   sysctls: []
-  supplementalGroups: []
   fsGroup: 1000
+  supplementalGroups: []
 
 ## Container security context
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
@@ -348,6 +360,31 @@ containerSecurityContext:
     type: "RuntimeDefault"
   readOnlyRootFilesystem: false
 
+## @section Additional Objects
+
+## @param sidecars Any sidecars to attach to Broker
+## e.g:
+## sidecars:
+##   - name: your-image-name
+##     image: your-image
+##     imagePullPolicy: Always
+##     ports:
+##       - name: portname
+##         containerPort: 1234
+##
+sidecars: []
+
+## @param initContainers Any initContainers to run before Broker
+## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+## e.g:
+## initContainers:
+##  - name: your-image-name
+##    image: your-image
+##    imagePullPolicy: Always
+##    command: ['sh', '-c', 'echo "hello world"']
+##
+initContainers: []
+
 ## @param extraVolumes Optionally specify extra list of additional volumes for Broker container
 extraVolumes: []
 
@@ -356,6 +393,12 @@ extraVolumeMounts: []
 
 ## @param extraEnvVars Optionally specify extra list of additional environment variables for Broker container
 extraEnvVars: []
+
+## @param extraEnvVarsCM Optionally specify one or more external configmaps containing additional environment variables for Broker
+extraEnvVarsCM: []
+
+## @param extraEnvVarsSecret Optionally specify one or more external secrets containing additional environment variables for Broker
+extraEnvVarsSecret: []
 
 ## @skip global.compatibility.openshift.adaptSecurityContext [default: auto] Set to false to disable security context adaptations for OpenShift. If left in "auto", will remove default user/group values that will violate an OpenShift Security Context
 global:
