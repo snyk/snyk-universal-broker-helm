@@ -37,7 +37,7 @@ export type importDataTargetSpec = {
 };
 
 export type snykRequestHeaders = {
-  Authorization: string,
-  "Content-Type": string,
-  "snyk-request-id"?: string
-}
+  Authorization: string;
+  "Content-Type": string;
+  "snyk-request-id"?: string;
+};

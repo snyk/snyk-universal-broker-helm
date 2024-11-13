@@ -4,12 +4,12 @@
     "urlNoSchema": {
       "type": "string",
       "not": {
-        "pattern": "^http(s?):\/\/.*"
+        "pattern": "^http(s?)://.*"
       }
     },
     "urlWithSchema": {
       "type": "string",
-      "pattern": "^$|^http(s?):\/\/.*"
+      "pattern": "^$|^http(s?)://.*"
     },
     "probe": {
       "type": "object",
@@ -40,35 +40,36 @@
       },
       "additionalProperties": false
     },
-    "emptyOrUuid":{
-      "oneOf":[{
-        "type":"string",
-        "maxLength":0
-      },
-      {
-        "type":"string",
-        "format":"uuid"
-      }
-    ]
+    "emptyOrUuid": {
+      "oneOf": [
+        {
+          "type": "string",
+          "maxLength": 0
+        },
+        {
+          "type": "string",
+          "format": "uuid"
+        }
+      ]
     }
   },
   "type": "object",
   "properties": {
-    "brokerClientUrl":{
-      "$ref":"#/$defs/urlWithSchema"
+    "brokerClientUrl": {
+      "$ref": "#/$defs/urlWithSchema"
     },
     "region": {
       "type": "string",
       "default": ""
     },
-    "deploymentId":{
-      "$ref":"#/$defs/emptyOrUuid"
-    },
-    "clientId":{
+    "deploymentId": {
       "$ref": "#/$defs/emptyOrUuid"
     },
-    "clientSecret":{
-      "type":"string"
+    "clientId": {
+      "$ref": "#/$defs/emptyOrUuid"
+    },
+    "clientSecret": {
+      "type": "string"
     },
     "platformAuthSecret": {
       "type": "object",
@@ -156,58 +157,58 @@
     "insecureDownstream": {
       "type": "boolean"
     },
-    "containerPort":{
-      "type":"integer",
-      "default":8000
+    "containerPort": {
+      "type": "integer",
+      "default": 8000
     },
-    "hostAliases":{
-      "type":"array",
-      "items":{
-        "type":"object",
-        "properties":{
-          "ip":{
-            "type":"string"
+    "hostAliases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ip": {
+            "type": "string"
           },
-          "hostnames":{
-            "type":"array",
-            "items":{
-              "type":"string"
+          "hostnames": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           }
         },
         "additionalProperties": false
       }
     },
-    "service":{
-      "type":"object",
-      "properties":{
-        "type":{
-          "type":"string",
-          "enum":["ClusterIP","NodePort","LoadBalancer"]
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"]
         },
-        "port":{
-          "type":"integer"
+        "port": {
+          "type": "integer"
         },
-        "nodePort":{
-          "type": ["integer","null"]
+        "nodePort": {
+          "type": ["integer", "null"]
         },
-        "clusterIP":{
-          "type":["string","null"]
+        "clusterIP": {
+          "type": ["string", "null"]
         },
-        "loadBalancerIP":{
-          "type":["string","null"]
+        "loadBalancerIP": {
+          "type": ["string", "null"]
         },
-        "loadBalancerSourceRanges":{
-          "type":"array"
+        "loadBalancerSourceRanges": {
+          "type": "array"
         },
-        "externalTrafficPolicy":{
-          "type":"string"
+        "externalTrafficPolicy": {
+          "type": "string"
         },
-        "extraPorts":{
-          "type":"array"
+        "extraPorts": {
+          "type": "array"
         },
-        "tls":{
-          "type":"array"
+        "tls": {
+          "type": "array"
         }
       },
       "additionalProperties": false
@@ -230,11 +231,7 @@
         },
         "pathType": {
           "type": "string",
-          "enum": [
-            "Prefix",
-            "Exact",
-            "ImplementationSpecific"
-          ]
+          "enum": ["Prefix", "Exact", "ImplementationSpecific"]
         },
         "hostname": {
           "type": "string"
@@ -252,18 +249,14 @@
               },
               "pathType": {
                 "type": "string",
-                "enum": [
-                  "Prefix",
-                  "Exact",
-                  "ImplementationSpecific"
-                ]
+                "enum": ["Prefix", "Exact", "ImplementationSpecific"]
               },
               "allowAdditionalProperties": false
             }
           }
         },
-        "secrets":{
-          "type":"array"
+        "secrets": {
+          "type": "array"
         },
         "extraPaths": {
           "type": "array",
@@ -271,10 +264,10 @@
             "type": "string"
           }
         },
-        "extraRules":{
-          "type":"array",
-          "items":{
-            "type":"object"
+        "extraRules": {
+          "type": "array",
+          "items": {
+            "type": "object"
           }
         },
         "extraTls": {
@@ -319,20 +312,20 @@
       },
       "additionalProperties": false
     },
-    "runtimeClassName":{
-      "type":"string"
+    "runtimeClassName": {
+      "type": "string"
     },
-    "priorityClassName":{
-      "type":"string"
+    "priorityClassName": {
+      "type": "string"
     },
-    "resources":{
-      "type":"object",
-      "properties":{
-        "requests":{
-          "type":"object"
+    "resources": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "object"
         },
-        "limits":{
-          "type":"object"
+        "limits": {
+          "type": "object"
         }
       },
       "additionalProperties": false
@@ -350,23 +343,23 @@
       },
       "additionalProperties": false
     },
-    "commonLabels":{
-      "type":"object"
+    "commonLabels": {
+      "type": "object"
     },
-    "commonAnnotations":{
-      "type":"object"
+    "commonAnnotations": {
+      "type": "object"
     },
-    "podLabels":{
-      "type":"object"
+    "podLabels": {
+      "type": "object"
     },
-    "affinity":{
-      "type":"object"
+    "affinity": {
+      "type": "object"
     },
-    "nodeSelector":{
-      "type":"object"
+    "nodeSelector": {
+      "type": "object"
     },
-    "tolerations":{
-      "type":"array"
+    "tolerations": {
+      "type": "array"
     },
     "livenessProbe": {
       "$ref": "#/$defs/probe"
@@ -376,10 +369,7 @@
     },
     "logLevel": {
       "type": "string",
-      "enum": [
-        "info",
-        "debug"
-      ]
+      "enum": ["info", "debug"]
     },
     "logVerbose": {
       "type": "boolean",
@@ -469,29 +459,29 @@
       },
       "additionalProperties": false
     },
-    "image":{
-      "type":"object",
-      "properties":{
-        "registry":{
-          "type":"string"
+    "image": {
+      "type": "object",
+      "properties": {
+        "registry": {
+          "type": "string"
         },
-        "repository":{
-          "type":"string"
+        "repository": {
+          "type": "string"
         },
-        "pullPolicy":{
-          "type":"string",
-          "enum":["Always","IfNotPresent","Never"]
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"]
         },
-        "tag":{
-          "type":"string"
+        "tag": {
+          "type": "string"
         },
-        "pullSecrets":{
-          "type":"array",
-          "items":{
-            "type":"object",
-            "properties":{
-              "name":{
-                "type":"string"
+        "pullSecrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
               }
             },
             "additionalProperties": false
@@ -503,8 +493,8 @@
     "serviceAccount": {
       "type": "object",
       "properties": {
-        "name":{
-          "type":"string"
+        "name": {
+          "type": "string"
         },
         "create": {
           "type": "boolean"
@@ -526,10 +516,7 @@
         },
         "fsGroupChangePolicy": {
           "type": "string",
-          "enum": [
-            "Always",
-            "OnRootMismatch"
-          ]
+          "enum": ["Always", "OnRootMismatch"]
         },
         "sysctls": {
           "type": "array",
@@ -556,7 +543,7 @@
           "default": 1000
         }
       },
-      "additionalProperties":false
+      "additionalProperties": false
     },
     "containerSecurityContext": {
       "type": "object",
@@ -603,30 +590,28 @@
         },
         "readOnlyRootFilesystem": {
           "type": "boolean",
-          "enum": [
-            false
-          ],
+          "enum": [false],
           "default": false
         }
       },
       "additionalProperties": false
     },
-    "sidecars":{
-      "type":"array",
-      "items":{
-        "type":"object"
+    "sidecars": {
+      "type": "array",
+      "items": {
+        "type": "object"
       }
     },
-    "initContainers":{
-      "type":"array",
-      "items":{
-        "type":"object"
+    "initContainers": {
+      "type": "array",
+      "items": {
+        "type": "object"
       }
     },
-    "extraVolumes":{
-      "type":"array",
-      "items":{
-        "type":"object"
+    "extraVolumes": {
+      "type": "array",
+      "items": {
+        "type": "object"
       }
     },
     "extraVolumeMounts": {
@@ -641,23 +626,23 @@
         "type": "object"
       }
     },
-    "extraEnvVarsCM":{
-      "type":"array",
-      "items":{
-        "type":"string"
+    "extraEnvVarsCM": {
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     },
-    "extraEnvVarsSecret":{
-      "type":"array",
-      "items":{
-        "type":"string"
+    "extraEnvVarsSecret": {
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     },
-    "priorityClassName":{
-      "type":"string"
+    "priorityClassName": {
+      "type": "string"
     },
-    "runtimeClassName":{
-      "type":"string"
+    "runtimeClassName": {
+      "type": "string"
     },
     "global": {
       "type": "object",
