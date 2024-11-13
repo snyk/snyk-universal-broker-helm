@@ -62,7 +62,6 @@ async function pollRequestImport(
   orgId: string,
   integrationId: string
 ) {
-  // There are occasions where the import API returns a 404 if we're "too fast".
   let importResponse = await client.post({
     endpoint: `v1/org/${orgId}/integrations/${integrationId}/import`,
     body: JSON.stringify({
@@ -94,10 +93,9 @@ async function pollJobStatus(
     },
     successFunction: (response) => {
       const logs = response.data.logs
-      if (logs.length > 0) { 
+      if (logs.length > 0) {
         const success = response.data["status"].includes("complete");
         const noFailedProjects = logs[0].projects.some((project) => project.success === false);
-        logger.info(`${success}, ${noFailedProjects}`);
         return success && !noFailedProjects;
       }
     },
@@ -111,7 +109,6 @@ async function runImport(importDataTarget, orgId, orgName, integrationId) {
     `Importing target: ${JSON.stringify(importDataTarget["target"])}`
   );
 
-  // There are occasions where the import API returns a 404 if we're "too fast".
   let importResponse = await pollRequestImport(
     importDataTarget,
     orgId,
