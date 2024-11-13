@@ -1,0 +1,9 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.0
+ignore:
+  SNYK-JS-CROSSSPAWN-8303230:
+    - '*':
+        reason: No upstream fix available
+        expires: 2024-12-02T00:00:00.000Z
+        created: 2024-11-13T12:00:38.863Z
+patch: {}

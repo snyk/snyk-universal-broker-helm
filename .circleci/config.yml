@@ -159,6 +159,14 @@ jobs:
           name: Run semantic-release
           command: npx semantic-release
 
+  security_scans:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - prodsec/security_scans:
+          mode: auto
+
 workflows:
   validate_and_publish:
     jobs:
@@ -168,6 +176,9 @@ workflows:
             - snyk-bot-slack
           channel: hybrid-alerts
           trusted-branch: main
+      - security_scans:
+          context:
+            - team-hybrid-snyk
       - validate_charts:
           context:
             - snyk-universal-broker-helm-chart
@@ -177,12 +188,14 @@ workflows:
             - snyk-universal-broker-helm-chart
           requires:
             - validate_charts
+            - security_scans
+            - Scan repository for secrets
       - publish:
           context:
             - team-broker-docker-hub
           requires:
             - validate_documentation
-            # - deploy_and_test
+            - deploy_and_test
           filters:
             branches:
               only:
