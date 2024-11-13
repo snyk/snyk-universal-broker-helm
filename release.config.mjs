@@ -22,8 +22,8 @@ export default {
       {
         prepareCmd:
           "helm dep up && helm package --version ${nextRelease.version} .",
-        // publishCmd:
-        //   "helm push snyk-universal-broker-*.tgz oci://registry-1.docker.io/snyk",
+        publishCmd:
+          "helm push snyk-universal-broker-*.tgz oci://registry-1.docker.io/snyk",
         execCwd: "snyk-universal-broker",
       }
     ],
