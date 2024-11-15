@@ -1,0 +1,33 @@
+on:
+  ## This workflow only runs on the default branch
+  check_suite:
+    types: [completed]
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    name: Sign Chart
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.7.0
+      - name: Check Cosign
+        run: cosign version
+      - name: Cosign with OIDC
+        run: |
+          # Get the latest tag
+          LATEST_TAG=$(git describe --tags 'git rev-list --tags --max-count=1')
+          # Obtain the digest from this tag
+          DIGEST=$(curl "https://hub.docker.com/v2/repositories/snyk/snyk-universal-broker/tags/${LATEST_TAG}" | jq '.digest' -r)
+          # Sign the image, using GitHub as an OIDC provider
+          cosign sign --yes oci://registry-1.docker.io/snyk/snyk-universal-broker-helm@${DIGEST}
+      - name: Verify signature
+        run: |
+          cosign verify oci://registry-1.docker.io/snyk/snyk-universal-broker-helm@${DIGEST}
+          cosign verify oci://registry-1.docker.io/snyk/snyk-universal-broker-helm@${LATEST_TAG}

@@ -6,6 +6,9 @@ This is a Helm Chart to deploy the [Snyk Universal Broker](https://docs.snyk.io/
 
 ## Requirements
 
+- Helm `3.8.0` or newer
+- (Optionally) the `helm-sigstore` Helm plugin, or `cosign`
+
 ### Networking
 
 #### Outbound
@@ -20,6 +23,14 @@ If a proxy, firewall, or other network appliance sits between Broker and the pub
 
 - the above domains are whitelisted, _and_
 - the proxy, firewall or other network appliance supports the websockets protocol
+
+## Installing the Helm Chart for Universal Broker
+
+Pull the Helm Chart, and provide any configuration necessary:
+
+```
+helm pull oci://registry-1.docker.io/snyk/snyk-universal-broker
+```
 
 ## Basic Configuration
 
