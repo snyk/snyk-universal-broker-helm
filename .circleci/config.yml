@@ -201,6 +201,7 @@ workflows:
             - Scan repository for secrets
       - publish:
           context:
+            - team-hybrid-snyk
             - team-broker-docker-hub
           requires:
             - validate_documentation
