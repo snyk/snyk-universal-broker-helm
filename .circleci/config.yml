@@ -162,6 +162,7 @@ jobs:
       - run:
           name: Run semantic-release
           command: npx semantic-release
+## Note - signing happens via GitHub Action to leverage OIDC. CircleCI doesn't support this directly, yet.
 
   security_scans:
     docker:
