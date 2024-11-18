@@ -1,7 +1,7 @@
 on:
   ## This workflow only runs on the default branch
-  check_suite:
-    types: [completed]
+  release:
+    types: [published]
 
 jobs:
   sign:
@@ -22,7 +22,7 @@ jobs:
       - name: Cosign with OIDC
         run: |
           # Get the latest tag
-          LATEST_TAG=$(git describe --tags 'git rev-list --tags --max-count=1')
+          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
           # Obtain the digest from this tag
           DIGEST=$(curl "https://hub.docker.com/v2/repositories/snyk/snyk-universal-broker/tags/${LATEST_TAG}" | jq '.digest' -r)
           # Sign the image, using GitHub as an OIDC provider
