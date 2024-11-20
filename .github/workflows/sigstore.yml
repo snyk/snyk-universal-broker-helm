@@ -2,6 +2,9 @@ on:
   ## This workflow only runs on the default branch
   release:
     types: [published]
+  push:
+    branches:
+        - fix/oci-registry-format-signing-auth
 
 jobs:
   sign:
