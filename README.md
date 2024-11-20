@@ -32,6 +32,30 @@ Pull the Helm Chart, and provide any configuration necessary:
 helm pull oci://registry-1.docker.io/snyk/snyk-universal-broker
 ```
 
+### Verifying the Helm Chart
+
+The Helm Chart for Snyk Universal Broker is signed with `cosign`. Optionally validate the Helm Chart with the following methods.
+
+#### By tag
+
+Replace `x.y.z` with the value of the tag:
+
+```
+cosign verify snyk/snyk-universal-broker:x.y.z \
+  --certificate-identity-regexp="https://github.com/snyk/snyk-universal-broker-helm/.*" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
+```
+
+#### By digest
+
+Replace `@sha256:...` with the digest of the tag:
+
+```
+cosign verify snyk/snyk-universal-broker@sha256:... \
+  --certificate-identity-regexp="https://github.com/snyk/snyk-universal-broker-helm/.*" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
+```
+
 ## Basic Configuration
 
 ### Selecting your Snyk Region
