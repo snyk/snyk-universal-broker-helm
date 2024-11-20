@@ -34,15 +34,9 @@ jobs:
           # Obtain the digest from this tag
           DIGEST=$(curl "https://hub.docker.com/v2/repositories/snyk/snyk-universal-broker/tags/${LATEST_TAG}" | jq '.digest' -r)
           # Sign the image, using GitHub as an OIDC provider
-          cosign sign --yes snyk/snyk-universal-broker-helm@${DIGEST}
-          cosign sign --yes snyk/snyk-universal-broker-helm:${LATEST_TAG}
+          cosign sign --yes snyk/snyk-universal-broker@${DIGEST}
+          cosign sign --yes snyk/snyk-universal-broker:${LATEST_TAG}
       - name: Verify signature
         run: |
-          cosign verify \
-            snyk/snyk-universal-broker-helm@${DIGEST} \
-            --certificate-identity-regexp="https://github.com/snyk/snyk-universal-broker-helm/.*" \
-            --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
-          cosign verify \
-            snyk/snyk-universal-broker-helm:${LATEST_TAG} \
-            --certificate-identity-regexp="https://github.com/snyk/snyk-universal-broker-helm/.*" \
-            --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
+          cosign verify snyk/snyk-universal-broker@${DIGEST} --certificate-identity-regexp="https://github.com/snyk/snyk-universal-broker-helm/.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
+          cosign verify snyk/snyk-universal-broker:${LATEST_TAG} --certificate-identity-regexp="https://github.com/snyk/snyk-universal-broker-helm/.*" --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
