@@ -32,6 +32,17 @@ Return the correct broker dispatcher URL based on the region value.
 {{- end }}
 
 {{/*
+Return the correct UI URL based on the region value.
+*/}}
+{{- define "snyk-broker.appUrl" }}
+  {{- if not .Values.region -}}
+    https://app.snyk.io
+  {{- else -}}
+    {{- printf "https://app.%s.snyk.io" .Values.region -}}
+  {{- end -}}
+{{- end }}
+
+{{/*
 Return replica count based on HA mode
 */}}
 {{- define "snyk-broker.replicas" -}}
