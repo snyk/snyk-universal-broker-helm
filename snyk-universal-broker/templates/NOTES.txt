@@ -1,0 +1,3 @@
+Thank you for installing the Snyk Universal Broker.
+
+Access the Snyk UI to start onboarding projects: {{ include "snyk-broker.appUrl" . }}

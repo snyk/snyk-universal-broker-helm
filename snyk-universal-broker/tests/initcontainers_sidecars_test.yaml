@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
+suite: InitContainers, Sidecars
+templates:
+  - statefulset.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: Adds an initContainer
+    set:
+      initContainers:
+      - name: your-image-name
+        image: your-image
+        imagePullPolicy: Always
+        command: ['sh', '-c', 'echo "hello world"']
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: your-image-name
+            image: your-image
+            imagePullPolicy: Always
+            command: ['sh', '-c', 'echo "hello world"']
+
+  - it: Adds a sidecar
+    set:
+      sidecars:
+        - name: your-image-name
+          image: your-image
+          imagePullPolicy: Always
+          ports:
+            - name: portname
+              containerPort: 1234
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers
+          count: 2

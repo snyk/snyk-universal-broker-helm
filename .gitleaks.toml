@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[allowList]
+paths = [
+  '''snyk-universal-broker/tests''',
+  '''snyk-universal-broker/values.schema.json''',
+  '''README.md'''
+  ]

@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
+suite: Image Pull Secrets & Custom Registry/Repositories
+templates:
+  - statefulset.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: Does not use an imagePullSecret by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.imagePullSecrets
+
+  - it: Sets an imagePullSecret
+    set:
+      image.pullSecrets:
+       - name: "my-image-pull-secret"
+    asserts:
+      - exists:
+          path: spec.template.spec.pullSecrets
+      - contains:
+          path: spec.template.spec.pullSecrets
+          content:
+            name: "my-image-pull-secret"
+
+  - it: Sets multiple imagePullSecrets
+    set:
+      image.pullSecrets:
+       - name: "my-image-pull-secret"
+       - name: "another-image-pull-secret"
+    asserts:
+      - exists:
+          path: spec.template.spec.pullSecrets
+      - contains:
+          path: spec.template.spec.pullSecrets
+          content:
+            name: "my-image-pull-secret"
+      - contains:
+          path: spec.template.spec.pullSecrets
+          content:
+            name: "another-image-pull-secret"
+
+  - it: Updates the image pull policy
+    set:
+      image.pullPolicy: "Always"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: "Always"
+
+  - it: Fails if an unrecognised image pull policy is specified
+    set:
+      image.pullPolicy: "Sometimes"
+    asserts:
+      - failedTemplate: {}
+
+  - it: Sets a custom image registry
+    set:
+      image.registry: my.private.docker.tld
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: my.private.docker.tld/snyk/broker:universal
+
+  - it: Sets a custom image repository
+    set:
+      image.repository: snykImages/broker
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/snykImages/broker:universal
+
+  - it: Sets a custom image registry and repository
+    set:
+      image.registry: my.private.docker.tld
+      image.repository: snykImages
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: my.private.docker.tld/snykImages:universal
+
+  - it: Respects a provided tag
+    set:
+      image.tag: "0.0.1-universal"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/snyk/broker:0.0.1-universal

@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: "Logging"
+templates:
+  - statefulset.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+
+  - it: logs at INFO by default
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: "info"
+
+  - it: disables body logging by default
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_ENABLE_BODY
+            value: "true"
+
+  - it: adds verbose logs to INFO
+    set:
+      logVerbose: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: "info"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_INFO_VERBOSE
+            value: "true"
+
+  - it: enables debug logs
+    set:
+      logLevel: "debug"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: "debug"
+
+  - it: enables debug logs, ignoring verbose
+    set:
+      logLevel: "debug"
+      logVerbose: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: "debug"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_INFO_VERBOSE
+            value: "true"

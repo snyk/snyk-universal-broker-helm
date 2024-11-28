@@ -1,0 +1,107 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
+suite: ACCEPT_ Tests
+templates:
+  - statefulset.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: Sets all ACCEPTS_ by default
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ACCEPT_CODE
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ACCEPT_APPRISK
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ACCEPT_LARGE_MANIFESTS
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ACCEPT_CUSTOM_PR_TEMPLATES
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ACCEPT_IAC
+            value: "tf,yaml,yml,json,tpl"
+
+  - it: Removes ACCEPTS_CODE
+    set:
+      acceptCode: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ACCEPT_CODE
+            value: "true"
+
+  - it: Removes ACCEPTS_APPRISK
+    set:
+      acceptAppRisk: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ACCEPT_APPRISK
+            value: "true"
+
+  - it: Removes ACCEPTS_LARGE_MANIFESTS
+    set:
+      acceptLargeManifests: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ACCEPTS_LARGE_MANIFESTS
+            value: "true"
+
+  - it: Removes ACCEPTS_CUSTOM_PR_TEMPLATES
+    set:
+      acceptCustomPrTemplates: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ACCEPTS_CUSTOM_PR_TEMPLATES
+            value: "true"
+
+  - it: Removes ACCEPT_IAC
+    set:
+      acceptIaC: ""
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ACCEPT_IAC
+            value: "tf,yaml,yml,json,tpl"
+
+  ## This test will pass once values.schema.json is set to disallow additionalProperties
+  # - it: Rejects unsupported ACCEPT_
+  #   set:
+  #     acceptCod: false
+  #   asserts:
+  #     - failedTemplate: {}
+
+  - it: Rejects malformed ACCEPT_IAC 
+    set:
+      acceptIaC: "tf, yaml, .tpl"
+    asserts:
+      - failedTemplate: {}
+
+  - it: Rejects unexpected ACCEPT_IAC extension
+    set:
+      acceptIaC: "tf, yaml, tpl, toml"
+    asserts:
+      - failedTemplate:
+          errorMessage: "Unrecognised extension for ACCEPT_IAC: toml"

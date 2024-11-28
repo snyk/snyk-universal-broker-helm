@@ -1,0 +1,177 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Service Tests
+templates:
+  - service.yaml
+  - statefulset.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: supports specifying a ClusterIP
+    set:
+      service:
+        clusterIP: 10.96.0.1
+    asserts:
+      - isKind:
+          of: Service
+        template: service.yaml
+      - equal:
+          path: spec.clusterIP
+          value: 10.96.0.1
+        template: service.yaml
+
+  - it: supports a NodePort service
+    set:
+      service:
+        type: NodePort
+    asserts:
+      - isKind:
+          of: Service
+        template: service.yaml
+      - equal:
+          path: spec.type
+          value: NodePort
+        template: service.yaml
+
+  - it: supports a NodePort service with optional nodePort specification
+    set:
+      service:
+        type: NodePort
+        nodePort: 30007
+    asserts:
+      - isKind:
+          of: Service
+        template: service.yaml
+      - equal:
+          path: spec.type
+          value: NodePort
+        template: service.yaml
+      - contains:
+          path: spec.ports
+          content:
+            port: 8000
+            targetPort: 8000
+            nodePort: 30007
+        template: service.yaml
+
+  - it: supports a LoadBalancer service
+    set:
+      service:
+        type: LoadBalancer
+    asserts:
+      - isKind:
+          of: Service
+        template: service.yaml
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+        template: service.yaml
+
+  - it: supports a LoadBalancer service with optional traffic policy
+    set:
+      service:
+        type: LoadBalancer
+        externalTrafficPolicy: Local
+    asserts:
+      - isKind:
+          of: Service
+        template: service.yaml
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+        template: service.yaml
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local
+        template: service.yaml
+
+  - it: supports a LoadBalancer service with optional source ranges
+    set:
+      service:
+        type: LoadBalancer
+        loadBalancerSourceRanges:
+          - "0.0.0.0/0"
+    asserts:
+      - isKind:
+          of: Service
+        template: service.yaml
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+        template: service.yaml
+      - contains:
+          path: spec.loadBalancerSourceRanges
+          content:
+            "0.0.0.0/0"
+        template: service.yaml
+
+  - it: supports a LoadBalancer service with an optional loadbalancer IP
+    set:
+      service:
+        type: LoadBalancer
+        loadBalancerIP: "1.2.3.4"
+    asserts:
+      - isKind:
+          of: Service
+        template: service.yaml
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+        template: service.yaml
+      - equal:
+          path: spec.loadBalancerIP
+          value: "1.2.3.4"
+        template: service.yaml
+
+  - it: set the service port and targetPort
+    set:
+      service:
+        port: 80
+      containerPort: 8080
+    asserts:
+      - isKind:
+          of: Service
+        template: service.yaml
+      - equal:
+          path: spec.ports[0].port
+          value: 80
+        template: service.yaml
+      - equal:
+          path: spec.ports[0].targetPort
+          value: 8080
+        template: service.yaml
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: http
+            containerPort: 8080
+        template: statefulset.yaml
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 8080
+        template: statefulset.yaml
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 8080
+        template: statefulset.yaml
+
+  - it: Add extraPorts
+    set:
+      service:
+        extraPorts:
+          - name: https
+            port: 443
+            targetPort: 8443
+    asserts:
+      - isKind:
+          of: Service
+        template: service.yaml
+      - equal:
+          path: spec.ports[1].port
+          value: 443
+        template: service.yaml
+      - equal:
+          path: spec.ports[1].targetPort
+          value: 8443
+        template: service.yaml

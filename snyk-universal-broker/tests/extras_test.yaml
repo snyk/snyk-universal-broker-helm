@@ -1,0 +1,97 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Extras
+templates:
+  - statefulset.yaml
+values:
+- ../values.yaml
+- fixtures/default_values.yaml
+
+tests:
+  - it: creates extra volumes
+    set: 
+      extraVolumes:
+        - name: my-empty-dir
+          emptyDir:
+            sizeLimit: 500Mi
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: my-empty-dir
+            emptyDir:
+              sizeLimit: 500Mi
+
+  - it: mounts extra volumes
+    set: 
+      extraVolumes:
+        - name: my-empty-dir
+          emptyDir:
+            sizeLimit: 500Mi
+      extraVolumeMounts:
+        - name: my-empty-dir
+          mountPath: "/scratch"
+          readOnly: false
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: my-empty-dir
+            emptyDir:
+              sizeLimit: 500Mi
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: my-empty-dir
+            mountPath: "/scratch"
+            readOnly: false
+
+  - it: Sets extra env vars
+    set:
+      extraEnvVars:
+        - name: MY_VAR
+          value: "myvalue"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MY_VAR
+            value: "myvalue"
+
+  - it: Sets extra env vars from a configmap
+    set:
+      extraEnvVarsCM:
+        - "my-external-configmap"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: "my-external-configmap"
+
+  - it: Sets extra env vars from a secret
+    set:
+      extraEnvVarsSecret:
+        - "my-external-secret"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: "my-external-secret"
+
+  - it: Sets extra env vars from multiple secrets
+    set:
+      extraEnvVarsSecret:
+        - "my-external-secret"
+        - "my-special-secret"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: "my-external-secret"
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: "my-special-secret"

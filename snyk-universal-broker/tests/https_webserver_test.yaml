@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Ingress
+templates:
+  - ingress.yaml
+  - statefulset.yaml
+  - tls-secret.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: Serves broker via https with a provided certificate and key
+    set:
+      localWebServer.https: true
+      localWebServer.certificate: "-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----"
+      localWebServer.key: "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.scheme
+          value: "HTTPS"
+        template: statefulset.yaml
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.scheme
+          value: "HTTPS"
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: RELEASE-NAME-tls-secret-volume
+            secret:
+              secretName: RELEASE-NAME-tls-secret
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_CERT
+            value: /home/node/tls-cert/tls.crt
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_KEY
+            value: /home/node/tls-cert/tls.key
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: RELEASE-NAME-tls-secret-volume
+            mountPath: /home/node/tls-cert/
+            readOnly: true
+        template: statefulset.yaml
+      - hasDocuments:
+          count: 1
+        template: tls-secret.yaml
+      - containsDocument:
+          kind: Secret
+          name: RELEASE-NAME-tls-secret
+          apiVersion: v1
+          namespace: NAMESPACE
+        template: tls-secret.yaml
+
+  - it: Serves broker via https with an external secret
+    set:
+      localWebServer.https: true
+      localWebServerSecret.name: my-tls-secret
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.scheme
+          value: "HTTPS"
+        template: statefulset.yaml
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.scheme
+          value: "HTTPS"
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_CERT
+            value: /home/node/tls-cert/tls.crt
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_KEY
+            value: /home/node/tls-cert/tls.key
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: RELEASE-NAME-tls-secret-volume
+            secret:
+              secretName: my-tls-secret
+        template: statefulset.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: RELEASE-NAME-tls-secret-volume
+            mountPath: /home/node/tls-cert/
+            readOnly: true
+        template: statefulset.yaml
+      - hasDocuments:
+          count: 0
+        template: tls-secret.yaml

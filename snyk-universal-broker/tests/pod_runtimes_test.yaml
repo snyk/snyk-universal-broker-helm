@@ -1,0 +1,159 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: Pod Runtime
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+templates:
+  - statefulset.yaml
+
+tests:
+  - it: should set pod security context by default
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1000
+
+  - it: disables pod security context
+    set:
+      podSecurityContext.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.securityContext
+
+  - it: should set container security context by default
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsGroup
+          value: 1000
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop[0]
+          value: "ALL"
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.seccompProfile.type
+          value: "RuntimeDefault"
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.privileged
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: false
+
+  - it: disables container security context
+    set:
+      containerSecurityContext.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext
+
+  - it: sets extra pod security context options
+    set:
+      podSecurityContext.fsGroup: 1001
+      podSecurityContext.fsGroupChangePolicy: "OnRootMismatch"
+      podSecurityContext.supplementalGroups: [2000]
+      podSecurityContext.sysctls:
+        - name: "net.core.somaxconn"
+          value: "1024"
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001
+      - equal:
+          path: spec.template.spec.securityContext.fsGroupChangePolicy
+          value: "OnRootMismatch"
+      - contains:
+          path: spec.template.spec.securityContext.supplementalGroups
+          content:
+            2000
+      - contains:
+          path: spec.template.spec.securityContext.sysctls
+          content:
+            name: "net.core.somaxconn"
+            value: "1024"
+
+  - it: sets extra container security context options
+    set:
+      containerSecurityContext.seLinuxOptions:
+        level: "s0:c123,c456"
+      containerSecurityContext.capabilities.add:
+        - "NET_ADMIN"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.seLinuxOptions.level
+          value: "s0:c123,c456"
+      - contains:
+          path: spec.template.spec.containers[0].securityContext.capabilities.add
+          content:
+            "NET_ADMIN"
+
+  - it: fails if readOnlyRootFilesystem is `true`
+    set:
+      containerSecurityContext.readOnlyRootFilesystem: true
+    asserts:
+      - failedTemplate: {}
+
+  - it: can add tolerations
+    set:
+      tolerations:
+        - key: "key1"
+          operator: "Exists"
+          effect: "NoSchedule"
+    asserts:
+      - contains:
+          path: spec.template.spec.tolerations
+          content:
+            key: "key1"
+            operator: "Exists"
+            effect: "NoSchedule"
+
+  - it: can add nodeSelectors
+    set:
+      nodeSelector:
+        disktype: ssd
+        cpu: high
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector.disktype
+          value: ssd
+      - equal:
+          path: spec.template.spec.nodeSelector.cpu
+          value: high
+
+  - it: should set arbitrary hostAliases on the pod
+    set:
+      hostAliases:
+        - hostnames:
+            - "example.com"
+          ip: "127.0.0.1"
+    asserts:
+    - equal:
+        path: spec.template.spec.hostAliases[0].hostnames
+        value:
+          - "example.com"
+    - equal:
+        path: spec.template.spec.hostAliases[0].ip
+        value: "127.0.0.1"
+
+  - it: can set a priorityClass
+    set:
+      priorityClassName: highest-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: highest-priority
+
+  - it: can set a runtimeCLass
+    set:
+      runtimeClassName: myRuntimeClass
+    asserts:
+      - equal:
+          path: spec.template.spec.runtimeClassName
+          value: myRuntimeClass

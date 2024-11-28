@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "preserveConstEnums": true,
+    "sourceMap": false,
+    "removeComments": false
+  },
+  "files": ["testImport.ts"]
+}
