@@ -6,15 +6,16 @@
     "scripts": {
         "release": "semantic-release"
     },
-    "dependencies": {
+    "devDependencies": {
+        "@semantic-release/changelog": "^6.0.0",
+        "@semantic-release/commit-analyzer": "^9.0.0",
+        "@semantic-release/exec": "^6.0.0",
+        "@semantic-release/github": "^8.0.0",
+        "@semantic-release/release-notes-generator": "^14.0.0",
         "semantic-release": "^24.2.0"
     },
-    "devDependencies": {
-        "@semantic-release/changelog": "^6.0.0", 
-        "@semantic-release/commit-analyzer": "^9.0.0",
-        "@semantic-release/release-notes-generator": "^14.0.0",
-        "@semantic-release/github": "^8.0.0",
-        "@semantic-release/exec": "^6.0.0"
+    "overrides": {
+        "cross-spawn": "^7.0.5"
     },
     "lockfileVersion": 3
 }
