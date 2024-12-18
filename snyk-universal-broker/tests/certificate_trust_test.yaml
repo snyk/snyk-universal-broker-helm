@@ -15,22 +15,22 @@ tests:
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
-          content: 
+          content:
             name: CA_CERT
             value: /home/node/cacert/cacert
         template: statefulset.yaml
       - contains:
           path: spec.template.spec.volumes
-          content: 
+          content:
             name: RELEASE-NAME-cacert-volume
-            secret: 
+            secret:
               secretName: RELEASE-NAME-cacert-secret
         template: statefulset.yaml
       - contains:
           path: spec.template.spec.containers[0].volumeMounts
-          content: 
+          content:
             name: RELEASE-NAME-cacert-volume
-            mountPath: /home/node/cacert/cacert 
+            mountPath: /home/node/cacert/cacert
             readOnly: true
         template: statefulset.yaml
       - equal:
@@ -44,22 +44,22 @@ tests:
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
-          content: 
+          content:
             name: CA_CERT
             value: /home/node/cacert/cacert
         template: statefulset.yaml
       - contains:
           path: spec.template.spec.volumes
-          content: 
+          content:
             name: RELEASE-NAME-cacert-volume
-            secret: 
+            secret:
               secretName: RELEASE-NAME-cacert-secret
         template: statefulset.yaml
       - contains:
           path: spec.template.spec.containers[0].volumeMounts
-          content: 
+          content:
             name: RELEASE-NAME-cacert-volume
-            mountPath: /home/node/cacert/cacert 
+            mountPath: /home/node/cacert/cacert
             readOnly: true
         template: statefulset.yaml
       - equal:
@@ -80,15 +80,15 @@ tests:
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
-          content: 
+          content:
             name: CA_CERT
             value: /home/node/cacert/cacert
         template: statefulset.yaml
       - contains:
           path: spec.template.spec.volumes
-          content: 
+          content:
             name: RELEASE-NAME-cacert-volume
-            secret: 
+            secret:
               secretName: corp-ca
               items:
               - key: ca.pem
@@ -96,8 +96,19 @@ tests:
         template: statefulset.yaml
       - contains:
           path: spec.template.spec.containers[0].volumeMounts
-          content: 
+          content:
             name: RELEASE-NAME-cacert-volume
             mountPath: /home/node/cacert/cacert
             readOnly: true
         template: statefulset.yaml
+
+  - it: disables all CA trust
+    set:
+      disableAllCertificateTrust: true
+    asserts:
+    - contains:
+        path: spec.template.spec.containers[0].env
+        content:
+          name: NODE_TLS_REJECT_UNAUTHORIZED
+          value: "0"
+      template: statefulset.yaml
