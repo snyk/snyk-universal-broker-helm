@@ -101,3 +101,14 @@ tests:
             mountPath: /home/node/cacert
             readOnly: true
         template: statefulset.yaml
+
+  - it: disables all CA trust
+    set:
+      disableAllCertificateTrust: true
+    asserts:
+    - contains:
+        path: spec.template.spec.containers[0].env
+        content:
+          name: NODE_TLS_REJECT_UNAUTHORIZED
+          value: "0"
+      template: statefulset.yaml

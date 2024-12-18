@@ -168,7 +168,7 @@ spec:
               value: /home/node/tls-cert/tls.key
           {{- end }}
           {{- end }}
-        {{- if or (and .Values.tlsRejectUnauthorized (not .Values.caCert)) (and .Values.caCert .Values.disableAllCertificateTrust) }}
+        {{- if .Values.disableAllCertificateTrust }}
          # Troubleshooting - Set to 0 for SSL inspection testing
             - name: NODE_TLS_REJECT_UNAUTHORIZED
               value: "0"
