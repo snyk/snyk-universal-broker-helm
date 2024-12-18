@@ -30,11 +30,11 @@ tests:
           path: spec.template.spec.containers[0].volumeMounts
           content:
             name: RELEASE-NAME-cacert-volume
-            mountPath: /home/node/cacert/cacert
+            mountPath: /home/node/cacert
             readOnly: true
         template: statefulset.yaml
       - equal:
-          path: data.caCert
+          path: data.cacert
           value: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCkZBS0UKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ==
         template: ca-secret.yaml
 
@@ -59,11 +59,11 @@ tests:
           path: spec.template.spec.containers[0].volumeMounts
           content:
             name: RELEASE-NAME-cacert-volume
-            mountPath: /home/node/cacert/cacert
+            mountPath: /home/node/cacert
             readOnly: true
         template: statefulset.yaml
       - equal:
-          path: data.caCert
+          path: data.cacert
           value: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCkZBS0UKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQoKLS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCkFOT1RIRVIKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ==
         template: ca-secret.yaml
 
@@ -98,7 +98,7 @@ tests:
           path: spec.template.spec.containers[0].volumeMounts
           content:
             name: RELEASE-NAME-cacert-volume
-            mountPath: /home/node/cacert/cacert
+            mountPath: /home/node/cacert
             readOnly: true
         template: statefulset.yaml
 
