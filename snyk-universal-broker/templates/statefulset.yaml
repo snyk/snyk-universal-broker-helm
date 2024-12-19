@@ -119,7 +119,7 @@ spec:
           volumeMounts:
               {{- if or .Values.caCert .Values.caCertSecret.name }}
               - name: {{ .Release.Name }}-cacert-volume
-                mountPath: {{ .Values.caCertMount.path }}
+                mountPath: {{ printf "%s/%s" .Values.caCertMount.path .Values.caCertMount.name }}
                 readOnly: true
               {{- end }}
               {{- if or .Values.localWebServerSecret.name ( and (.Values.localWebServer.certificate) (.Values.localWebServer.key) ) }}
@@ -168,7 +168,7 @@ spec:
               value: /home/node/tls-cert/tls.key
           {{- end }}
           {{- end }}
-        {{- if .Values.disableAllCertificateTrust }}
+        {{- if or (and .Values.tlsRejectUnauthorized (not .Values.caCert)) (and .Values.caCert .Values.disableAllCertificateTrust) }}
          # Troubleshooting - Set to 0 for SSL inspection testing
             - name: NODE_TLS_REJECT_UNAUTHORIZED
               value: "0"
