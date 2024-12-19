@@ -57,6 +57,86 @@ acceptIaC: "tf,yaml,yml,json,tpl"
 acceptCustomPrTemplates: true
 acceptLargeManifests: true
 
+## @param insecureDownstream [default: false] Set to true to communicate with _all_ downstream integrations via http. Not recommended, as traffic will no longer be encrypted
+insecureDownstream: false
+
+## @param highAvailabilityMode.enabled snyk [default: true] Set to false to disable High Availability Mode for Broker
+## @param highAvailabilityMode.replicaCount [default: 2] Number of Broker pods when running in HA mode (min 2, max 4)
+
+highAvailabilityMode:
+  enabled: true
+  replicaCount: 2
+
+## @section Logging
+## @param logLevel Set the Log Level for Universal Broker. Can be set to "debug" for more information
+## @param logVerbose [default: false] Enable to log request headers. Takes effect if log level is "info"
+
+logLevel: "info"
+logVerbose: false
+
+## @section Serving over HTTPS and Certificate Trust
+##### HTTPS Inspection #####
+
+## @param caCert Set caCert to read certificate content from the values.yaml file as a multiline string:
+## Include any/all certificates required for a full trust chain.
+##
+## caCert: |-
+##   ----- BEGIN CERTIFICATE -----
+##   < certificate data >
+##   ----- END CERTIFICATE -----
+##   ----- BEGIN CERTIFICATE -----
+##   < another certificate >
+##   ----- END CERTIFICATE -----
+##
+## or
+##
+## caCert: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
+caCert: ""
+
+## @param caCertMount.path [string, default:"/home/node/cacert"] the path to mount a certificate bundle to
+## @param caCertMount.name [string, default:"cacert"] the filename to write a certificate bundle to
+caCertMount:
+  path: /home/node/cacert
+  name: cacert
+
+## @param caCertSecret.name [string] set to read a CA cert from an external secret
+## @param caCertSecret.caCertKey [default: ca.pem] set to read the ca cert from a different key
+caCertSecret:
+  name: ""
+  caCertKey: ca.pem
+
+## @param disableAllCertificateTrust [default: false] Set to `true` to disable trust of **all** certificates, including any provided CAs
+disableAllCertificateTrust: false
+
+## @param localWebServer.https [default: false] enables Broker client to run a HTTPS server instead of the default HTTP server
+## @param localWebServer.certificate [string] Provide HTTPS cert
+## @param localWebServer.key [string] Provides HTTPS cert key
+localWebServer:
+  https: false
+  certificate: ""
+  key: ""
+## @param localWebServerSecret.name the name of the secret to create or (if cert and key are empty) the existing TLS secret to use
+localWebServerSecret:
+  name: ""
+
+## @section Proxy Configuration
+## @param httpProxy Set to proxy any http-only traffic. You probably need to use HTTPS proxy setting and leave this blank
+## @param httpsProxy HTTPS Proxy URL. Optionally provide user/password auth in the url (http(s)://[username]:[password]@my.proxy:[port]). No other authentication schemes are supported
+## @param noProxy A comma-separated list of hostnames that must not transit a proxy. Do not include protocol or port numbers
+## @param proxySecret.name The name of a pre-existing secret containing up to three entries. If set, supersedes `.Values.httpProxy`, `.Values.httpsProxy` and `.Values.noProxy`
+## @param proxySecret.httpProxyKey Specify the key within the pre-existing secret containing the value for HTTP_PROXY. If left empty, no value is set
+## @param proxySecret.httpsProxyKey Specify the key within the pre-existing secret containing the value for HTTPS_PROXY. If left empty, no value is set
+## @param proxySecret.noProxyKey Specify the key within the pre-existing secret containing the value for NO_PROXY. If left empty, no value is set
+httpProxy: ""
+httpsProxy: ""
+noProxy: ""
+proxySecret:
+  name: ""
+  httpProxyKey: ""
+  httpsProxyKey: ""
+  noProxyKey: ""
+
+## @section Commit Signing
 ## @param commitSigning.enabled [default: false] Set to true to sign any commits made to GitHub or GitHub Enterprise. Requires `name`, `email`, `passphrase`, `privateKey` _or_ `commitSigningSecret`
 ## @param commitSigning.name [string] The name to associate with any signed commits
 ## @param commitSigning.email [string] The email to associate with any signed commits
@@ -72,41 +152,6 @@ commitSigning:
 
 commitSigningSecret:
   name: ""
-
-## @section Networking Parameters
-## @param insecureDownstream [default: false] Set to true to communicate with _all_ downstream integrations via http. Not recommended, as traffic will no longer be encrypted
-insecureDownstream: false
-
-## @param containerPort [default: 8000] The port the Broker container will expose
-containerPort: 8000
-
-## @param hostAliases [array] Add host aliases to the Broker pod if required
-## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
-##
-hostAliases: []
-
-## @param service.type [default: ClusterIP] Set the included Service type
-## @param service.port [default: 8000] Set the port the Service will expose
-## @param service.nodePort [nullable] Optionally specify a nodePort (only takes effect if service.type=NodePort)
-## @param service.clusterIP [nullable] Optionally specify an IP address (only takes effect if service.type=ClusterIP)
-## @param service.loadBalancerIP [nullable] Optionally specify an IP address (only takes effect if service.type=LoadBalancer)
-## @param service.loadBalancerSourceRanges [array] Specify an array of CIDR blocks to permit traffic from (only takes effect if service.type=LoadBalancer)
-## @param service.externalTrafficPolicy [string, default: Cluster] Set the externalTrafficPolicy of the service (only takes effect if service.type=LoadBalancer)
-## @param service.extraPorts [array] Add extra ports to the Service
-## @param service.tls [array] Enable TLS at the Service level
-service:
-  type: ClusterIP
-  port: 8000
-  nodePort: null
-  clusterIP: null
-  loadBalancerIP: null
-  loadBalancerSourceRanges: []
-  externalTrafficPolicy: Cluster
-  extraPorts: []
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
 
 ## @section Broker Ingress
 
@@ -142,6 +187,38 @@ ingress:
     enabled: false
     existingSecret: ""
 
+## @section Networking Parameters
+## @param containerPort [default: 8000] The port the Broker container will expose
+containerPort: 8000
+
+## @param hostAliases [array] Add host aliases to the Broker pod if required
+## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+##
+hostAliases: []
+
+## @param service.type [default: ClusterIP] Set the included Service type
+## @param service.port [default: 8000] Set the port the Service will expose
+## @param service.nodePort [nullable] Optionally specify a nodePort (only takes effect if service.type=NodePort)
+## @param service.clusterIP [nullable] Optionally specify an IP address (only takes effect if service.type=ClusterIP)
+## @param service.loadBalancerIP [nullable] Optionally specify an IP address (only takes effect if service.type=LoadBalancer)
+## @param service.loadBalancerSourceRanges [array] Specify an array of CIDR blocks to permit traffic from (only takes effect if service.type=LoadBalancer)
+## @param service.externalTrafficPolicy [string, default: Cluster] Set the externalTrafficPolicy of the service (only takes effect if service.type=LoadBalancer)
+## @param service.extraPorts [array] Add extra ports to the Service
+## @param service.tls [array] Enable TLS at the Service level
+service:
+  type: ClusterIP
+  port: 8000
+  nodePort: null
+  clusterIP: null
+  loadBalancerIP: null
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: Cluster
+  extraPorts: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
 ## @section Runtime
 
 ## @param runtimeClassName [string] Optionally specify a runtimeClassName for Broker to target
@@ -161,13 +238,6 @@ resources:
   limits:
     cpu: 2
     memory: 1024Mi
-
-## @param highAvailabilityMode.enabled snyk [default: true] Set to false to disable High Availability Mode for Broker
-## @param highAvailabilityMode.replicaCount [default: 2] Number of Broker pods when running in HA mode (min 2, max 4)
-
-highAvailabilityMode:
-  enabled: true
-  replicaCount: 2
 
 ## @section Metadata
 
@@ -196,7 +266,7 @@ tolerations: []
 ## @param livenessProbe.config.initialDelaySeconds [default: 3] Initial delay in seconds
 ## @param livenessProbe.config.periodSeconds [default: 10] Seconds between probes
 ## @param livenessProbe.config.timeoutSeconds [default: 1] Elapsed second(s) for timeout
-## @param livenessProbe.config.failureThreshold [default: 3] Number of consecutive probe failures to mark as unhealty
+## @param livenessProbe.config.failureThreshold [default: 3] Number of consecutive probe failures to mark as unhealthy
 
 livenessProbe:
   enabled: true
@@ -222,75 +292,6 @@ readinessProbe:
     periodSeconds: 10
     timeoutSeconds: 1
     failureThreshold: 3
-
-## @section Logging
-## @param logLevel Set the Log Level for Universal Broker. Can be set to "debug" for more information
-## @param logVerbose [default: false] Enable to log request headers. Takes effect if log level is "info"
-
-logLevel: "info"
-logVerbose: false
-
-## @section Serving over HTTPS and Certificate Trust
-## @param localWebServer.https [default: false] enables Broker client to run a HTTPS server instead of the default HTTP server
-## @param localWebServer.certificate [string] Provide HTTPS cert
-## @param localWebServer.key [string] Provides HTTPS cert key
-localWebServer:
-  https: false
-  certificate: ""
-  key: ""
-## @param localWebServerSecret.name the name of the secret to create or (if cert and key are empty) the existing TLS secret to use
-localWebServerSecret:
-  name: ""
-
-##### HTTPS Inspection #####
-
-## @param caCert Set caCert to read certificate content from the values.yaml file as a multiline string:
-## Include any/all certificates required for a full trust chain.
-##
-## caCert: |-
-##   ----- BEGIN CERTIFICATE -----
-##   < certificate data >
-##   ----- END CERTIFICATE -----
-##   ----- BEGIN CERTIFICATE -----
-##   < another certificate >
-##   ----- END CERTIFICATE -----
-##
-## or
-##
-## caCert: "----- BEGIN CERTIFICATE -----\n.....\n----- END CERTIFICATE -----"
-caCert: ""
-
-## @param caCertMount.path [string, default:"/home/node/cacert"] the path to mount a certificate bundle to
-## @param caCertMount.name [string, default:"cacert"] the filename to write a certificate bundle to
-caCertMount:
-  path: /home/node/cacert
-  name: cacert
-
-## @param caCertSecret.name [string] set to read a CA cert from an external secret
-## @param caCertSecret.caCertKey [default: ca.pem] set to read the ca cert from a different key
-caCertSecret:
-  name: ""
-  caCertKey: ca.pem
-
-## @param disableAllCertificateTrust [default: false] Set to `true` to disable trust of **all** certificates, including any provided CAs
-disableAllCertificateTrust: false
-
-## @section Proxy Configuration
-## @param httpProxy Set to proxy any http-only traffic. You probably need to use HTTPS proxy setting and leave this blank
-## @param httpsProxy HTTPS Proxy URL. Optionally provide user/password auth in the url (http(s)://[username]:[password]@my.proxy:[port]). No other authentication schemes are supported
-## @param noProxy A comma-separated list of hostnames that must not transit a proxy. Do not include protocol or port numbers
-## @param proxySecret.name The name of a pre-existing secret containing up to three entries. If set, supersedes `.Values.httpProxy`, `.Values.httpsProxy` and `.Values.noProxy`
-## @param proxySecret.httpProxyKey Specify the key within the pre-existing secret containing the value for HTTP_PROXY. If left empty, no value is set
-## @param proxySecret.httpsProxyKey Specify the key within the pre-existing secret containing the value for HTTPS_PROXY. If left empty, no value is set
-## @param proxySecret.noProxyKey Specify the key within the pre-existing secret containing the value for NO_PROXY. If left empty, no value is set
-httpProxy: ""
-httpsProxy: ""
-noProxy: ""
-proxySecret:
-  name: ""
-  httpProxyKey: ""
-  httpsProxyKey: ""
-  noProxyKey: ""
 
 ## @section Image Registry
 ## @param image.registry [default: docker.io] Broker image registry
