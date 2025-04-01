@@ -19,9 +19,9 @@ tests:
        - name: "my-image-pull-secret"
     asserts:
       - exists:
-          path: spec.template.spec.pullSecrets
+          path: spec.template.spec.imagePullSecrets
       - contains:
-          path: spec.template.spec.pullSecrets
+          path: spec.template.spec.imagePullSecrets
           content:
             name: "my-image-pull-secret"
 
@@ -32,13 +32,13 @@ tests:
        - name: "another-image-pull-secret"
     asserts:
       - exists:
-          path: spec.template.spec.pullSecrets
+          path: spec.template.spec.imagePullSecrets
       - contains:
-          path: spec.template.spec.pullSecrets
+          path: spec.template.spec.imagePullSecrets
           content:
             name: "my-image-pull-secret"
       - contains:
-          path: spec.template.spec.pullSecrets
+          path: spec.template.spec.imagePullSecrets
           content:
             name: "another-image-pull-secret"
 
