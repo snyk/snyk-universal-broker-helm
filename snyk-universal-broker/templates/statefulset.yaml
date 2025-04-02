@@ -30,7 +30,7 @@ spec:
           {{- toYaml .Values.extraPodSpecs | nindent 6 }}
       {{- end }}
       {{- with .Values.image.pullSecrets }}
-      pullSecrets:
+      imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- if .Values.runtimeClassName }}
