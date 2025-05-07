@@ -4,7 +4,7 @@ dependencies:
   repository: oci://registry-1.docker.io/bitnamicharts
   tags:
   - bitnami-common
-  version: 2.x.x
+  version: 2.30.0
 description: A Helm chart for Kubernetes
 name: snyk-universal-broker
 type: application
