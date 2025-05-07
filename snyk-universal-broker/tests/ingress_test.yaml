@@ -141,6 +141,19 @@ tests:
           value: broker.corp.tld-tls
     template: ingress.yaml
 
+  - it: Does not create a new ingress TLS secret if existingSecret is provided
+    set:
+      ingress.tls.enabled: true
+      ingress.tls.existingSecret: "my-test-existing-secret"
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: ingress-secret.yaml
+      - equal:
+          path: spec.tls[0].secretName
+          value: "my-test-existing-secret"
+        template: ingress.yaml
+
   - it: Respects existing secret
     set:
       ingress.tls.enabled: true
