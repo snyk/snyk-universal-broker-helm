@@ -35,16 +35,37 @@ platformAuthSecret:
 ## See https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/restart-your-broker-with-the-required-environment-variable-and-connect for an example of passing tokens required for the above GitHub connection to the Broker
 ## @param credentialReferences [object] Credential References to pass to Broker
 ## Each entry should be of form <ENV_VALUE_NAME>:<SECRET_VALUE>, which should match a configured Credential Reference.
+## For Github app private keys, .pem extension in the key name to automatically mount them as files and must be same as provided via snyk-broker-config tool.
 ## e.g:
 ## credentialReferences:
 ##   MY_GITHUB_TOKEN: <github-pat>
 ##   MY_OTHER_GITHUB_TOKEN: <another-github-pat>
+##   MY_GITHUB_APP_CLIENT_ID: <github-app-client-id>
+##   github_app_key.pem: |
+##     -----BEGIN RSA PRIVATE KEY-----
+##     ...
+##     -----END RSA PRIVATE KEY-----
 credentialReferences: {}
 
 ## @param credentialReferencesSecret.name [string] Optionally provide a pre-existing secret with SCM credential reference data
 ## This secret should contain one or more key/value pairs, where the key matches the `environment_variable_name` of a `deployment_credential`
+## For private keys, use .pem extension in the key name to automatically mount them as files
+## e.g:
+##   - MY_GITHUB_TOKEN: <github-pat> (environment variable only)
+##   - github_app_key.pem: <private-key-content> (mounted as file at /home/node/github_app_key.pem)
 credentialReferencesSecret:
   name: "" # Name of an existing secret if it exists
+
+## @section Private Key File Mounting
+## @param privateKeyMountPath [string, default: "/home/node"] Directory where private keys will be mounted as files
+## Private keys are automatically detected by .pem extension in credentialReferences keys
+## e.g:
+## credentialReferences:
+##   github_app_key.pem: |
+##     -----BEGIN RSA PRIVATE KEY-----
+##     ...
+##     -----END RSA PRIVATE KEY-----
+privateKeyMountPath: "/home/node"
 
 ## @param acceptCode [default: true] Set to false to block Broker rules relating to Snyk Code analysis
 ## @param acceptAppRisk [default: true] Set to false to block Broker rules relating to AppRisk

@@ -105,19 +105,19 @@ Create a name for the Platform Auth secret, using a provided override if present
 {{/*
 Credential References
 
-Each credential must be a valid env var, with associated string value
+Each credential must be a valid env var, with associated string value, OR a .pem file for mounting
 */}}
 {{- define "snyk-broker.credentialReferences" -}}
 {{- $failedKeys := list -}}
 {{- with .Values.credentialReferences -}}
 {{- range ( . | keys ) }}
-{{- if not (regexMatch "^[a-zA-Z_]{1,}[a-zA-Z0-9_]{0,}$" .) -}}
+{{- if not (or (regexMatch "^[a-zA-Z_]{1,}[a-zA-Z0-9_]{0,}$" .) (hasSuffix ".pem" .)) -}}
 {{- $failedKeys = append $failedKeys . -}}
 {{- end }}
 {{- end }}
 {{- end }}
 {{- if gt ($failedKeys | len) 0 -}}
-{{- fail (printf "Key(s) \"%s\" in .Values.credentialReferences are unsupported. All keys must be valid environment variable names." ($failedKeys | sortAlpha | join ", ") ) -}}
+{{- fail (printf "Key(s) \"%s\" in .Values.credentialReferences are unsupported. All keys must be valid environment variable names or end with .pem for file mounting." ($failedKeys | sortAlpha | join ", ") ) -}}
 {{- end }}
 {{- end }}
 
@@ -178,6 +178,65 @@ Validate against RFC 1123
 {{- else }}
 {{- $proxyUrls | trimPrefix "," -}}
 {{- end }}
+{{- end }}
+
+{{/*
+PEM File Volume Mounts Helper
+Auto-mount .pem files from credentialReferences or existing secret
+*/}}
+{{- define "snyk-broker.pemVolumeMounts" -}}
+{{- if .Values.credentialReferencesSecret.name }}
+{{/* When using existing secret, mount all .pem files from the external secret */}}
+{{- $secretName := .Values.credentialReferencesSecret.name }}
+{{- $secret := (lookup "v1" "Secret" .Release.Namespace $secretName) }}
+{{- if $secret }}
+{{- range $key, $value := $secret.data }}
+{{- if hasSuffix ".pem" $key }}
+- name: {{ $.Release.Name }}-creds-volume
+  mountPath: {{ printf "%s/%s" $.Values.privateKeyMountPath $key }}
+  subPath: {{ $key }}
+  readOnly: true
+{{- end }}
+{{- end }}
+{{- end }}
+{{- else }}
+{{/* When using inline credentialReferences */}}
+{{- range $key, $value := .Values.credentialReferences }}
+{{- if hasSuffix ".pem" $key }}
+- name: {{ $.Release.Name }}-creds-volume
+  mountPath: {{ printf "%s/%s" $.Values.privateKeyMountPath $key }}
+  subPath: {{ $key }}
+  readOnly: true
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Check if PEM files exist in credentialReferences or existing secret
+*/}}
+{{- define "snyk-broker.hasGithubAppPemFiles" -}}
+{{- $hasGithubAppPemFiles := false }}
+{{- if .Values.credentialReferencesSecret.name }}
+{{/* Check for .pem files in existing secret */}}
+{{- $secretName := .Values.credentialReferencesSecret.name }}
+{{- $secret := (lookup "v1" "Secret" .Release.Namespace $secretName) }}
+{{- if $secret }}
+{{- range $key, $value := $secret.data }}
+{{- if hasSuffix ".pem" $key }}
+{{- $hasGithubAppPemFiles = true }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- else }}
+{{/* Check for .pem files in inline credentialReferences */}}
+{{- range $key, $value := .Values.credentialReferences }}
+{{- if hasSuffix ".pem" $key }}
+{{- $hasGithubAppPemFiles = true }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- $hasGithubAppPemFiles }}
 {{- end }}
 
 {{/*
