@@ -1,0 +1,13 @@
+{
+  "targets": [
+    {
+      "orgId": "02bb0131-1c70-421e-817a-821aba650f76",
+      "integrationId": "c24b01e2-ad2b-417b-824d-a6596fd5923a",
+      "target": {
+        "owner": "snyk-broker-test",
+        "name": "nodejs-goof",
+        "branch": "main"
+      }
+    }
+  ]
+}
