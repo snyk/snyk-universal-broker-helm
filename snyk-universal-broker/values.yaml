@@ -56,8 +56,7 @@ credentialReferences: {}
 credentialReferencesSecret:
   name: "" # Name of an existing secret if it exists
 
-## @section Private Key File Mounting
-## @param privateKeyMountPath [string, default: "/home/node"] Directory where private keys will be mounted as files
+## @param privateKeyMountPath [string, default: "/home/node"] Directory where private keys will be mounted as files only applicable for GitHub cloud/server apps
 ## Private keys are automatically detected by .pem extension in credentialReferences keys
 ## e.g:
 ## credentialReferences:

@@ -382,30 +382,25 @@ Credential References should contain one or more key/value pairs where each key 
 helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 ```
 
-| Name                              | Description                                                                                                                                                                      | Value |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
-| `brokerClientUrl`                 | is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup. | `""`  |
-| `region`                          | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                             | `""`  |
-| `deploymentId`                    | Obtained by installing the Broker App                                                                                                                                            | `""`  |
-| `clientId`                        | Obtained by installing the Broker App                                                                                                                                            | `""`  |
-| `clientSecret`                    | Obtained by installing the Broker App                                                                                                                                            | `""`  |
-| `platformAuthSecret.name`         | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`                                                                    | `""`  |
-| `credentialReferences`            | Credential References to pass to Broker                                                                                                                                          | `{}`  |
-| `credentialReferencesSecret.name` | Optionally provide a pre-existing secret with SCM credential reference data                                                                                                      | `""`  |
-
-### Private Key File Mounting
-
-| Name                                | Description                                                                                                                                                               | Value          |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| `privateKeyMountPath`               | Directory where private keys will be mounted as files                                                                                                                     | `"/home/node"` |
-| `acceptCode`                        | Set to false to block Broker rules relating to Snyk Code analysis                                                                                                         | `true`         |
-| `acceptAppRisk`                     | Set to false to block Broker rules relating to AppRisk                                                                                                                    | `true`         |
-| `acceptIaC`                         | Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. Set to "" to block Broker rules relating to Snyk IaC analysis | `""`           |
-| `acceptCustomPrTemplates`           | Set to false to block Broker rules relating to Snyk Custom PR Templates                                                                                                   | `true`         |
-| `acceptLargeManifests`              | Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise                                                                      | `true`         |
-| `insecureDownstream`                | Set to true to communicate with _all_ downstream integrations via http. Not recommended, as traffic will no longer be encrypted                                           | `false`        |
-| `highAvailabilityMode.enabled`      | snyk [default: true] Set to false to disable High Availability Mode for Broker                                                                                            | `true`         |
-| `highAvailabilityMode.replicaCount` | Number of Broker pods when running in HA mode (min 2, max 4)                                                                                                              | `2`            |
+| Name                                | Description                                                                                                                                                                      | Value          |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| `brokerClientUrl`                   | is the address of the broker. This needs to be the address of itself. In the case of Kubernetes, you need to ensure that you are pointing to the cluster ingress you have setup. | `""`           |
+| `region`                            | Optionally specify a Snyk Region - e.g. "eu" for "SNYK-EU-01". Defaults to "SNYK-US-01", app.snyk.io                                                                             | `""`           |
+| `deploymentId`                      | Obtained by installing the Broker App                                                                                                                                            | `""`           |
+| `clientId`                          | Obtained by installing the Broker App                                                                                                                                            | `""`           |
+| `clientSecret`                      | Obtained by installing the Broker App                                                                                                                                            | `""`           |
+| `platformAuthSecret.name`           | Optionally provide an external secret containing three keys: `DEPLOYMENT_ID`, `CLIENT_ID` and `CLIENT_SECRET`                                                                    | `""`           |
+| `credentialReferences`              | Credential References to pass to Broker                                                                                                                                          | `{}`           |
+| `credentialReferencesSecret.name`   | Optionally provide a pre-existing secret with SCM credential reference data                                                                                                      | `""`           |
+| `privateKeyMountPath`               | Directory where private keys will be mounted as files only applicable for GitHub cloud/server apps                                                                               | `"/home/node"` |
+| `acceptCode`                        | Set to false to block Broker rules relating to Snyk Code analysis                                                                                                                | `true`         |
+| `acceptAppRisk`                     | Set to false to block Broker rules relating to AppRisk                                                                                                                           | `true`         |
+| `acceptIaC`                         | Defaults to "tf,yaml,yml,json,tpl". Optionally remove any extensions not required. Must be comma separated. Set to "" to block Broker rules relating to Snyk IaC analysis        | `""`           |
+| `acceptCustomPrTemplates`           | Set to false to block Broker rules relating to Snyk Custom PR Templates                                                                                                          | `true`         |
+| `acceptLargeManifests`              | Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise                                                                             | `true`         |
+| `insecureDownstream`                | Set to true to communicate with _all_ downstream integrations via http. Not recommended, as traffic will no longer be encrypted                                                  | `false`        |
+| `highAvailabilityMode.enabled`      | snyk [default: true] Set to false to disable High Availability Mode for Broker                                                                                                   | `true`         |
+| `highAvailabilityMode.replicaCount` | Number of Broker pods when running in HA mode (min 2, max 4)                                                                                                                     | `2`            |
 
 ### Logging
 
