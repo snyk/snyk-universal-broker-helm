@@ -6,4 +6,5 @@ paths = [
   '''snyk-universal-broker/tests''',
   '''snyk-universal-broker/values.schema.json''',
   '''README.md'''
+  '''values.yaml'''
   ]

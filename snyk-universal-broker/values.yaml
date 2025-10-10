@@ -35,7 +35,7 @@ platformAuthSecret:
 ## See https://docs.snyk.io/enterprise-setup/snyk-broker/universal-broker/restart-your-broker-with-the-required-environment-variable-and-connect for an example of passing tokens required for the above GitHub connection to the Broker
 ## @param credentialReferences [object] Credential References to pass to Broker
 ## Each entry should be of form <ENV_VALUE_NAME>:<SECRET_VALUE>, which should match a configured Credential Reference.
-## For Github app private keys, .pem extension in the key name to automatically mount them as files and must be same as provided via snyk-broker-config tool.
+## For GitHub cloud/server app private keys, .pem extension in the key name is required to automatically mount them as files and must be same as provided via snyk-broker-config tool.
 ## e.g:
 ## credentialReferences:
 ##   MY_GITHUB_TOKEN: <github-pat>
