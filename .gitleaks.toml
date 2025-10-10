@@ -5,6 +5,6 @@ useDefault = true
 paths = [
   '''snyk-universal-broker/tests''',
   '''snyk-universal-broker/values.schema.json''',
-  '''README.md'''
+  '''README.md''',
   '''values.yaml'''
   ]
