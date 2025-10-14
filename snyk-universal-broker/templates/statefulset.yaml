@@ -127,6 +127,8 @@ spec:
                 mountPath: /home/node/tls-cert/
                 readOnly: true
               {{- end }}
+              # Auto-mount .pem files from credentialReferences
+              {{- include "snyk-broker.pemVolumeMounts" . | nindent 14 }}
               {{- if .Values.extraVolumeMounts }}
               {{- tpl (toYaml .Values.extraVolumeMounts | nindent 14 ) . }}
               {{- end }}
@@ -202,6 +204,11 @@ spec:
       - name: {{ .Release.Name }}-tls-secret-volume
         secret:
           secretName: {{ include "snyk-broker.tlsSecretName" . }}
+      {{- end }}
+      {{- if include "snyk-broker.hasGithubAppPemFiles" . }}
+      - name: {{ .Release.Name }}-creds-volume
+        secret:
+          secretName: {{ include "snyk-broker.credentialReferencesSecretName" . }}
       {{- end }}
 {{- if .Values.extraVolumes }}
 {{ tpl (toYaml .Values.extraVolumes | indent 6) . }}
