@@ -2,16 +2,7 @@
  * @type {import('semantic-release').GlobalConfig}
  */
 export default {
-  branches: [
-    {
-      name: "main",
-      prerelease: false,
-    },
-    {
-      name: "rc",
-      prerelease: true,
-    },
-  ],
+  branches: ["main"],
   repositoryUrl: "git@github.com:snyk/snyk-universal-broker-helm.git",
   plugins: [
     "@semantic-release/commit-analyzer",
