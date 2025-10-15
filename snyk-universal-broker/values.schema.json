@@ -48,7 +48,8 @@
         },
         {
           "type": "string",
-          "format": "uuid"
+          "format": "uuid",
+          "minLength": 1
         }
       ]
     }
@@ -131,7 +132,8 @@
               "maxLength": 0
             },
             {
-              "format": "email"
+              "format": "email",
+              "minLength": 1
             }
           ]
         },
