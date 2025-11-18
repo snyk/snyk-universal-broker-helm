@@ -144,10 +144,8 @@ spec:
             {{- include "snyk-broker.accepts" . | indent 12 }}
             - name: BROKER_CLIENT_URL
               value: {{ .Values.brokerClientUrl }}
-            # To avoid exceeding the maximum of 4 websockets per deployment, high-availability
-            # mode (2 websockets per replica) is enabled only for 1 or 2 replicas.
             - name: BROKER_HA_MODE_ENABLED
-              value: {{ if and (.Values.highAvailabilityMode.enabled) (le (int .Values.highAvailabilityMode.replicaCount) 2) }} "true" {{ else }} "false" {{ end }}
+              value: {{ .Values.highAvailabilityMode.enabled | default true | squote }}
             # Logging
             - name: LOG_LEVEL
               value: {{ .Values.logLevel }}

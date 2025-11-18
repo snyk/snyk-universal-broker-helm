@@ -81,7 +81,7 @@ acceptLargeManifests: true
 insecureDownstream: false
 
 ## @param highAvailabilityMode.enabled snyk [default: true] Set to false to disable High Availability Mode for Broker
-## @param highAvailabilityMode.replicaCount [default: 2] Number of Broker pods when running in HA mode (min 2, max 4)
+## @param highAvailabilityMode.replicaCount [default: 2] Number of Broker pods when running in HA mode (min 1, max 2)
 
 highAvailabilityMode:
   enabled: true
