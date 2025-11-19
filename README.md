@@ -400,7 +400,7 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `acceptLargeManifests`              | Set to false to block Broker rules relating to fetching of large files from GitHub/GitHub Enterprise                                                                             | `true`         |
 | `insecureDownstream`                | Set to true to communicate with _all_ downstream integrations via http. Not recommended, as traffic will no longer be encrypted                                                  | `false`        |
 | `highAvailabilityMode.enabled`      | snyk [default: true] Set to false to disable High Availability Mode for Broker                                                                                                   | `true`         |
-| `highAvailabilityMode.replicaCount` | Number of Broker pods when running in HA mode (min 1, max 2)                                                                                                                     | `2`            |
+| `highAvailabilityMode.replicaCount` | Number of Broker pods when running in HA mode (min 2, max 4)                                                                                                                     | `2`            |
 
 ### Logging
 

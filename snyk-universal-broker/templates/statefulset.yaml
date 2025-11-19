@@ -145,8 +145,8 @@ spec:
             - name: BROKER_CLIENT_URL
               value: {{ .Values.brokerClientUrl }}
             - name: BROKER_HA_MODE_ENABLED
-              value: {{ if (.Values.highAvailabilityMode.enabled) }} "true" {{ else }} "false" {{ end }}
-            # Logging
+              value: {{ if and (.Values.highAvailabilityMode.enabled) (gt (int .Values.highAvailabilityMode.replicaCount) 1) }} "true" {{ else }} "false" {{ end }}
+         # Logging
             - name: LOG_LEVEL
               value: {{ .Values.logLevel }}
             {{- if and .Values.logVerbose (eq .Values.logLevel "info") }}
