@@ -22,7 +22,6 @@ region: ""
 ## @param deploymentId [string] Obtained by installing the Broker App
 ## @param clientId [string] Obtained by installing the Broker App
 ## @param clientSecret [string] Obtained by installing the Broker App
-
 deploymentId: ""
 clientId: ""
 clientSecret: ""
