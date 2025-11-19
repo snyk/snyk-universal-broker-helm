@@ -49,3 +49,4 @@ Chart.lock
 
 # Release
 node_modules
+.github/instructions/snyk_rules.instructions.md
