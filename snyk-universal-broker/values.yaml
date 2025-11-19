@@ -22,7 +22,6 @@ region: ""
 ## @param deploymentId [string] Obtained by installing the Broker App
 ## @param clientId [string] Obtained by installing the Broker App
 ## @param clientSecret [string] Obtained by installing the Broker App
-
 deploymentId: ""
 clientId: ""
 clientSecret: ""
@@ -82,7 +81,6 @@ insecureDownstream: false
 
 ## @param highAvailabilityMode.enabled snyk [default: true] Set to false to disable High Availability Mode for Broker
 ## @param highAvailabilityMode.replicaCount [default: 2] Number of Broker pods when running in HA mode (min 2, max 4)
-
 highAvailabilityMode:
   enabled: true
   replicaCount: 2
@@ -90,7 +88,6 @@ highAvailabilityMode:
 ## @section Logging
 ## @param logLevel Set the Log Level for Universal Broker. Can be set to "debug" for more information
 ## @param logVerbose [default: false] Enable to log request headers. Takes effect if log level is "info"
-
 logLevel: "info"
 logVerbose: false
 
@@ -287,7 +284,6 @@ tolerations: []
 ## @param livenessProbe.config.periodSeconds [default: 10] Seconds between probes
 ## @param livenessProbe.config.timeoutSeconds [default: 1] Elapsed second(s) for timeout
 ## @param livenessProbe.config.failureThreshold [default: 3] Number of consecutive probe failures to mark as unhealthy
-
 livenessProbe:
   enabled: true
   path: "/healthcheck"
@@ -303,7 +299,6 @@ livenessProbe:
 ## @param readinessProbe.config.periodSeconds Seconds between probes
 ## @param readinessProbe.config.timeoutSeconds Elapsed second(s) for timeout
 ## @param readinessProbe.config.failureThreshold Number of consecutive probe failures to mark as not ready
-
 readinessProbe:
   enabled: true
   path: "/healthcheck"
@@ -347,7 +342,6 @@ serviceAccount:
 ## @param podSecurityContext.sysctls [array] Set kernel settings using the sysctl interface
 ## @param podSecurityContext.fsGroup [default:1000] Group ID for the volumes of the pod
 ## @param podSecurityContext.supplementalGroups [array] Set filesystem groups
-
 podSecurityContext:
   enabled: true
   fsGroupChangePolicy: Always
@@ -367,7 +361,6 @@ podSecurityContext:
 ## @param containerSecurityContext.runAsNonRoot [default:true] Run Broker as non-root
 ## @param containerSecurityContext.privileged [default: false] Run Broker as a privileged container
 ## @param containerSecurityContext.seccompProfile.type [default:"RunTimeDefault"] Set the `seccomProfile` for Broker
-
 containerSecurityContext:
   enabled: true
   seLinuxOptions: {}
