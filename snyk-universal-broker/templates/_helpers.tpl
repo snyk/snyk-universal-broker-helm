@@ -47,8 +47,8 @@ Return replica count based on HA mode
 */}}
 {{- define "snyk-broker.replicas" -}}
   {{- if .Values.highAvailabilityMode.enabled -}}
-    {{- if gt (int .Values.highAvailabilityMode.replicaCount) 2 -}}
-      {{- fail "Cannot have more than 2 replicas in High Availability mode." -}}
+    {{- if gt (int .Values.highAvailabilityMode.replicaCount) 4 -}}
+      {{- fail "Cannot have more than 4 replicas in High Availability mode." -}}
     {{- else -}}
       {{- print (int .Values.highAvailabilityMode.replicaCount) -}}
     {{- end -}}

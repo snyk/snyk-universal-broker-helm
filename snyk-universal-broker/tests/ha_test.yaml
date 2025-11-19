@@ -33,9 +33,12 @@ tests:
       - failedTemplate: {}
 
   - it: disables HA mode
-    set:
+    set: 
       highAvailabilityMode.enabled: false
     asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
       - contains:
           path: spec.template.spec.containers[0].env
           content:
