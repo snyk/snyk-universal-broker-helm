@@ -189,7 +189,7 @@ workflows:
             - snyk-universal-broker-helm-chart
       - security_scans:
           context:
-            - team-hybrid-snyk
+            - platformeng_access
           requires:
             - validate_charts
       - validate_documentation
