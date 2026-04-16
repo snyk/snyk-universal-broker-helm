@@ -114,7 +114,7 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y kubectl
       - run:
-          name: Deploy Universal Broker
+          name: Deploy Universal Broker (StatefulSet)
           command: |
             helm dep up
             k3d cluster create
@@ -131,7 +131,36 @@ jobs:
               .
           working_directory: snyk-universal-broker
       - run:
-          name: Test Import
+          name: Test Import (StatefulSet)
+          command: |
+            LOG_LEVEL="debug" \
+              SNYK_TOKEN=${<<parameters.snyk-token>>} \
+              npx \
+              --yes \
+              tsx \
+              .circleci/scripts/testImport/testImport.ts \
+              ".circleci/snyk-import/snyk-import-gh.json" \
+              "https://api.dev.snyk.io"
+      - run:
+          name: Deploy Universal Broker (Deployment)
+          command: |
+            k3d cluster delete
+            k3d cluster create
+            helm install \
+              --debug \
+              --wait \
+              -f values.yaml \
+              --set region=dev \
+              --set workload.kind=deployment \
+              --set deploymentId=${<<parameters.deployment-id>>} \
+              --set clientId=${<<parameters.client-id>>} \
+              --set clientSecret=${<<parameters.client-secret>>} \
+              --set credentialReferences.MY_GITHUB_TOKEN=${<<parameters.my-github-token>>} \
+              snyk-universal-broker \
+              .
+          working_directory: snyk-universal-broker
+      - run:
+          name: Test Import (Deployment)
           command: |
             LOG_LEVEL="debug" \
               SNYK_TOKEN=${<<parameters.snyk-token>>} \

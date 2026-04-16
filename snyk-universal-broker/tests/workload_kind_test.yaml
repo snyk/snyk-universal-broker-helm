@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
+suite: Workload Kind
+templates:
+  - deployment.yaml
+  - statefulset.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: renders Deployment and skips StatefulSet when workload.kind is deployment
+    set:
+      workload.kind: deployment
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: deployment.yaml
+      - isKind:
+          of: Deployment
+        template: deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: statefulset.yaml
+
+  - it: renders StatefulSet and skips Deployment when workload.kind is statefulset
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: statefulset.yaml
+      - isKind:
+          of: StatefulSet
+        template: statefulset.yaml
+      - hasDocuments:
+          count: 0
+        template: deployment.yaml
+
+  - it: renders StatefulSet and skips Deployment when workload.kind is unknown
+    set:
+      workload.kind: unknown
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: statefulset.yaml
+      - isKind:
+          of: StatefulSet
+        template: statefulset.yaml
+      - hasDocuments:
+          count: 0
+        template: deployment.yaml
