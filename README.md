@@ -570,3 +570,9 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `extraEnvVars`       | Optionally specify extra list of additional environment variables for Broker container                    | `[]`  |
 | `extraEnvVarsCM`     | Optionally specify one or more external configmaps containing additional environment variables for Broker | `[]`  |
 | `extraEnvVarsSecret` | Optionally specify one or more external secrets containing additional environment variables for Broker    | `[]`  |
+
+### Workload
+
+| Name            | Description                                                    | Value           |
+| --------------- | -------------------------------------------------------------- | --------------- |
+| `workload.kind` | Workload kind to deploy. Can be "deployment" or "statefulset". | `"statefulset"` |

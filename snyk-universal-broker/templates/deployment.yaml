@@ -1,6 +1,6 @@
-{{- if ne .Values.workload.kind "deployment" }}
+{{- if eq .Values.workload.kind "deployment" }}
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: {{ include "common.names.fullname" . }}
   namespace: {{ .Release.Namespace }}
@@ -11,12 +11,11 @@ metadata:
 spec:
   {{ include "snyk-broker.validateImagePullPolicy" . }}
   replicas: {{ include "snyk-broker.replicas" . }}
-  serviceName: {{ include "common.names.fullname" . }}
-  updateStrategy:
+  strategy:
     type: "RollingUpdate"
     rollingUpdate:
       maxUnavailable: 1
-      partition: 0
+      maxSurge: 1
   {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.podLabels .Values.commonLabels ) "context" . ) }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}

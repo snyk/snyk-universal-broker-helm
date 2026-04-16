@@ -415,6 +415,11 @@ extraEnvVarsCM: []
 ## @param extraEnvVarsSecret Optionally specify one or more external secrets containing additional environment variables for Broker
 extraEnvVarsSecret: []
 
+## @section Workload
+## @param workload.kind [string, default: "statefulset"] Workload kind to deploy. Can be "deployment" or "statefulset".
+workload:
+  kind: "statefulset"
+
 ## @skip global.compatibility.openshift.adaptSecurityContext [default: auto] Set to false to disable security context adaptations for OpenShift. If left in "auto", will remove default user/group values that will violate an OpenShift Security Context
 global:
   compatibility:
