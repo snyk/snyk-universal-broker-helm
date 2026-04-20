@@ -434,6 +434,15 @@
       "type": "boolean",
       "default": false
     },
+    "ipv6ConnectivityCheck": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
     "httpProxy": {
       "$ref": "#/$defs/urlWithSchema"
     },

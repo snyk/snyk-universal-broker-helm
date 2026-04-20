@@ -125,6 +125,10 @@ caCertSecret:
 ## @param disableAllCertificateTrust [default: false] Set to `true` to disable trust of **all** certificates, including any provided CAs
 disableAllCertificateTrust: false
 
+## @param ipv6ConnectivityCheck.enabled [default: true] Set to `false` to disable IPv6 connectivity check in broker (sets IPV6_CONNECTIVITY_CHECK_ENABLED=false)
+ipv6ConnectivityCheck:
+  enabled: true
+
 ## @param localWebServer.https [default: false] enables Broker client to run a HTTPS server instead of the default HTTP server
 ## @param localWebServer.certificate [string] Provide HTTPS cert
 ## @param localWebServer.key [string] Provides HTTPS cert key

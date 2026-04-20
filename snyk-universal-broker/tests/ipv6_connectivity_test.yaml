@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: IPv6 connectivity check tests
+templates:
+  - statefulset.yaml
+  - deployment.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: does not set IPV6_CONNECTIVITY_CHECK_ENABLED by default on statefulset
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: IPV6_CONNECTIVITY_CHECK_ENABLED
+            value: "false"
+        template: statefulset.yaml
+
+  - it: sets IPV6_CONNECTIVITY_CHECK_ENABLED=false on statefulset when ipv6ConnectivityCheck.enabled is false
+    set:
+      ipv6ConnectivityCheck.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: IPV6_CONNECTIVITY_CHECK_ENABLED
+            value: "false"
+        template: statefulset.yaml
+
+  - it: does not set IPV6_CONNECTIVITY_CHECK_ENABLED on statefulset when ipv6ConnectivityCheck.enabled is true
+    set:
+      ipv6ConnectivityCheck.enabled: true
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: IPV6_CONNECTIVITY_CHECK_ENABLED
+            value: "false"
+        template: statefulset.yaml
+
+  - it: does not set IPV6_CONNECTIVITY_CHECK_ENABLED by default on deployment
+    set:
+      workload.kind: deployment
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: IPV6_CONNECTIVITY_CHECK_ENABLED
+            value: "false"
+        template: deployment.yaml
+
+  - it: sets IPV6_CONNECTIVITY_CHECK_ENABLED=false on deployment when ipv6ConnectivityCheck.enabled is false
+    set:
+      workload.kind: deployment
+      ipv6ConnectivityCheck.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: IPV6_CONNECTIVITY_CHECK_ENABLED
+            value: "false"
+        template: deployment.yaml
+
+  - it: does not set IPV6_CONNECTIVITY_CHECK_ENABLED on deployment when ipv6ConnectivityCheck.enabled is true
+    set:
+      workload.kind: deployment
+      ipv6ConnectivityCheck.enabled: true
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: IPV6_CONNECTIVITY_CHECK_ENABLED
+            value: "false"
+        template: deployment.yaml
