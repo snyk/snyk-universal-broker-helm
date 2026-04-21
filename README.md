@@ -411,18 +411,19 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 
 ### Serving over HTTPS and Certificate Trust
 
-| Name                         | Description                                                                                    | Value                 |
-| ---------------------------- | ---------------------------------------------------------------------------------------------- | --------------------- |
-| `caCert`                     | Set caCert to read certificate content from the values.yaml file as a multiline string:        | `""`                  |
-| `caCertMount.path`           | the path to mount a certificate bundle to                                                      | `"/home/node/cacert"` |
-| `caCertMount.name`           | the filename to write a certificate bundle to                                                  | `"cacert"`            |
-| `caCertSecret.name`          | set to read a CA cert from an external secret                                                  | `""`                  |
-| `caCertSecret.caCertKey`     | set to read the ca cert from a different key                                                   | `ca.pem`              |
-| `disableAllCertificateTrust` | Set to `true` to disable trust of **all** certificates, including any provided CAs             | `false`               |
-| `localWebServer.https`       | enables Broker client to run a HTTPS server instead of the default HTTP server                 | `false`               |
-| `localWebServer.certificate` | Provide HTTPS cert                                                                             | `""`                  |
-| `localWebServer.key`         | Provides HTTPS cert key                                                                        | `""`                  |
-| `localWebServerSecret.name`  | the name of the secret to create or (if cert and key are empty) the existing TLS secret to use | `""`                  |
+| Name                            | Description                                                                                              | Value                 |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------- |
+| `caCert`                        | Set caCert to read certificate content from the values.yaml file as a multiline string:                  | `""`                  |
+| `caCertMount.path`              | the path to mount a certificate bundle to                                                                | `"/home/node/cacert"` |
+| `caCertMount.name`              | the filename to write a certificate bundle to                                                            | `"cacert"`            |
+| `caCertSecret.name`             | set to read a CA cert from an external secret                                                            | `""`                  |
+| `caCertSecret.caCertKey`        | set to read the ca cert from a different key                                                             | `ca.pem`              |
+| `disableAllCertificateTrust`    | Set to `true` to disable trust of **all** certificates, including any provided CAs                       | `false`               |
+| `ipv6ConnectivityCheck.enabled` | Set to `false` to disable IPv6 connectivity check in broker (sets IPV6_CONNECTIVITY_CHECK_ENABLED=false) | `true`                |
+| `localWebServer.https`          | enables Broker client to run a HTTPS server instead of the default HTTP server                           | `false`               |
+| `localWebServer.certificate`    | Provide HTTPS cert                                                                                       | `""`                  |
+| `localWebServer.key`            | Provides HTTPS cert key                                                                                  | `""`                  |
+| `localWebServerSecret.name`     | the name of the secret to create or (if cert and key are empty) the existing TLS secret to use           | `""`                  |
 
 ### Proxy Configuration
 

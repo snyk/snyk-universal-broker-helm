@@ -180,6 +180,10 @@ spec:
             - name: INSECURE_DOWNSTREAM
               value: "true"
           {{- end }}
+          {{- if not .Values.ipv6ConnectivityCheck.enabled }}
+            - name: IPV6_CONNECTIVITY_CHECK_ENABLED
+              value: "false"
+          {{- end }}
         # Custom environment variables
         {{- range .Values.extraEnvVars }}
             - name: {{ .name }}
