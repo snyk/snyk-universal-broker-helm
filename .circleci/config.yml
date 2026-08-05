@@ -211,6 +211,7 @@ workflows:
           name: Scan repository for secrets
           context:
             - snyk-bot-slack
+            - prodsec-orb-runtime
           channel: hybrid-alerts
           trusted-branch: main
       - validate_charts:
@@ -219,6 +220,7 @@ workflows:
       - security_scans:
           context:
             - team-hybrid-snyk
+            - prodsec-orb-runtime
           requires:
             - validate_charts
       - validate_documentation
