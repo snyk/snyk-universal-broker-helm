@@ -1,0 +1,43 @@
+{{- if .Values.httpRoute.enabled }}
+{{- if .Values.ingress.enabled }}
+{{ fail "ingress.enabled and httpRoute.enabled are mutually exclusive; enable only one routing mode" }}
+{{- end }}
+{{- if empty .Values.httpRoute.parentRefs }}
+{{ fail "httpRoute.parentRefs must contain at least one Gateway reference when httpRoute.enabled is true" }}
+{{- end }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+  {{- if or .Values.httpRoute.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.httpRoute.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- range .Values.httpRoute.parentRefs }}
+    - name: {{ .name | quote }}
+      {{- if hasKey . "namespace" }}
+      namespace: {{ .namespace | quote }}
+      {{- end }}
+      {{- if hasKey . "sectionName" }}
+      sectionName: {{ .sectionName | quote }}
+      {{- end }}
+    {{- end }}
+  {{- with .Values.httpRoute.hostnames }}
+  hostnames:
+    {{- range . }}
+    - {{ . | quote }}
+    {{- end }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: {{ .Values.httpRoute.pathType }}
+            value: {{ .Values.httpRoute.path | quote }}
+      backendRefs:
+        - name: {{ include "common.names.fullname" . }}
+          port: {{ .Values.service.port }}
+{{- end }}

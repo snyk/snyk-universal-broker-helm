@@ -144,6 +144,25 @@ Universal Broker provides an Ingress template, compatible with any Kubernetes In
 
 It may be [extended with additional hosts, paths, annotations as required](#broker-ingress).
 
+### HTTPRoute (Gateway API)
+
+Gateway API CRDs must already be installed in the cluster before enabling `httpRoute.enabled`. The chart creates only an `HTTPRoute`; your platform team or cluster administrator owns and manages the Gateway, its listeners, TLS certificates and termination, any `ReferenceGrant`, Gateway implementation policies, and vendor-specific resources.
+
+Each `httpRoute.parentRefs` entry requests attachment of the HTTPRoute to a customer-managed Gateway or listener:
+
+- `name` is the Gateway name.
+- If `namespace` is omitted, the Gateway is looked up in the Broker release namespace. Set it to reference a Gateway in another namespace.
+- Cross-namespace configuration alone does not guarantee attachment. The selected Gateway listener must allow HTTPRoutes from the Broker namespace through its `allowedRoutes` configuration; this chart does not modify `allowedRoutes`.
+- `sectionName` selects a specific listener on the Gateway.
+
+An empty `httpRoute.hostnames` list adds no hostname constraint to the route. Configured hostnames must also be compatible with the selected Gateway listener. `PathPrefix` matches complete path elements, whereas `Exact` matches the configured path exactly. Detailed HTTPRoute validity and attachment semantics are enforced by the Kubernetes Gateway API CRDs and the selected Gateway implementation.
+
+#### Migrating from Ingress
+
+`ingress.enabled` and `httpRoute.enabled` are mutually exclusive, and enabling HTTPRoute does not migrate an existing Ingress automatically. Plan the Gateway and listener configuration before disabling Ingress. Disabling Ingress also stops the chart from creating any Ingress-specific TLS resources it previously owned; TLS termination for the HTTPRoute belongs on the customer-managed Gateway.
+
+Review behavior rather than copying configuration mechanically: nginx-specific Ingress annotations do not automatically translate to Gateway API behavior, and DNS may need to move from the existing Ingress endpoint to the Gateway endpoint. Keep `brokerClientUrl` set to the externally reachable Broker URL; update it if the migration changes the hostname, path, or other public endpoint details.
+
 ### High Availability Mode
 
 Universal Broker will run with [High Availability Mode](https://docs.snyk.io/enterprise-configuration/snyk-broker/high-availability-mode) enabled by default. Optionally increase the number of replicas from 2 up to 4 to suit fault tolerance.
@@ -465,6 +484,17 @@ helm install ... --set credentialReferences.MY_GITHUB_TOKEN=<gh-pat>
 | `ingress.secrets`            | A list of TLS secrets to create, each with `name`, `key` and `certificate`                  | `[]`                       |
 | `ingress.tls.enabled`        | Set to true to enable TLS on the in-built ingress                                           | `false`                    |
 | `ingress.tls.existingSecret` | Specify an existing TLS secret to use with this ingress                                     | `""`                       |
+
+### Broker HTTPRoute
+
+| Name                    | Description                                                                                                                                                                                                 | Value          |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| `httpRoute.enabled`     | Set to true to create a Gateway API HTTPRoute                                                                                                                                                               | `false`        |
+| `httpRoute.annotations` | Additional annotations for the HTTPRoute resource                                                                                                                                                           | `{}`           |
+| `httpRoute.parentRefs`  | Customer-managed Gateways/listeners to which the HTTPRoute requests attachment. Each reference requires `name` and supports optional `namespace` and `sectionName`. Required when httpRoute.enabled is true | `[]`           |
+| `httpRoute.hostnames`   | Hostnames matched by the HTTPRoute. An empty list adds no hostname constraint                                                                                                                               | `[]`           |
+| `httpRoute.path`        | Path matched by the HTTPRoute                                                                                                                                                                               | `"/"`          |
+| `httpRoute.pathType`    | Path match type. Supported values are PathPrefix and Exact                                                                                                                                                  | `"PathPrefix"` |
 
 ### Networking Parameters
 

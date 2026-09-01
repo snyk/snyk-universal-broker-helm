@@ -1,0 +1,367 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+suite: HTTPRoute
+templates:
+  - http-route.yaml
+  - ingress.yaml
+  - ingress-secret.yaml
+values:
+  - ../values.yaml
+  - fixtures/default_values.yaml
+
+tests:
+  - it: Does not render an HTTPRoute by default
+    asserts:
+      - hasDocuments:
+          count: 0
+    template: http-route.yaml
+
+  - it: Renders a minimum Gateway API v1 HTTPRoute when enabled
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+    asserts:
+      - isKind:
+          of: HTTPRoute
+      - equal:
+          path: apiVersion
+          value: gateway.networking.k8s.io/v1
+      - equal:
+          path: spec.parentRefs
+          value:
+            - name: broker-gateway
+    template: http-route.yaml
+
+  - it: Uses the chart name namespace and standard labels
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+      commonLabels:
+        owner: broker-team
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-snyk-universal-broker
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: snyk-universal-broker
+            helm.sh/chart: snyk-universal-broker-0.0.1
+            owner: broker-team
+    template: http-route.yaml
+
+  - it: Adds HTTPRoute and common annotations
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+      httpRoute.annotations:
+        example.com/route: enabled
+      commonAnnotations:
+        example.com/common: shared
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            example.com/common: shared
+            example.com/route: enabled
+    template: http-route.yaml
+
+  - it: Supports namespace and sectionName on a parent reference
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: public-gateway
+          namespace: gateway-system
+          sectionName: https
+    asserts:
+      - equal:
+          path: spec.parentRefs[0]
+          value:
+            name: public-gateway
+            namespace: gateway-system
+            sectionName: https
+      - notExists:
+          path: spec.parentRefs[0].group
+      - notExists:
+          path: spec.parentRefs[0].kind
+      - notExists:
+          path: spec.parentRefs[0].port
+    template: http-route.yaml
+
+  - it: Passes hostnames through without duplicating Gateway API validation
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+      httpRoute.hostnames:
+        - Broker_EXAMPLE.com:443
+        - 192.0.2.1
+        - Broker_EXAMPLE.com:443
+    asserts:
+      - equal:
+          path: spec.hostnames
+          value:
+            - Broker_EXAMPLE.com:443
+            - 192.0.2.1
+            - Broker_EXAMPLE.com:443
+    template: http-route.yaml
+
+  - it: Omits the hostname constraint for an empty list
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+      httpRoute.hostnames: []
+    asserts:
+      - notExists:
+          path: spec.hostnames
+    template: http-route.yaml
+
+  - it: Renders a PathPrefix match and passes the path through
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+      httpRoute.path: broker//../%2F#fragment?query=value
+    asserts:
+      - equal:
+          path: spec.rules[0].matches[0].path
+          value:
+            type: PathPrefix
+            value: broker//../%2F#fragment?query=value
+    template: http-route.yaml
+
+  - it: Renders an Exact match
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+      httpRoute.path: /broker/healthcheck
+      httpRoute.pathType: Exact
+    asserts:
+      - equal:
+          path: spec.rules[0].matches[0].path
+          value:
+            type: Exact
+            value: /broker/healthcheck
+    template: http-route.yaml
+
+  - it: Passes parent-reference relationships through to Gateway API validation
+    release:
+      namespace: broker
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+        - name: broker-gateway
+          namespace: broker
+          sectionName: https
+        - name: broker-gateway
+          namespace: broker
+          sectionName: https
+    asserts:
+      - lengthEqual:
+          path: spec.parentRefs
+          count: 3
+    template: http-route.yaml
+
+  - it: Routes to the existing Broker Service
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+    asserts:
+      - equal:
+          path: spec.rules[0].backendRefs
+          value:
+            - name: RELEASE-NAME-snyk-universal-broker
+              port: 8000
+    template: http-route.yaml
+
+  - it: Propagates an overridden Service port
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+      service.port: 8080
+    asserts:
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 8080
+    template: http-route.yaml
+
+  - it: Rejects simultaneous Ingress and HTTPRoute resources clearly
+    set:
+      ingress.enabled: true
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+    asserts:
+      - failedTemplate:
+          errorPattern: "ingress.enabled and httpRoute.enabled are mutually exclusive; enable only one routing mode"
+    template: http-route.yaml
+
+  - it: Rejects an enabled HTTPRoute without a parent Gateway
+    set:
+      httpRoute.enabled: true
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute.parentRefs must contain at least one Gateway reference when httpRoute.enabled is true"
+    template: http-route.yaml
+
+  - it: Rejects a non-boolean enabled value
+    set:
+      httpRoute.enabled: yes
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute/enabled.*boolean"
+    template: http-route.yaml
+
+  - it: Rejects parentRefs that are not an array
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs: broker-gateway
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute/parentRefs.*array"
+    template: http-route.yaml
+
+  - it: Rejects a parent reference without a name
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - namespace: gateway-system
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute/parentRefs/0.*missing property 'name'"
+    template: http-route.yaml
+
+  - it: Rejects non-string parent reference fields
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: 123
+          namespace: 456
+          sectionName: 789
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute/parentRefs/0/(name|namespace|sectionName).*string"
+    template: http-route.yaml
+
+  - it: Rejects parent reference group configuration
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+          group: gateway.networking.k8s.io
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute/parentRefs/0.*additional prop.*group"
+    template: http-route.yaml
+
+  - it: Rejects parent reference kind configuration
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+          kind: Gateway
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute/parentRefs/0.*additional prop.*kind"
+    template: http-route.yaml
+
+  - it: Rejects parent reference port configuration
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+          port: 443
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute/parentRefs/0.*additional prop.*port"
+    template: http-route.yaml
+
+  - it: Rejects an unsupported path type
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+      httpRoute.pathType: RegularExpression
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute/pathType.*PathPrefix.*Exact"
+    template: http-route.yaml
+
+  - it: Rejects non-string hostnames
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+      httpRoute.hostnames:
+        - true
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute/hostnames/0.*string"
+    template: http-route.yaml
+
+  - it: Rejects a non-string path
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+      httpRoute.path: 123
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute/path.*string"
+    template: http-route.yaml
+
+  - it: Rejects a non-string HTTPRoute annotation value
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+      httpRoute.annotations:
+        example.com/route: true
+    asserts:
+      - failedTemplate:
+          errorPattern: "httpRoute/annotations/example.com~1route.*string"
+    template: http-route.yaml
+
+  - it: Renders no extra Gateway ReferenceGrant vendor-specific Ingress or TLS Secret resources
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: http-route.yaml
+      - hasDocuments:
+          count: 0
+        template: ingress.yaml
+      - hasDocuments:
+          count: 0
+        template: ingress-secret.yaml
+
+  - it: Does not add filters TLS or cross-namespace backend configuration
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: broker-gateway
+    asserts:
+      - notExists:
+          path: spec.rules[0].filters
+      - notExists:
+          path: spec.rules[0].backendRefs[0].namespace
+      - notExists:
+          path: spec.rules[0].backendRefs[0].group
+      - notExists:
+          path: spec.rules[0].backendRefs[0].kind
+    template: http-route.yaml
