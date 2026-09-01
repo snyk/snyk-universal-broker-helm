@@ -34,6 +34,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install helm-unittest
+          command: |
+            helm plugin uninstall unittest
+            helm plugin install https://github.com/helm-unittest/helm-unittest.git --version 1.0.3
+      - run:
           name: Helm dependencies
           command: helm dep up
           working_directory: snyk-universal-broker
@@ -102,9 +107,6 @@ jobs:
     steps:
       - checkout
       - helm/install_helm_client
-      - helm/install_helm_plugin:
-          helm_plugin_url: https://github.com/helm-unittest/helm-unittest
-          plugin_version: v1.0.3
       - run:
           name: Install Pre-reqs
           command: |
