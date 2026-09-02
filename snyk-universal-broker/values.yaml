@@ -208,6 +208,22 @@ ingress:
     enabled: false
     existingSecret: ""
 
+## @section Broker HTTPRoute
+
+## @param httpRoute.enabled [default: false] Set to true to create a Gateway API HTTPRoute
+## @param httpRoute.annotations [object] Additional annotations for the HTTPRoute resource
+## @param httpRoute.parentRefs [array] Customer-managed Gateways/listeners to which the HTTPRoute requests attachment. Each reference requires `name` and supports optional `namespace` and `sectionName`. Required when httpRoute.enabled is true
+## @param httpRoute.hostnames [array] Hostnames matched by the HTTPRoute. An empty list adds no hostname constraint
+## @param httpRoute.path [string, default: "/"] Path matched by the HTTPRoute
+## @param httpRoute.pathType [string, default: "PathPrefix"] Path match type. Supported values are PathPrefix and Exact
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  hostnames: []
+  path: /
+  pathType: PathPrefix
+
 ## @section Networking Parameters
 ## @param containerPort [default: 8000] The port the Broker container will expose
 containerPort: 8000

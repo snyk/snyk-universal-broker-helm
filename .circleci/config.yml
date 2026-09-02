@@ -9,6 +9,9 @@ parameters:
   kubectl-version:
     type: string
     default: "1.28"
+  gateway-api-version:
+    type: string
+    default: "v1.5.1"
 
 jobs:
   validate_charts:
@@ -33,6 +36,11 @@ jobs:
         default: "SNYK_API_TOKEN"
     steps:
       - checkout
+      - run:
+          name: Install helm-unittest
+          command: |
+            helm plugin uninstall unittest
+            helm plugin install https://github.com/helm-unittest/helm-unittest.git --version 1.0.3
       - run:
           name: Helm dependencies
           command: helm dep up
@@ -102,9 +110,6 @@ jobs:
     steps:
       - checkout
       - helm/install_helm_client
-      - helm/install_helm_plugin:
-          helm_plugin_url: https://github.com/helm-unittest/helm-unittest
-          plugin_version: v1.0.3
       - run:
           name: Install Pre-reqs
           command: |
@@ -114,10 +119,20 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y kubectl
       - run:
+          name: Create k3d cluster with Gateway API CRDs
+          command: |
+            k3d cluster create
+            kubectl apply \
+              --server-side \
+              -f "https://github.com/kubernetes-sigs/gateway-api/releases/download/<<pipeline.parameters.gateway-api-version>>/standard-install.yaml"
+            kubectl wait \
+              --for=condition=Established \
+              --timeout=60s \
+              customresourcedefinition/httproutes.gateway.networking.k8s.io
+      - run:
           name: Deploy Universal Broker (StatefulSet)
           command: |
             helm dep up
-            k3d cluster create
             helm install \
               --debug \
               --wait \
@@ -127,9 +142,16 @@ jobs:
               --set clientId=${<<parameters.client-id>>} \
               --set clientSecret=${<<parameters.client-secret>>} \
               --set credentialReferences.MY_GITHUB_TOKEN=${<<parameters.my-github-token>>} \
+              --set httpRoute.enabled=true \
+              --set 'httpRoute.parentRefs[0].name=test-gateway' \
               snyk-universal-broker \
               .
           working_directory: snyk-universal-broker
+      - run:
+          name: Validate HTTPRoute admission
+          command: |
+            kubectl get httproute.gateway.networking.k8s.io snyk-universal-broker
+            test "$(kubectl get httproute.gateway.networking.k8s.io snyk-universal-broker -o jsonpath='{.apiVersion}')" = "gateway.networking.k8s.io/v1"
       - run:
           name: Test Import (StatefulSet)
           command: |

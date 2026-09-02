@@ -314,6 +314,56 @@
       },
       "additionalProperties": false
     },
+    "httpRoute": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parentRefs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "namespace": {
+                "type": "string"
+              },
+              "sectionName": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "hostnames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "path": {
+          "type": "string",
+          "default": "/"
+        },
+        "pathType": {
+          "type": "string",
+          "enum": ["PathPrefix", "Exact"],
+          "default": "PathPrefix"
+        }
+      },
+      "additionalProperties": false
+    },
     "runtimeClassName": {
       "type": "string"
     },
